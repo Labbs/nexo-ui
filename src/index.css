@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Notion-style light theme */
+    --background: 0 0% 100%;             /* #ffffff - main content */
+    --foreground: 25 5% 22%;             /* #37352f - main text (Notion's dark brown) */
+    --card: 0 0% 100%;
+    --card-foreground: 25 5% 22%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 5% 22%;
+    --primary: 25 5% 22%;                /* Notion brown for primary elements */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 6% 96%;              /* #f7f7f5 - Notion's sidebar/hover bg */
+    --secondary-foreground: 25 5% 22%;
+    --muted: 40 6% 96%;                  /* #f7f7f5 */
+    --muted-foreground: 25 2% 57%;       /* #91918e - Notion's muted text */
+    --accent: 40 8% 93%;                 /* slightly darker for hover */
+    --accent-foreground: 25 5% 22%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 6% 90%;                 /* #e9e9e7 - subtle borders */
+    --input: 40 6% 90%;
+    --ring: 25 5% 22%;
+    --radius: 0.25rem;                   /* Notion uses smaller radius */
+
+    /* Sidebar specific - distinct from main background */
+    --sidebar: 40 6% 96%;                /* #f7f7f5 - Notion sidebar beige */
+  }
+
+  .dark {
+    /* Notion-style dark theme - warm dark grays */
+    --background: 0 0% 12.5%;            /* #202020 - main background */
+    --foreground: 0 0% 90%;              /* #e6e6e6 - main text */
+    --card: 0 0% 12.5%;
+    --card-foreground: 0 0% 90%;
+    --popover: 0 0% 15%;                 /* #262626 - menus, dropdowns */
+    --popover-foreground: 0 0% 90%;
+    --primary: 0 0% 90%;
+    --primary-foreground: 0 0% 12.5%;
+    --secondary: 0 0% 18%;               /* #2e2e2e - hover states */
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 16%;                   /* #292929 - muted backgrounds */
+    --muted-foreground: 0 0% 55%;        /* #8c8c8c - secondary text */
+    --accent: 0 0% 20%;                  /* #333333 - accent backgrounds */
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;                  /* #333333 - borders */
+    --input: 0 0% 18%;
+    --ring: 0 0% 50%;
+
+    /* Sidebar specific - slightly different from main bg */
+    --sidebar: 0 0% 10%;                 /* #1a1a1a - darker than main */
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* Notion-like sidebar styles */
+.sidebar-section-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: hsl(var(--muted-foreground));
+}
+
+.sidebar-item {
+  font-size: 14px;
+  font-weight: 400;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.sidebar-item:hover {
+  background-color: hsl(var(--accent));
+}

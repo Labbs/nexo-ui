@@ -1,0 +1,313 @@
+import { useEffect, useState, useRef, useMemo } from 'react'
+import { BlockNoteSchema, defaultBlockSpecs, PartialBlock } from '@blocknote/core'
+import { filterSuggestionItems } from '@blocknote/core/extensions'
+import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from '@blocknote/react'
+import { BlockNoteView } from '@blocknote/mantine'
+import '@blocknote/mantine/style.css'
+import { useTheme } from 'next-themes'
+import { ActionButton, Callout, Divider, getCustomSlashMenuItems } from './custom-blocks'
+import { DatabaseBlock, getDatabaseSlashMenuItem } from './database-block'
+
+// Type pour un bloc BlockNote
+export interface BlockNoteBlock {
+  id: string
+  type: string
+  props: Record<string, any>
+  content: Array<{
+    type: string
+    text?: string
+    href?: string
+    styles: Record<string, boolean>
+  }>
+  children: BlockNoteBlock[]
+}
+
+// Type pour le contenu BlockNote (array de blocs)
+export type BlockNoteContent = BlockNoteBlock[]
+
+interface BlockNoteEditorProps {
+  // Content est un array de blocs (format JSON du backend)
+  content: BlockNoteContent | null | undefined
+  onChange: (content: BlockNoteContent) => void
+  editable?: boolean
+  fullWidth?: boolean
+}
+
+// Create custom schema with our blocks
+const schema = BlockNoteSchema.create({
+  blockSpecs: {
+    ...defaultBlockSpecs,
+    actionButton: ActionButton(),
+    callout: Callout(),
+    divider: Divider(),
+    database: DatabaseBlock(),
+  },
+})
+
+// Known block types in our schema
+const knownBlockTypes = new Set([
+  ...Object.keys(defaultBlockSpecs),
+  'actionButton',
+  'callout',
+  'divider',
+  'database',
+])
+
+// Filter out unknown block types from content to prevent loading errors
+function filterUnknownBlocks(blocks: BlockNoteBlock[]): BlockNoteBlock[] {
+  return blocks
+    .filter(block => knownBlockTypes.has(block.type))
+    .map(block => ({
+      ...block,
+      children: block.children ? filterUnknownBlocks(block.children) : [],
+    }))
+}
+
+export function BlockNoteEditor({ content, onChange, editable = true, fullWidth = false }: BlockNoteEditorProps) {
+  const { resolvedTheme } = useTheme()
+  const [isInitialized, setIsInitialized] = useState(false)
+  const lastContentRef = useRef<string>('')
+
+  // Créer l'éditeur BlockNote avec le schema custom
+  const editor = useCreateBlockNote({ schema })
+
+  // Charger le contenu initial
+  useEffect(() => {
+    if (!editor || isInitialized) return
+
+    // Attendre que content soit défini (non-undefined)
+    // content peut être null (document vide) ou un array (document avec contenu)
+    if (content === undefined) return
+
+    const loadContent = async () => {
+      // Contenu vide ou null - laisser le bloc par défaut
+      if (!content || !Array.isArray(content) || content.length === 0) {
+        setIsInitialized(true)
+        return
+      }
+
+      try {
+        // Filter out unknown block types to prevent loading errors
+        const filteredContent = filterUnknownBlocks(content)
+        // Charger les blocs directement (déjà au format BlockNote)
+        editor.replaceBlocks(editor.document, filteredContent as PartialBlock[])
+        lastContentRef.current = JSON.stringify(filteredContent)
+      } catch (error) {
+        console.error('Failed to load BlockNote content:', error)
+      }
+
+      setIsInitialized(true)
+    }
+
+    loadContent()
+  }, [editor, content, isInitialized])
+
+  // Gérer les changements
+  const handleChange = () => {
+    if (!isInitialized) return
+
+    // Utiliser any pour éviter les problèmes de types complexes de BlockNote
+    const blocks = editor.document as any as BlockNoteContent
+    const jsonString = JSON.stringify(blocks)
+
+    // Éviter les appels en boucle si le contenu n'a pas changé
+    if (jsonString !== lastContentRef.current) {
+      lastContentRef.current = jsonString
+      onChange(blocks)
+    }
+  }
+
+  // Get all slash menu items (default + custom)
+  const getSlashMenuItems = useMemo(
+    () => (editorInstance: any) =>
+      [
+        ...getDefaultReactSlashMenuItems(editorInstance),
+        ...getCustomSlashMenuItems(editorInstance),
+        getDatabaseSlashMenuItem(editorInstance),
+      ],
+    []
+  )
+
+  return (
+    <div className={`blocknote-editor-wrapper h-full overflow-auto ${fullWidth ? 'full-width' : ''}`}>
+      <BlockNoteView
+        editor={editor}
+        editable={editable}
+        theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+        onChange={handleChange}
+        slashMenu={false}
+      >
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={async (query) =>
+            filterSuggestionItems(getSlashMenuItems(editor), query)
+          }
+        />
+      </BlockNoteView>
+      <style>{`
+        .blocknote-editor-wrapper {
+          --bn-colors-editor-background: hsl(var(--background));
+          --bn-colors-editor-text: hsl(var(--foreground));
+          --bn-colors-menu-background: hsl(var(--popover));
+          --bn-colors-menu-text: hsl(var(--popover-foreground));
+          --bn-colors-tooltip-background: hsl(var(--popover));
+          --bn-colors-tooltip-text: hsl(var(--popover-foreground));
+          --bn-colors-hovered-background: hsl(var(--accent));
+          --bn-colors-hovered-text: hsl(var(--accent-foreground));
+          --bn-colors-selected-background: hsl(var(--secondary));
+          --bn-colors-selected-text: hsl(var(--secondary-foreground));
+          --bn-colors-disabled-background: hsl(var(--muted));
+          --bn-colors-disabled-text: hsl(var(--muted-foreground));
+          --bn-colors-border: hsl(var(--border));
+          --bn-font-family: inherit;
+        }
+
+        .blocknote-editor-wrapper .bn-editor {
+          padding: 1.5rem 2rem;
+          min-height: calc(100vh - 10rem);
+          max-width: 720px;
+          margin: 0 auto;
+          transition: max-width 0.2s ease;
+        }
+
+        .blocknote-editor-wrapper.full-width .bn-editor {
+          max-width: 100%;
+        }
+
+        /* Headings - Notion style */
+        .blocknote-editor-wrapper [data-content-type="heading"][data-level="1"] {
+          font-size: 1.875rem;
+          font-weight: 700;
+          line-height: 1.3;
+          margin-top: 2rem;
+          margin-bottom: 0.25rem;
+        }
+
+        .blocknote-editor-wrapper [data-content-type="heading"][data-level="2"] {
+          font-size: 1.5rem;
+          font-weight: 600;
+          line-height: 1.3;
+          margin-top: 1.5rem;
+          margin-bottom: 0.25rem;
+        }
+
+        .blocknote-editor-wrapper [data-content-type="heading"][data-level="3"] {
+          font-size: 1.25rem;
+          font-weight: 600;
+          line-height: 1.3;
+          margin-top: 1rem;
+          margin-bottom: 0.25rem;
+        }
+
+        /* Paragraphs */
+        .blocknote-editor-wrapper [data-content-type="paragraph"] {
+          line-height: 1.6;
+        }
+
+        /* Lists */
+        .blocknote-editor-wrapper [data-content-type="bulletListItem"],
+        .blocknote-editor-wrapper [data-content-type="numberedListItem"],
+        .blocknote-editor-wrapper [data-content-type="checkListItem"] {
+          line-height: 1.5;
+        }
+
+        /* Code blocks */
+        .blocknote-editor-wrapper [data-content-type="codeBlock"] {
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+          font-size: 0.85rem;
+          background: hsl(var(--secondary));
+          color: hsl(var(--foreground));
+          border-radius: 0.375rem;
+          padding: 0.25rem 0.5rem;
+          border: 1px solid hsl(var(--border));
+        }
+
+        .blocknote-editor-wrapper [data-content-type="codeBlock"] code {
+          color: hsl(var(--foreground));
+          background: transparent;
+        }
+
+        /* Inline code */
+        .blocknote-editor-wrapper code:not([data-content-type="codeBlock"] code) {
+          background: hsl(var(--secondary));
+          color: hsl(var(--foreground));
+          padding: 0.125rem 0.25rem;
+          border-radius: 0.25rem;
+          font-size: 0.875em;
+        }
+
+        /* Slash menu styling */
+        .blocknote-editor-wrapper .bn-slash-menu {
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+          border: 1px solid hsl(var(--border));
+          max-height: 320px;
+          overflow-y: auto;
+        }
+
+        .blocknote-editor-wrapper .bn-slash-menu-item {
+          padding: 0.5rem 0.75rem;
+          border-radius: 0.25rem;
+          transition: background-color 150ms ease;
+        }
+
+        .blocknote-editor-wrapper .bn-slash-menu-item:hover {
+          background: hsl(var(--accent));
+        }
+
+        /* Formatting toolbar */
+        .blocknote-editor-wrapper .bn-formatting-toolbar {
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+          border: 1px solid hsl(var(--border));
+        }
+
+        /* Side menu (drag handle) */
+        .blocknote-editor-wrapper .bn-side-menu {
+          opacity: 0;
+          transition: opacity 150ms ease;
+        }
+
+        .blocknote-editor-wrapper .bn-block-outer:hover .bn-side-menu,
+        .blocknote-editor-wrapper .bn-side-menu:hover {
+          opacity: 1;
+        }
+
+        /* Table styles */
+        .blocknote-editor-wrapper table {
+          border-collapse: collapse;
+          width: 100%;
+        }
+
+        .blocknote-editor-wrapper td,
+        .blocknote-editor-wrapper th {
+          border: 1px solid hsl(var(--border));
+          padding: 0.5rem 0.75rem;
+        }
+
+        /* Placeholder text */
+        .blocknote-editor-wrapper .bn-inline-content[data-is-empty="true"]::before {
+          color: hsl(var(--muted-foreground));
+          font-style: normal;
+        }
+
+        /* Remove selection ring from database blocks */
+        .blocknote-editor-wrapper [data-content-type="database"],
+        .blocknote-editor-wrapper [data-content-type="database"] * {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+
+        .blocknote-editor-wrapper .bn-block-outer[data-content-type="database"] {
+          outline: none !important;
+        }
+
+        .blocknote-editor-wrapper .bn-block-outer[data-content-type="database"].bn-selected-block,
+        .blocknote-editor-wrapper .bn-block-outer[data-content-type="database"]:focus-within {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+      `}</style>
+    </div>
+  )
+}

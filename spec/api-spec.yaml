@@ -1,0 +1,4253 @@
+components:
+    schemas:
+        ActionItem:
+            properties:
+                active:
+                    type: boolean
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                database_id:
+                    type: string
+                description:
+                    type: string
+                failure_count:
+                    type: integer
+                id:
+                    type: string
+                last_error:
+                    type: string
+                last_run_at:
+                    $ref: '#/components/schemas/Time'
+                name:
+                    type: string
+                run_count:
+                    type: integer
+                space_id:
+                    type: string
+                space_name:
+                    type: string
+                success_count:
+                    type: integer
+                trigger_type:
+                    type: string
+            type: object
+        ActionStep:
+            properties:
+                config:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                type:
+                    type: string
+            type: object
+        AddFavoriteRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    format: uuid
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - DocumentId
+                - SpaceId
+            type: object
+        AddFavoriteResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AnyValue:
+            description: Any value (interface{})
+        ApiKeyItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                expires_at:
+                    $ref: '#/components/schemas/Time'
+                id:
+                    type: string
+                key_prefix:
+                    type: string
+                last_used_at:
+                    $ref: '#/components/schemas/Time'
+                name:
+                    type: string
+                scopes:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        Array_ActionItem:
+            items:
+                $ref: '#/components/schemas/ActionItem'
+            type: array
+        Array_ActionStep:
+            items:
+                $ref: '#/components/schemas/ActionStep'
+            type: array
+        Array_ApiKeyItem:
+            items:
+                $ref: '#/components/schemas/ApiKeyItem'
+            type: array
+        Array_Block:
+            items:
+                $ref: '#/components/schemas/Block'
+            type: array
+        Array_CommentResponse:
+            items:
+                $ref: '#/components/schemas/CommentResponse'
+            type: array
+        Array_DatabaseItem:
+            items:
+                $ref: '#/components/schemas/DatabaseItem'
+            type: array
+        Array_DeliveryItem:
+            items:
+                $ref: '#/components/schemas/DeliveryItem'
+            type: array
+        Array_Document:
+            items:
+                $ref: '#/components/schemas/Document'
+            type: array
+        Array_DocumentPermission:
+            items:
+                $ref: '#/components/schemas/DocumentPermission'
+            type: array
+        Array_EventInfo:
+            items:
+                $ref: '#/components/schemas/EventInfo'
+            type: array
+        Array_Favorite:
+            items:
+                $ref: '#/components/schemas/Favorite'
+            type: array
+        Array_InlineContent:
+            items:
+                $ref: '#/components/schemas/InlineContent'
+            type: array
+        Array_PropertySchema:
+            items:
+                $ref: '#/components/schemas/PropertySchema'
+            type: array
+        Array_RowItem:
+            items:
+                $ref: '#/components/schemas/RowItem'
+            type: array
+        Array_RunItem:
+            items:
+                $ref: '#/components/schemas/RunItem'
+            type: array
+        Array_ScopeInfo:
+            items:
+                $ref: '#/components/schemas/ScopeInfo'
+            type: array
+        Array_SearchResultItem:
+            items:
+                $ref: '#/components/schemas/SearchResultItem'
+            type: array
+        Array_SortConfig:
+            items:
+                $ref: '#/components/schemas/SortConfig'
+            type: array
+        Array_Space:
+            items:
+                $ref: '#/components/schemas/Space'
+            type: array
+        Array_SpacePermission:
+            items:
+                $ref: '#/components/schemas/SpacePermission'
+            type: array
+        Array_StepInfo:
+            items:
+                $ref: '#/components/schemas/StepInfo'
+            type: array
+        Array_TrashDocument:
+            items:
+                $ref: '#/components/schemas/TrashDocument'
+            type: array
+        Array_TriggerInfo:
+            items:
+                $ref: '#/components/schemas/TriggerInfo'
+            type: array
+        Array_TypeInfo:
+            items:
+                $ref: '#/components/schemas/TypeInfo'
+            type: array
+        Array_VersionItem:
+            items:
+                $ref: '#/components/schemas/VersionItem'
+            type: array
+        Array_ViewConfig:
+            items:
+                $ref: '#/components/schemas/ViewConfig'
+            type: array
+        Array_WebhookItem:
+            items:
+                $ref: '#/components/schemas/WebhookItem'
+            type: array
+        AvailableEventsResponse:
+            properties:
+                events:
+                    items:
+                        $ref: '#/components/schemas/EventInfo'
+                    type: array
+            type: object
+        AvailableScopesResponse:
+            properties:
+                scopes:
+                    items:
+                        $ref: '#/components/schemas/ScopeInfo'
+                    type: array
+            type: object
+        AvailableStepsResponse:
+            properties:
+                steps:
+                    items:
+                        $ref: '#/components/schemas/StepInfo'
+                    type: array
+            type: object
+        AvailableTriggersResponse:
+            properties:
+                triggers:
+                    items:
+                        $ref: '#/components/schemas/TriggerInfo'
+                    type: array
+            type: object
+        AvailableTypesResponse:
+            properties:
+                types:
+                    items:
+                        $ref: '#/components/schemas/TypeInfo'
+                    type: array
+            type: object
+        Block:
+            properties:
+                children:
+                    items:
+                        $ref: '#/components/schemas/Block'
+                    type: array
+                content:
+                    items:
+                        $ref: '#/components/schemas/InlineContent'
+                    type: array
+                id:
+                    type: string
+                props:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                type:
+                    type: string
+            type: object
+        BulkDeleteRowsRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+                row_ids:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        ChangePasswordRequest:
+            properties:
+                current_password:
+                    minLength: 8
+                    type: string
+                new_password:
+                    minLength: 8
+                    type: string
+            required:
+                - current_password
+                - new_password
+            type: object
+        ChangePasswordResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        CommentResponse:
+            properties:
+                block_id:
+                    type: string
+                content:
+                    type: string
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                id:
+                    type: string
+                parent_id:
+                    type: string
+                resolved:
+                    type: boolean
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+                user_id:
+                    type: string
+                user_name:
+                    type: string
+            type: object
+        CreateActionRequest:
+            properties:
+                database_id:
+                    type: string
+                description:
+                    type: string
+                name:
+                    type: string
+                space_id:
+                    type: string
+                steps:
+                    items:
+                        $ref: '#/components/schemas/ActionStep'
+                    type: array
+                trigger_config:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                trigger_type:
+                    type: string
+            type: object
+        CreateActionResponse:
+            properties:
+                active:
+                    type: boolean
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                description:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                trigger_type:
+                    type: string
+            type: object
+        CreateApiKeyRequest:
+            properties:
+                expires_at:
+                    $ref: '#/components/schemas/Time'
+                name:
+                    type: string
+                scopes:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        CreateApiKeyResponse:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                expires_at:
+                    $ref: '#/components/schemas/Time'
+                id:
+                    type: string
+                key:
+                    type: string
+                key_prefix:
+                    type: string
+                name:
+                    type: string
+                scopes:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        CreateCommentRequestWithParams:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    type: string
+                block_id:
+                    type: string
+                content:
+                    type: string
+                parent_id:
+                    type: string
+            type: object
+        CreateCommentResponse:
+            properties:
+                comment_id:
+                    type: string
+            type: object
+        CreateDatabaseRequest:
+            properties:
+                description:
+                    type: string
+                document_id:
+                    type: string
+                icon:
+                    type: string
+                name:
+                    type: string
+                schema:
+                    items:
+                        $ref: '#/components/schemas/PropertySchema'
+                    type: array
+                space_id:
+                    type: string
+            type: object
+        CreateDatabaseResponse:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                default_view:
+                    type: string
+                description:
+                    type: string
+                icon:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                schema:
+                    items:
+                        $ref: '#/components/schemas/PropertySchema'
+                    type: array
+            type: object
+        CreateDocumentRequest:
+            properties:
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                parent_id:
+                    type: string
+            required:
+                - SpaceId
+            type: object
+        CreateDocumentResponse:
+            properties:
+                Document:
+                    $ref: '#/components/schemas/Document'
+            type: object
+        CreateRowRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+                content:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                properties:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+            type: object
+        CreateRowResponse:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                id:
+                    type: string
+                properties:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+            type: object
+        CreateSpaceRequest:
+            properties:
+                icon:
+                    type: string
+                icon_color:
+                    type: string
+                name:
+                    maxLength: 100
+                    minLength: 3
+                    type: string
+            required:
+                - name
+            type: object
+        CreateSpaceResponse:
+            properties:
+                space_id:
+                    type: string
+            type: object
+        CreateVersionRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                description:
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+            type: object
+        CreateVersionResponse:
+            properties:
+                version:
+                    type: integer
+                version_id:
+                    type: string
+            type: object
+        CreateWebhookRequest:
+            properties:
+                events:
+                    items:
+                        type: string
+                    type: array
+                name:
+                    type: string
+                space_id:
+                    type: string
+                url:
+                    type: string
+            type: object
+        CreateWebhookResponse:
+            properties:
+                active:
+                    type: boolean
+                events:
+                    items:
+                        type: string
+                    type: array
+                id:
+                    type: string
+                name:
+                    type: string
+                secret:
+                    type: string
+                url:
+                    type: string
+            type: object
+        DatabaseItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                created_by:
+                    type: string
+                description:
+                    type: string
+                document_id:
+                    type: string
+                icon:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                row_count:
+                    type: integer
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        DeleteActionRequest:
+            properties:
+                ActionId:
+                    description: 'Path parameter: action_id'
+                    type: string
+            type: object
+        DeleteApiKeyRequest:
+            properties:
+                ApiKeyId:
+                    description: 'Path parameter: api_key_id'
+                    type: string
+            type: object
+        DeleteCommentRequest:
+            properties:
+                CommentId:
+                    description: 'Path parameter: comment_id'
+                    type: string
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    type: string
+            type: object
+        DeleteDatabaseRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+            type: object
+        DeleteDocumentRequest:
+            properties:
+                Identifier:
+                    description: 'Path parameter: identifier'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - Identifier
+            type: object
+        DeleteDocumentResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        DeleteDocumentUserPermissionRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    format: uuid
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                UserId:
+                    description: 'Path parameter: user_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+                - UserId
+            type: object
+        DeleteDocumentUserPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        DeleteRowRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+                RowId:
+                    description: 'Path parameter: row_id'
+                    type: string
+            type: object
+        DeleteSpaceRequest:
+            properties:
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+            type: object
+        DeleteSpaceResponse:
+            properties:
+                space_id:
+                    type: string
+            type: object
+        DeleteSpaceUserPermissionRequest:
+            properties:
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                UserId:
+                    description: 'Path parameter: user_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - UserId
+            type: object
+        DeleteSpaceUserPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        DeleteWebhookRequest:
+            properties:
+                WebhookId:
+                    description: 'Path parameter: webhook_id'
+                    type: string
+            type: object
+        DeliveryItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                duration_ms:
+                    type: integer
+                event:
+                    type: string
+                id:
+                    type: string
+                status_code:
+                    type: integer
+                success:
+                    type: boolean
+            type: object
+        Document:
+            properties:
+                config:
+                    $ref: '#/components/schemas/DocumentConfig'
+                content:
+                    items:
+                        $ref: '#/components/schemas/Block'
+                    type: array
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                id:
+                    type: string
+                metadata:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                name:
+                    type: string
+                parent:
+                    $ref: '#/components/schemas/Document'
+                parent_id:
+                    type: string
+                slug:
+                    type: string
+                space:
+                    $ref: '#/components/schemas/Space'
+                space_id:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        DocumentConfig:
+            properties:
+                full_width:
+                    type: boolean
+                header_background:
+                    type: string
+                icon:
+                    type: string
+                lock:
+                    type: boolean
+            type: object
+        DocumentPermission:
+            properties:
+                id:
+                    type: string
+                role:
+                    type: string
+                user_id:
+                    type: string
+            type: object
+        EmptyRequest:
+            properties: {}
+            type: object
+        ErrorResponse:
+            properties:
+                code:
+                    type: integer
+                details:
+                    type: string
+                type:
+                    type: string
+            type: object
+        EventInfo:
+            properties:
+                description:
+                    type: string
+                event:
+                    type: string
+            type: object
+        Favorite:
+            properties:
+                document:
+                    $ref: '#/components/schemas/Document'
+                id:
+                    type: string
+                position:
+                    type: integer
+                space_id:
+                    type: string
+            type: object
+        GetActionRequest:
+            properties:
+                ActionId:
+                    description: 'Path parameter: action_id'
+                    type: string
+            type: object
+        GetActionResponse:
+            properties:
+                active:
+                    type: boolean
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                database_id:
+                    type: string
+                description:
+                    type: string
+                failure_count:
+                    type: integer
+                id:
+                    type: string
+                last_error:
+                    type: string
+                last_run_at:
+                    $ref: '#/components/schemas/Time'
+                name:
+                    type: string
+                run_count:
+                    type: integer
+                space_id:
+                    type: string
+                space_name:
+                    type: string
+                steps:
+                    items:
+                        $ref: '#/components/schemas/ActionStep'
+                    type: array
+                success_count:
+                    type: integer
+                trigger_config:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                trigger_type:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        GetCommentsRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    type: string
+            type: object
+        GetCommentsResponse:
+            properties:
+                comments:
+                    items:
+                        $ref: '#/components/schemas/CommentResponse'
+                    type: array
+            type: object
+        GetDatabaseRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+            type: object
+        GetDatabaseResponse:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                created_by:
+                    type: string
+                default_view:
+                    type: string
+                description:
+                    type: string
+                document_id:
+                    type: string
+                icon:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                schema:
+                    items:
+                        $ref: '#/components/schemas/PropertySchema'
+                    type: array
+                space_id:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+                views:
+                    items:
+                        $ref: '#/components/schemas/ViewConfig'
+                    type: array
+            type: object
+        GetDeliveriesRequest:
+            properties:
+                Limit:
+                    description: 'Query parameter: limit'
+                    type: integer
+                WebhookId:
+                    description: 'Path parameter: webhook_id'
+                    type: string
+            type: object
+        GetDeliveriesResponse:
+            properties:
+                deliveries:
+                    items:
+                        $ref: '#/components/schemas/DeliveryItem'
+                    type: array
+            type: object
+        GetDocumentRequest:
+            properties:
+                Identifier:
+                    description: 'Path parameter: identifier'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - Identifier
+            type: object
+        GetDocumentResponse:
+            properties:
+                config:
+                    $ref: '#/components/schemas/DocumentConfig'
+                content:
+                    items:
+                        $ref: '#/components/schemas/Block'
+                    type: array
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                document:
+                    type: string
+                metadata:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                name:
+                    type: string
+                parent:
+                    $ref: '#/components/schemas/Document'
+                parent_id:
+                    type: string
+                public:
+                    type: boolean
+                slug:
+                    type: string
+                space:
+                    $ref: '#/components/schemas/Space'
+                space_id:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        GetDocumentsFromSpaceRequest:
+            properties:
+                ParentId:
+                    description: 'Query parameter: parent_id'
+                    format: uuid
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+            type: object
+        GetDocumentsFromSpaceResponse:
+            properties:
+                documents:
+                    items:
+                        $ref: '#/components/schemas/Document'
+                    type: array
+            type: object
+        GetMyFavoritesResponse:
+            properties:
+                favorites:
+                    items:
+                        $ref: '#/components/schemas/Favorite'
+                    type: array
+            type: object
+        GetMySpacesResponse:
+            properties:
+                spaces:
+                    items:
+                        $ref: '#/components/schemas/Space'
+                    type: array
+            type: object
+        GetPublicDocumentRequest:
+            properties:
+                Identifier:
+                    description: 'Path parameter: identifier'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - Identifier
+            type: object
+        GetRowRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+                RowId:
+                    description: 'Path parameter: row_id'
+                    type: string
+            type: object
+        GetRowResponse:
+            properties:
+                content:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                created_by:
+                    type: string
+                database_id:
+                    type: string
+                id:
+                    type: string
+                properties:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        GetRunsRequest:
+            properties:
+                ActionId:
+                    description: 'Path parameter: action_id'
+                    type: string
+                Limit:
+                    description: 'Query parameter: limit'
+                    type: integer
+            type: object
+        GetRunsResponse:
+            properties:
+                runs:
+                    items:
+                        $ref: '#/components/schemas/RunItem'
+                    type: array
+            type: object
+        GetTrashRequest:
+            properties:
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+            type: object
+        GetTrashResponse:
+            properties:
+                documents:
+                    items:
+                        $ref: '#/components/schemas/TrashDocument'
+                    type: array
+            type: object
+        GetVersionRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                VersionId:
+                    description: 'Path parameter: version_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+                - VersionId
+            type: object
+        GetVersionResponse:
+            properties:
+                config:
+                    $ref: '#/components/schemas/VersionConfig'
+                content:
+                    items:
+                        $ref: '#/components/schemas/Block'
+                    type: array
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                description:
+                    type: string
+                document_id:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                user_id:
+                    type: string
+                user_name:
+                    type: string
+                version:
+                    type: integer
+            type: object
+        GetWebhookRequest:
+            properties:
+                WebhookId:
+                    description: 'Path parameter: webhook_id'
+                    type: string
+            type: object
+        GetWebhookResponse:
+            properties:
+                active:
+                    type: boolean
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                events:
+                    items:
+                        type: string
+                    type: array
+                failure_count:
+                    type: integer
+                id:
+                    type: string
+                last_error:
+                    type: string
+                last_error_at:
+                    $ref: '#/components/schemas/Time'
+                name:
+                    type: string
+                secret:
+                    type: string
+                space_id:
+                    type: string
+                space_name:
+                    type: string
+                success_count:
+                    type: integer
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+                url:
+                    type: string
+            type: object
+        HealthResponse:
+            properties:
+                service:
+                    type: string
+                status:
+                    type: string
+                version:
+                    type: string
+            type: object
+        InlineContent:
+            properties:
+                href:
+                    type: string
+                styles:
+                    additionalProperties:
+                        type: boolean
+                    type: object
+                text:
+                    type: string
+                type:
+                    type: string
+            type: object
+        ListActionsResponse:
+            properties:
+                actions:
+                    items:
+                        $ref: '#/components/schemas/ActionItem'
+                    type: array
+            type: object
+        ListApiKeysResponse:
+            properties:
+                api_keys:
+                    items:
+                        $ref: '#/components/schemas/ApiKeyItem'
+                    type: array
+            type: object
+        ListDatabasesRequest:
+            properties:
+                SpaceId:
+                    description: 'Query parameter: space_id'
+                    type: string
+            type: object
+        ListDatabasesResponse:
+            properties:
+                databases:
+                    items:
+                        $ref: '#/components/schemas/DatabaseItem'
+                    type: array
+            type: object
+        ListDocumentPermissionsRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    format: uuid
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+            type: object
+        ListDocumentPermissionsResponse:
+            properties:
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/DocumentPermission'
+                    type: array
+            type: object
+        ListRowsRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+                Limit:
+                    description: 'Query parameter: limit'
+                    type: integer
+                Offset:
+                    description: 'Query parameter: offset'
+                    type: integer
+            type: object
+        ListRowsResponse:
+            properties:
+                rows:
+                    items:
+                        $ref: '#/components/schemas/RowItem'
+                    type: array
+                total_count:
+                    type: integer
+            type: object
+        ListSpacePermissionsRequest:
+            properties:
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+            type: object
+        ListSpacePermissionsResponse:
+            properties:
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/SpacePermission'
+                    type: array
+            type: object
+        ListVersionsRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                Limit:
+                    description: 'Query parameter: limit'
+                    type: integer
+                Offset:
+                    description: 'Query parameter: offset'
+                    type: integer
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+            type: object
+        ListVersionsResponse:
+            properties:
+                total_count:
+                    type: integer
+                versions:
+                    items:
+                        $ref: '#/components/schemas/VersionItem'
+                    type: array
+            type: object
+        ListWebhooksResponse:
+            properties:
+                webhooks:
+                    items:
+                        $ref: '#/components/schemas/WebhookItem'
+                    type: array
+            type: object
+        LoginRequest:
+            properties:
+                email:
+                    format: email
+                    type: string
+                password:
+                    type: string
+            required:
+                - email
+                - password
+            type: object
+        LoginResponse:
+            properties:
+                token:
+                    type: string
+            type: object
+        LogoutResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        MessageResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        MoveDocumentRequest:
+            properties:
+                Id:
+                    description: 'Path parameter: id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                parent_id:
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - Id
+            type: object
+        MoveDocumentResponse:
+            properties:
+                id:
+                    type: string
+                parent_id:
+                    type: string
+                space_id:
+                    type: string
+            type: object
+        ProfileResponse:
+            properties:
+                avatar:
+                    type: string
+                email:
+                    type: string
+                id:
+                    type: string
+                role:
+                    type: string
+                username:
+                    type: string
+            type: object
+        PropertySchema:
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                options:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                type:
+                    type: string
+            type: object
+        RegisterRequest:
+            properties:
+                email:
+                    format: email
+                    type: string
+                password:
+                    type: string
+                username:
+                    type: string
+            required:
+                - email
+                - username
+                - password
+            type: object
+        RegisterResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        RemoveFavoriteRequest:
+            properties:
+                FavoriteId:
+                    description: 'Path parameter: favorite_id'
+                    format: uuid
+                    type: string
+            required:
+                - FavoriteId
+            type: object
+        RemoveFavoriteResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        ResolveCommentRequestWithParams:
+            properties:
+                CommentId:
+                    description: 'Path parameter: comment_id'
+                    type: string
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    type: string
+                resolved:
+                    type: boolean
+            type: object
+        RestoreDocumentRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    format: uuid
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+            type: object
+        RestoreDocumentResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        RestoreVersionRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                VersionId:
+                    description: 'Path parameter: version_id'
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+                - VersionId
+            type: object
+        RowItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                created_by:
+                    type: string
+                id:
+                    type: string
+                properties:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        RunItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                duration_ms:
+                    type: integer
+                error:
+                    type: string
+                id:
+                    type: string
+                success:
+                    type: boolean
+            type: object
+        ScopeInfo:
+            properties:
+                description:
+                    type: string
+                scope:
+                    type: string
+            type: object
+        SearchRequest:
+            properties:
+                Limit:
+                    description: 'Query parameter: limit'
+                    type: integer
+                Query:
+                    description: 'Query parameter: q'
+                    type: string
+                SpaceId:
+                    description: 'Query parameter: space_id'
+                    type: string
+            type: object
+        SearchResponse:
+            properties:
+                results:
+                    items:
+                        $ref: '#/components/schemas/SearchResultItem'
+                    type: array
+            type: object
+        SearchResultItem:
+            properties:
+                icon:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+                space_id:
+                    type: string
+                space_name:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        SetPublicRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    format: uuid
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                public:
+                    type: boolean
+            required:
+                - SpaceId
+                - DocumentId
+            type: object
+        SetPublicResponse:
+            properties:
+                message:
+                    type: string
+                public:
+                    type: boolean
+            type: object
+        SortConfig:
+            properties:
+                direction:
+                    type: string
+                property_id:
+                    type: string
+            type: object
+        Space:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                icon:
+                    type: string
+                icon_color:
+                    type: string
+                id:
+                    type: string
+                my_role:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+                type:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        SpacePermission:
+            properties:
+                role:
+                    type: string
+                user_id:
+                    type: string
+            type: object
+        StepInfo:
+            properties:
+                category:
+                    type: string
+                description:
+                    type: string
+                type:
+                    type: string
+            type: object
+        Time:
+            properties: {}
+            type: object
+        TrashDocument:
+            properties:
+                deleted_at:
+                    $ref: '#/components/schemas/Time'
+                id:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+            type: object
+        TriggerInfo:
+            properties:
+                category:
+                    type: string
+                description:
+                    type: string
+                type:
+                    type: string
+            type: object
+        TypeInfo:
+            properties:
+                description:
+                    type: string
+                type:
+                    type: string
+            type: object
+        UpdateActionRequest:
+            properties:
+                ActionId:
+                    description: 'Path parameter: action_id'
+                    type: string
+                active:
+                    type: boolean
+                description:
+                    type: string
+                name:
+                    type: string
+                steps:
+                    items:
+                        $ref: '#/components/schemas/ActionStep'
+                    type: array
+                trigger_config:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                trigger_type:
+                    type: string
+            type: object
+        UpdateApiKeyRequest:
+            properties:
+                ApiKeyId:
+                    description: 'Path parameter: api_key_id'
+                    type: string
+                name:
+                    type: string
+                scopes:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        UpdateCommentRequestWithParams:
+            properties:
+                CommentId:
+                    description: 'Path parameter: comment_id'
+                    type: string
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    type: string
+                content:
+                    type: string
+            type: object
+        UpdateDatabaseRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+                default_view:
+                    type: string
+                description:
+                    type: string
+                icon:
+                    type: string
+                name:
+                    type: string
+                schema:
+                    items:
+                        $ref: '#/components/schemas/PropertySchema'
+                    type: array
+            type: object
+        UpdateDocumentRequest:
+            properties:
+                Id:
+                    description: 'Path parameter: id'
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                config:
+                    $ref: '#/components/schemas/DocumentConfig'
+                content:
+                    items:
+                        $ref: '#/components/schemas/Block'
+                    type: array
+                metadata:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                name:
+                    minLength: 1
+                    type: string
+                parent_id:
+                    type: string
+                public:
+                    type: boolean
+            required:
+                - SpaceId
+                - Id
+            type: object
+        UpdateDocumentResponse:
+            properties:
+                config:
+                    $ref: '#/components/schemas/DocumentConfig'
+                content:
+                    items:
+                        $ref: '#/components/schemas/Block'
+                    type: array
+                id:
+                    type: string
+                metadata:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                name:
+                    type: string
+                parent_id:
+                    type: string
+                slug:
+                    type: string
+                space_id:
+                    type: string
+            type: object
+        UpdateFavoritePositionRequest:
+            properties:
+                FavoriteId:
+                    description: 'Path parameter: favorite_id'
+                    format: uuid
+                    type: string
+                position:
+                    minimum: 0
+                    type: integer
+            required:
+                - FavoriteId
+                - position
+            type: object
+        UpdateFavoritePositionResponse:
+            properties:
+                favorite_id:
+                    type: string
+                position:
+                    type: integer
+            type: object
+        UpdateProfileRequest:
+            properties:
+                avatar_url:
+                    type: string
+                preferences:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                username:
+                    type: string
+            type: object
+        UpdateProfileResponse:
+            properties:
+                avatar_url:
+                    type: string
+                email:
+                    type: string
+                id:
+                    type: string
+                preferences:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                username:
+                    type: string
+            type: object
+        UpdateRowRequest:
+            properties:
+                DatabaseId:
+                    description: 'Path parameter: database_id'
+                    type: string
+                RowId:
+                    description: 'Path parameter: row_id'
+                    type: string
+                content:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                properties:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+            type: object
+        UpdateSpaceRequest:
+            properties:
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                icon:
+                    type: string
+                icon_color:
+                    type: string
+                name:
+                    maxLength: 100
+                    minLength: 3
+                    type: string
+            required:
+                - SpaceId
+            type: object
+        UpdateSpaceResponse:
+            properties:
+                space:
+                    $ref: '#/components/schemas/Space'
+            type: object
+        UpdateWebhookRequest:
+            properties:
+                WebhookId:
+                    description: 'Path parameter: webhook_id'
+                    type: string
+                active:
+                    type: boolean
+                events:
+                    items:
+                        type: string
+                    type: array
+                name:
+                    type: string
+                url:
+                    type: string
+            type: object
+        UpsertDocumentUserPermissionRequest:
+            properties:
+                DocumentId:
+                    description: 'Path parameter: document_id'
+                    format: uuid
+                    type: string
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                role:
+                    enum:
+                        - editor
+                        - viewer
+                        - denied
+                    type: string
+                user_id:
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - DocumentId
+                - user_id
+                - role
+            type: object
+        UpsertDocumentUserPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        UpsertSpaceUserPermissionRequest:
+            properties:
+                SpaceId:
+                    description: 'Path parameter: space_id'
+                    format: uuid
+                    type: string
+                role:
+                    enum:
+                        - owner
+                        - admin
+                        - editor
+                        - viewer
+                    type: string
+                user_id:
+                    format: uuid
+                    type: string
+            required:
+                - SpaceId
+                - user_id
+                - role
+            type: object
+        UpsertSpaceUserPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        VersionConfig:
+            properties:
+                full_width:
+                    type: boolean
+                header_background:
+                    type: string
+                icon:
+                    type: string
+                lock:
+                    type: boolean
+            type: object
+        VersionItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                description:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                user_id:
+                    type: string
+                user_name:
+                    type: string
+                version:
+                    type: integer
+            type: object
+        ViewConfig:
+            properties:
+                columns:
+                    items:
+                        type: string
+                    type: array
+                filter:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                id:
+                    type: string
+                name:
+                    type: string
+                sort:
+                    items:
+                        $ref: '#/components/schemas/SortConfig'
+                    type: array
+                type:
+                    type: string
+            type: object
+        WebhookItem:
+            properties:
+                active:
+                    type: boolean
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                events:
+                    items:
+                        type: string
+                    type: array
+                failure_count:
+                    type: integer
+                id:
+                    type: string
+                last_error:
+                    type: string
+                last_error_at:
+                    $ref: '#/components/schemas/Time'
+                name:
+                    type: string
+                space_id:
+                    type: string
+                space_name:
+                    type: string
+                success_count:
+                    type: integer
+                url:
+                    type: string
+            type: object
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerformat: JWT
+            in: ""
+            name: ""
+            description: JWT Bearer token
+            flows: {}
+info:
+    description: API documentation generated by fiber-oapi
+    title: Fiber OpenAPI
+    version: 1.0.0
+openapi: 3.0.0
+paths:
+    /api/health:
+        get:
+            description: Returns the health status of the service
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/HealthResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Health check
+            tags:
+                - Health
+    /api/v1/actions/:
+        get:
+            description: List all automation actions for the authenticated user
+            operationId: action.list
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListActionsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List actions
+            tags:
+                - Actions
+        post:
+            description: Create a new automation action
+            operationId: action.create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateActionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateActionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create action
+            tags:
+                - Actions
+    /api/v1/actions/{action_id}:
+        delete:
+            description: Delete an action
+            operationId: action.delete
+            parameters:
+                - description: 'Path parameter: ActionId'
+                  in: path
+                  name: action_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete action
+            tags:
+                - Actions
+        get:
+            description: Get a specific action by ID
+            operationId: action.get
+            parameters:
+                - description: 'Path parameter: ActionId'
+                  in: path
+                  name: action_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetActionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get action
+            tags:
+                - Actions
+        put:
+            description: Update an existing action
+            operationId: action.update
+            parameters:
+                - description: 'Path parameter: ActionId'
+                  in: path
+                  name: action_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateActionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update action
+            tags:
+                - Actions
+    /api/v1/actions/{action_id}/runs:
+        get:
+            description: Get execution history for an action
+            operationId: action.runs
+            parameters:
+                - description: 'Path parameter: ActionId'
+                  in: path
+                  name: action_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetRunsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get action runs
+            tags:
+                - Actions
+    /api/v1/actions/steps:
+        get:
+            description: List all available step types for actions
+            operationId: action.steps
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AvailableStepsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get available steps
+            tags:
+                - Actions
+    /api/v1/actions/triggers:
+        get:
+            description: List all available trigger types for actions
+            operationId: action.triggers
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AvailableTriggersResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get available triggers
+            tags:
+                - Actions
+    /api/v1/apikeys/:
+        get:
+            description: List all API keys for the current user
+            operationId: apikey.list
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListApiKeysResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List API keys
+            tags:
+                - API Keys
+        post:
+            description: Create a new API key. The key is only shown once.
+            operationId: apikey.create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateApiKeyRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateApiKeyResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create API key
+            tags:
+                - API Keys
+    /api/v1/apikeys/{api_key_id}:
+        delete:
+            description: Revoke and delete an API key
+            operationId: apikey.delete
+            parameters:
+                - description: 'Path parameter: ApiKeyId'
+                  in: path
+                  name: api_key_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete API key
+            tags:
+                - API Keys
+        put:
+            description: Update an API key's name or scopes
+            operationId: apikey.update
+            parameters:
+                - description: 'Path parameter: ApiKeyId'
+                  in: path
+                  name: api_key_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateApiKeyRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update API key
+            tags:
+                - API Keys
+    /api/v1/apikeys/scopes:
+        get:
+            description: List all available permission scopes for API keys
+            operationId: apikey.scopes
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AvailableScopesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get available scopes
+            tags:
+                - API Keys
+    /api/v1/auth/login:
+        post:
+            description: Authenticate user and return a token
+            operationId: auth.login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LoginRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LoginResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            security: []
+            summary: Login user
+            tags:
+                - Auth
+    /api/v1/auth/logout:
+        get:
+            description: Invalidate user session
+            operationId: auth.logout
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LogoutResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Logout user
+            tags:
+                - Auth
+    /api/v1/auth/register:
+        post:
+            description: Register a new user
+            operationId: auth.register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RegisterRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RegisterResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            security: []
+            summary: Register user
+            tags:
+                - Auth
+    /api/v1/databases/:
+        get:
+            description: List all databases in a space
+            operationId: database.list
+            parameters:
+                - description: 'Query parameter: SpaceId'
+                  in: query
+                  name: space_id
+                  required: false
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDatabasesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List databases
+            tags:
+                - Databases
+        post:
+            description: Create a new database
+            operationId: database.create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateDatabaseRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateDatabaseResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create database
+            tags:
+                - Databases
+    /api/v1/databases/{database_id}:
+        delete:
+            description: Delete a database and all its rows
+            operationId: database.delete
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete database
+            tags:
+                - Databases
+        get:
+            description: Get a specific database by ID
+            operationId: database.get
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDatabaseResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get database
+            tags:
+                - Databases
+        put:
+            description: Update an existing database
+            operationId: database.update
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateDatabaseRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update database
+            tags:
+                - Databases
+    /api/v1/databases/{database_id}/rows:
+        delete:
+            description: Delete multiple rows at once
+            operationId: database.row.bulk_delete
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Bulk delete rows
+            tags:
+                - Database Rows
+        get:
+            description: List all rows in a database
+            operationId: database.row.list
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+                - description: 'Query parameter: Offset'
+                  in: query
+                  name: offset
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListRowsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List rows
+            tags:
+                - Database Rows
+        post:
+            description: Create a new row in a database
+            operationId: database.row.create
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRowRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateRowResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create row
+            tags:
+                - Database Rows
+    /api/v1/databases/{database_id}/rows/{row_id}:
+        delete:
+            description: Delete a row
+            operationId: database.row.delete
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: RowId'
+                  in: path
+                  name: row_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete row
+            tags:
+                - Database Rows
+        get:
+            description: Get a specific row by ID
+            operationId: database.row.get
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: RowId'
+                  in: path
+                  name: row_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetRowResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get row
+            tags:
+                - Database Rows
+        put:
+            description: Update an existing row
+            operationId: database.row.update
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: RowId'
+                  in: path
+                  name: row_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateRowRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update row
+            tags:
+                - Database Rows
+    /api/v1/databases/types:
+        get:
+            description: List all available property types for database columns
+            operationId: database.types
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AvailableTypesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get available property types
+            tags:
+                - Databases
+    /api/v1/document/public/{space_id}/{identifier}:
+        get:
+            description: Get a public document without authentication
+            operationId: document.getPublicDocument
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: Identifier'
+                  in: path
+                  name: identifier
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDocumentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get public document
+            tags:
+                - Document
+                - Public
+    /api/v1/document/search:
+        get:
+            description: Search documents by name or content
+            operationId: document.search
+            parameters:
+                - description: 'Query parameter: Query'
+                  in: query
+                  name: q
+                  required: false
+                  schema:
+                    type: string
+                - description: 'Query parameter: SpaceId'
+                  in: query
+                  name: space_id
+                  required: false
+                  schema:
+                    nullable: true
+                    type: string
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SearchResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Search documents
+            tags:
+                - Document
+                - Search
+    /api/v1/document/space/{space_id}:
+        get:
+            description: Retrieve documents from a specific space
+            operationId: document.getDocumentsFromSpace
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Query parameter: ParentId'
+                  in: query
+                  name: parent_id
+                  required: false
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDocumentsFromSpaceResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get documents from space
+            tags:
+                - Document
+        post:
+            description: Create a new document in a specified space
+            operationId: document.createDocument
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateDocumentRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateDocumentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create a new document
+            tags:
+                - Document
+    /api/v1/document/space/{space_id}/{document_id}/comments:
+        get:
+            description: Get all comments for a document
+            operationId: document.getComments
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetCommentsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get document comments
+            tags:
+                - Document
+                - Comments
+        post:
+            description: Create a new comment on a document
+            operationId: document.createComment
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateCommentRequestWithParams'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateCommentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create comment
+            tags:
+                - Document
+                - Comments
+    /api/v1/document/space/{space_id}/{document_id}/comments/{comment_id}:
+        delete:
+            description: Delete a comment
+            operationId: document.deleteComment
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: CommentId'
+                  in: path
+                  name: comment_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete comment
+            tags:
+                - Document
+                - Comments
+        put:
+            description: Update an existing comment
+            operationId: document.updateComment
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: CommentId'
+                  in: path
+                  name: comment_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateCommentRequestWithParams'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update comment
+            tags:
+                - Document
+                - Comments
+    /api/v1/document/space/{space_id}/{document_id}/comments/{comment_id}/resolve:
+        patch:
+            description: Mark a comment as resolved or unresolved
+            operationId: document.resolveComment
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: CommentId'
+                  in: path
+                  name: comment_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResolveCommentRequestWithParams'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Resolve/unresolve comment
+            tags:
+                - Document
+                - Comments
+    /api/v1/document/space/{space_id}/{document_id}/permissions:
+        get:
+            description: List all permissions for a specific document
+            operationId: document.listPermissions
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDocumentPermissionsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List document permissions
+            tags:
+                - Document
+                - Permissions
+        put:
+            description: Create or update a user permission for a document
+            operationId: document.upsertUserPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertDocumentUserPermissionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertDocumentUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Upsert document user permission
+            tags:
+                - Document
+                - Permissions
+    /api/v1/document/space/{space_id}/{document_id}/permissions/{user_id}:
+        delete:
+            description: Remove a user permission from a document
+            operationId: document.deleteUserPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteDocumentUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete document user permission
+            tags:
+                - Document
+                - Permissions
+    /api/v1/document/space/{space_id}/{document_id}/public:
+        put:
+            description: Make a document public or private
+            operationId: document.setPublic
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SetPublicRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SetPublicResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Set document public status
+            tags:
+                - Document
+                - Public
+    /api/v1/document/space/{space_id}/{document_id}/restore:
+        post:
+            description: Restore a deleted document from trash
+            operationId: document.restoreDocument
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RestoreDocumentRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RestoreDocumentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Restore document
+            tags:
+                - Document
+                - Trash
+    /api/v1/document/space/{space_id}/{document_id}/versions:
+        get:
+            description: Get version history for a document
+            operationId: document.listVersions
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+                - description: 'Query parameter: Offset'
+                  in: query
+                  name: offset
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListVersionsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List document versions
+            tags:
+                - Document
+                - Versions
+        post:
+            description: Manually create a version snapshot of the current document state
+            operationId: document.createVersion
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateVersionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateVersionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create version snapshot
+            tags:
+                - Document
+                - Versions
+    /api/v1/document/space/{space_id}/{document_id}/versions/{version_id}:
+        get:
+            description: Get a specific version of a document
+            operationId: document.getVersion
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: VersionId'
+                  in: path
+                  name: version_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetVersionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get document version
+            tags:
+                - Document
+                - Versions
+    /api/v1/document/space/{space_id}/{document_id}/versions/{version_id}/restore:
+        post:
+            description: Restore a document to a previous version
+            operationId: document.restoreVersion
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: VersionId'
+                  in: path
+                  name: version_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RestoreVersionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Restore document version
+            tags:
+                - Document
+                - Versions
+    /api/v1/document/space/{space_id}/{id}:
+        put:
+            description: Update a specific document
+            operationId: document.updateDocument
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: Id'
+                  in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateDocumentRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDocumentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update document
+            tags:
+                - Document
+    /api/v1/document/space/{space_id}/{id}/move:
+        patch:
+            description: Move a document to a new parent (or root)
+            operationId: document.moveDocument
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: Id'
+                  in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/MoveDocumentRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MoveDocumentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Move document
+            tags:
+                - Document
+    /api/v1/document/space/{space_id}/{identifier}:
+        delete:
+            description: Delete a specific document
+            operationId: document.deleteDocument
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: Identifier'
+                  in: path
+                  name: identifier
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteDocumentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete document
+            tags:
+                - Document
+        get:
+            description: Retrieve a specific document by its ID
+            operationId: document.getDocument
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: Identifier'
+                  in: path
+                  name: identifier
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDocumentResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get document by ID
+            tags:
+                - Document
+    /api/v1/document/space/{space_id}/trash:
+        get:
+            description: Get all deleted documents in a space
+            operationId: document.getTrash
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetTrashResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get trash
+            tags:
+                - Document
+                - Trash
+    /api/v1/space:
+        post:
+            description: Create a new space for the authenticated user
+            operationId: space.createSpace
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateSpaceRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateSpaceResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create a new space
+            tags:
+                - Space
+    /api/v1/space/{space_id}:
+        delete:
+            description: Soft delete a space
+            operationId: space.deleteSpace
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteSpaceResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete a space
+            tags:
+                - Space
+        put:
+            description: Update space properties
+            operationId: space.updateSpace
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateSpaceRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateSpaceResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update a space
+            tags:
+                - Space
+    /api/v1/space/{space_id}/permissions:
+        get:
+            description: List user permissions for a space
+            operationId: space.listPermissions
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSpacePermissionsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List space permissions
+            tags:
+                - Space
+        put:
+            description: Create or update a user's permission on a space
+            operationId: space.upsertUserPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertSpaceUserPermissionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertSpaceUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Upsert user permission on space
+            tags:
+                - Space
+    /api/v1/space/{space_id}/permissions/{user_id}:
+        delete:
+            description: Remove user's permission from a space
+            operationId: space.deleteUserPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteSpaceUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete user permission on space
+            tags:
+                - Space
+    /api/v1/user/change-password:
+        post:
+            description: Change the authenticated user's password
+            operationId: user.changePassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ChangePasswordRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ChangePasswordResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Change password
+            tags:
+                - User
+    /api/v1/user/favorite/{favorite_id}:
+        delete:
+            description: Remove a document from the user's favorites
+            operationId: user.removeFavorite
+            parameters:
+                - description: 'Path parameter: FavoriteId'
+                  in: path
+                  name: favorite_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RemoveFavoriteResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Remove favorite
+            tags:
+                - User
+    /api/v1/user/favorite/{favorite_id}/position:
+        put:
+            description: Reorder favorites by updating a favorite's position
+            operationId: user.updateFavoritePosition
+            parameters:
+                - description: 'Path parameter: FavoriteId'
+                  in: path
+                  name: favorite_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateFavoritePositionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateFavoritePositionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update favorite position
+            tags:
+                - User
+    /api/v1/user/favorite/{space_id}/{document_id}:
+        post:
+            description: Add a document to the user's favorites
+            operationId: user.addFavorite
+            parameters:
+                - description: 'Path parameter: DocumentId'
+                  in: path
+                  name: document_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AddFavoriteRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AddFavoriteResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Add favorite
+            tags:
+                - User
+    /api/v1/user/my-favorites:
+        get:
+            description: Retrieve the favorite items of the authenticated user
+            operationId: user.getMyFavorites
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetMyFavoritesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get my favorites
+            tags:
+                - User
+    /api/v1/user/my-spaces:
+        get:
+            description: Retrieve the spaces of the authenticated user
+            operationId: user.getMySpaces
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetMySpacesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get my spaces
+            tags:
+                - User
+    /api/v1/user/profile:
+        get:
+            description: Retrieve the profile of the authenticated user
+            operationId: user.getProfile
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProfileResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get user profile
+            tags:
+                - User
+        put:
+            description: Update the authenticated user's profile (username, avatar, preferences)
+            operationId: user.updateProfile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateProfileRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateProfileResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update user profile
+            tags:
+                - User
+    /api/v1/webhooks/:
+        get:
+            description: List all webhooks for the authenticated user
+            operationId: webhook.list
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListWebhooksResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List webhooks
+            tags:
+                - Webhooks
+        post:
+            description: Create a new webhook
+            operationId: webhook.create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateWebhookRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateWebhookResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create webhook
+            tags:
+                - Webhooks
+    /api/v1/webhooks/{webhook_id}:
+        delete:
+            description: Delete a webhook
+            operationId: webhook.delete
+            parameters:
+                - description: 'Path parameter: WebhookId'
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete webhook
+            tags:
+                - Webhooks
+        get:
+            description: Get a specific webhook by ID
+            operationId: webhook.get
+            parameters:
+                - description: 'Path parameter: WebhookId'
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetWebhookResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get webhook
+            tags:
+                - Webhooks
+        put:
+            description: Update an existing webhook
+            operationId: webhook.update
+            parameters:
+                - description: 'Path parameter: WebhookId'
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateWebhookRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update webhook
+            tags:
+                - Webhooks
+    /api/v1/webhooks/{webhook_id}/deliveries:
+        get:
+            description: Get delivery history for a webhook
+            operationId: webhook.deliveries
+            parameters:
+                - description: 'Path parameter: WebhookId'
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDeliveriesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get webhook deliveries
+            tags:
+                - Webhooks
+    /api/v1/webhooks/events:
+        get:
+            description: Get list of available webhook events
+            operationId: webhook.events
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AvailableEventsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get available events
+            tags:
+                - Webhooks
+security:
+    - bearerAuth: []
