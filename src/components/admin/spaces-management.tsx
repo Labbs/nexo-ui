@@ -69,6 +69,7 @@ export function SpacesManagement() {
   const [selectedSpace, setSelectedSpace] = useState<AdminSpace | null>(null)
   const [spaceToDelete, setSpaceToDelete] = useState<AdminSpace | null>(null)
   const [expandedSpaces, setExpandedSpaces] = useState<Set<string>>(new Set())
+  const [personalSpacesCollapsed, setPersonalSpacesCollapsed] = useState(true)
 
   // Form state
   const [formName, setFormName] = useState('')
@@ -209,6 +210,8 @@ export function SpacesManagement() {
   }
 
   const spaces = data?.spaces || []
+  const regularSpaces = spaces.filter(s => s.type !== 'personal')
+  const personalSpaces = spaces.filter(s => s.type === 'personal')
 
   return (
     <div className="space-y-6">
@@ -225,109 +228,79 @@ export function SpacesManagement() {
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {spaces.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <FolderOpen className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No spaces found</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Create a space to get started.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          spaces.map(space => (
-            <Collapsible
-              key={space.id}
-              open={expandedSpaces.has(space.id)}
-              onOpenChange={() => toggleExpanded(space.id)}
-            >
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-xl">
-                        {space.icon || '📁'}
-                      </div>
-                      <div>
-                        <CardTitle className="text-base flex items-center gap-2">
-                          {space.name}
-                          <Badge variant="outline" className="text-xs">
-                            {space.type}
-                          </Badge>
-                        </CardTitle>
-                        {space.description && (
-                          <CardDescription className="mt-0.5">{space.description}</CardDescription>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => { e.stopPropagation(); openAddPermissionDialog(space) }}
-                        title="Add permission"
-                      >
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => { e.stopPropagation(); openEditDialog(space) }}
-                        title="Edit space"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={(e) => { e.stopPropagation(); setSpaceToDelete(space) }}
-                        title="Delete space"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <ChevronDown className={`h-4 w-4 transition-transform ${expandedSpaces.has(space.id) ? 'rotate-180' : ''}`} />
-                        </Button>
-                      </CollapsibleTrigger>
-                    </div>
-                  </div>
-                </CardHeader>
+      {spaces.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <FolderOpen className="h-10 w-10 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No spaces found</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Create a space to get started.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* Regular Spaces Section */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground">Spaces ({regularSpaces.length})</h4>
+            {regularSpaces.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No spaces</p>
+            ) : (
+              regularSpaces.map(space => (
+                <SpaceCard
+                  key={space.id}
+                  space={space}
+                  isExpanded={expandedSpaces.has(space.id)}
+                  onToggleExpand={() => toggleExpanded(space.id)}
+                  onEdit={() => openEditDialog(space)}
+                  onDelete={() => setSpaceToDelete(space)}
+                  onAddPermission={() => openAddPermissionDialog(space)}
+                  onRemoveUserPermission={handleRemoveUserPermission}
+                  onRemoveGroupPermission={handleRemoveGroupPermission}
+                  onUpdateUserRole={handleUpdateUserRole}
+                  onUpdateGroupRole={handleUpdateGroupRole}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Personal Spaces Section */}
+          {personalSpaces.length > 0 && (
+            <Collapsible open={!personalSpacesCollapsed} onOpenChange={(open) => setPersonalSpacesCollapsed(!open)}>
+              <div className="border rounded-lg">
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center justify-between w-full p-4 hover:bg-muted/50 transition-colors">
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Personal Spaces ({personalSpaces.length})
+                    </h4>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${!personalSpacesCollapsed ? 'rotate-180' : ''}`} />
+                  </button>
+                </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    <div className="border-t pt-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-medium">Permissions</h4>
-                      </div>
-                      <SpacePermissionsList
-                        spaceId={space.id}
-                        onRemoveUser={handleRemoveUserPermission}
-                        onRemoveGroup={handleRemoveGroupPermission}
+                  <div className="p-4 pt-0 space-y-4">
+                    {personalSpaces.map(space => (
+                      <SpaceCard
+                        key={space.id}
+                        space={space}
+                        isExpanded={expandedSpaces.has(space.id)}
+                        onToggleExpand={() => toggleExpanded(space.id)}
+                        onEdit={() => openEditDialog(space)}
+                        onDelete={() => setSpaceToDelete(space)}
+                        onAddPermission={() => openAddPermissionDialog(space)}
+                        onRemoveUserPermission={handleRemoveUserPermission}
+                        onRemoveGroupPermission={handleRemoveGroupPermission}
                         onUpdateUserRole={handleUpdateUserRole}
                         onUpdateGroupRole={handleUpdateGroupRole}
                       />
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4 pt-4 border-t">
-                      {space.owner_name && (
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          Owner: {space.owner_name}
-                        </span>
-                      )}
-                      <span>
-                        Created {formatDistanceToNow(new Date(space.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
-                  </CardContent>
+                    ))}
+                  </div>
                 </CollapsibleContent>
-              </Card>
+              </div>
             </Collapsible>
-          ))
-        )}
-      </div>
+          )}
+        </>
+      )}
 
       {/* Create Space Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -576,6 +549,119 @@ export function SpacesManagement() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  )
+}
+
+// Sub-component for space card
+function SpaceCard({
+  space,
+  isExpanded,
+  onToggleExpand,
+  onEdit,
+  onDelete,
+  onAddPermission,
+  onRemoveUserPermission,
+  onRemoveGroupPermission,
+  onUpdateUserRole,
+  onUpdateGroupRole
+}: {
+  space: AdminSpace
+  isExpanded: boolean
+  onToggleExpand: () => void
+  onEdit: () => void
+  onDelete: () => void
+  onAddPermission: () => void
+  onRemoveUserPermission: (spaceId: string, userId: string) => void
+  onRemoveGroupPermission: (spaceId: string, groupId: string) => void
+  onUpdateUserRole: (spaceId: string, userId: string, role: string) => void
+  onUpdateGroupRole: (spaceId: string, groupId: string, role: string) => void
+}) {
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-xl">
+                {space.icon || '📁'}
+              </div>
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  {space.name}
+                  <Badge variant="outline" className="text-xs">
+                    {space.type}
+                  </Badge>
+                </CardTitle>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {space.description && (
+                    <CardDescription className="mt-0">{space.description}</CardDescription>
+                  )}
+                  {space.owner_name && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      {space.owner_name}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); onAddPermission() }}
+                title="Add permission"
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); onEdit() }}
+                title="Edit space"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive"
+                onClick={(e) => { e.stopPropagation(); onDelete() }}
+                title="Delete space"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+          </div>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="pt-0">
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium">Permissions</h4>
+              </div>
+              <SpacePermissionsList
+                spaceId={space.id}
+                onRemoveUser={onRemoveUserPermission}
+                onRemoveGroup={onRemoveGroupPermission}
+                onUpdateUserRole={onUpdateUserRole}
+                onUpdateGroupRole={onUpdateGroupRole}
+              />
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4 pt-4 border-t">
+              <span>
+                Created {formatDistanceToNow(new Date(space.created_at), { addSuffix: true })}
+              </span>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   )
 }
 
