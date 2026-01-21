@@ -47,11 +47,11 @@ export function VersionHistorySidebar({
   return (
     <div
       className={cn(
-        'fixed top-0 right-0 h-full w-80 border-l transition-transform duration-200 ease-in-out z-40',
+        'absolute top-0 right-0 h-full w-80 border-l transition-transform duration-200 ease-in-out z-40',
         isOpen ? 'translate-x-0' : 'translate-x-full'
       )}
       style={{
-        backgroundColor: 'hsl(var(--sidebar))',
+        backgroundColor: 'var(--main-bg)',
       }}
     >
       <div className="flex flex-col h-full w-80">

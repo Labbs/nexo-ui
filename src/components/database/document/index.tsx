@@ -1,7 +1,7 @@
 import { useCallback, useState, useMemo, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2, Settings } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
+import { ContentHeader } from '@/components/shared/content-header'
 import { MainLayout } from '@/components/layout/main-layout'
 import {
   useDatabase,
@@ -90,15 +90,7 @@ export function DocumentDatabaseView() {
   }, [databaseId, activeViewId])
 
   // Local state
-  const [databaseName, setDatabaseName] = useState('')
-  const [isEditingName, setIsEditingName] = useState(false)
   const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false)
-
-  // Sync database name from API
-  const currentName = database?.name || ''
-  if (currentName && !databaseName && !isEditingName) {
-    setDatabaseName(currentName)
-  }
 
   // Get hidden columns from active view
   const hiddenColumnIds = useMemo(() => {
@@ -175,18 +167,6 @@ export function DocumentDatabaseView() {
     })
   }, [databaseId, database?.schema, updateDatabase])
 
-  // Save database name
-  const saveDatabaseName = useCallback(() => {
-    if (!databaseId || !databaseName.trim()) return
-
-    updateDatabase.mutate({
-      databaseId,
-      name: databaseName.trim(),
-    })
-
-    setIsEditingName(false)
-  }, [databaseId, databaseName, updateDatabase])
-
   // Show/hide column
   const showColumn = useCallback((columnId: string) => {
     if (!databaseId || !activeViewId) return
@@ -249,46 +229,19 @@ export function DocumentDatabaseView() {
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
-        {/* Simple header with database name */}
-        <div className="px-12 py-6 flex items-center justify-center relative">
-          <div className="text-center">
-            {isEditingName ? (
-              <input
-                type="text"
-                value={databaseName}
-                onChange={(e) => setDatabaseName(e.target.value)}
-                onBlur={saveDatabaseName}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    saveDatabaseName()
-                  }
-                  if (e.key === 'Escape') {
-                    setDatabaseName(database.name || '')
-                    setIsEditingName(false)
-                  }
-                }}
-                className="text-3xl font-bold bg-transparent border-none outline-none text-center"
-                autoFocus
-              />
-            ) : (
-              <h1
-                className="text-3xl font-bold cursor-pointer hover:bg-muted/50 rounded px-2 inline-block"
-                onClick={() => setIsEditingName(true)}
-              >
-                {database.name || 'Untitled Database'}
-              </h1>
-            )}
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsSettingsSidebarOpen(true)}
-            title="Database settings"
-            className="absolute right-12"
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-        </div>
+        {/* Header with database name */}
+        <ContentHeader
+          title={database.name || ''}
+          onTitleChange={(name) => {
+            if (!databaseId) return
+            updateDatabase.mutate({
+              databaseId,
+              name: name.trim() || 'Untitled Database',
+            })
+          }}
+          onSettingsClick={() => setIsSettingsSidebarOpen(true)}
+          placeholder="Untitled Database"
+        />
 
         {/* View tabs with filter/sort */}
         {views.length > 0 && (

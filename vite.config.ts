@@ -5,6 +5,9 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'process.env': {},
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -26,7 +29,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          editor: ['@blocknote/core', '@blocknote/react', '@blocknote/mantine'],
+          editor: ['@labbs/openblock-core', '@labbs/openblock-react'],
         },
       },
     },

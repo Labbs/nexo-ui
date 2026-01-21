@@ -1,9 +1,10 @@
 import { MainLayout } from '@/components/layout/main-layout'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ProfileSettings } from '@/components/settings/profile-settings'
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings'
 import { WebhooksSettings } from '@/components/settings/webhooks-settings'
 import { ActionsSettings } from '@/components/settings/actions-settings'
-import { Key, Webhook, Zap, Settings as SettingsIcon } from 'lucide-react'
+import { User, Key, Webhook, Zap, Settings as SettingsIcon } from 'lucide-react'
 
 export function SettingsPage() {
   return (
@@ -20,8 +21,12 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <Tabs defaultValue="api-keys" className="space-y-6">
+          <Tabs defaultValue="profile" className="space-y-6">
             <TabsList>
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Profile
+              </TabsTrigger>
               <TabsTrigger value="api-keys" className="flex items-center gap-2">
                 <Key className="h-4 w-4" />
                 API Keys
@@ -35,6 +40,10 @@ export function SettingsPage() {
                 Actions
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="profile">
+              <ProfileSettings />
+            </TabsContent>
 
             <TabsContent value="api-keys">
               <ApiKeysSettings />

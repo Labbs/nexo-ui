@@ -11,6 +11,7 @@ import { HomePage } from '@/pages/home'
 import { DocumentPage } from '@/pages/document'
 import { DatabasePage } from '@/pages/database'
 import { DatabaseDocumentPage } from '@/pages/database-document'
+import { DrawingPage } from '@/pages/drawing'
 import { SettingsPage } from '@/pages/settings'
 import { AdminPage } from '@/pages/admin'
 import { ToasterProvider } from '@/components/ui/toaster'
@@ -69,7 +70,15 @@ function App() {
                   }
                 />
                 <Route
-                  path="/settings"
+                  path="/space/:spaceId/drawing/:drawingId"
+                  element={
+                    <ProtectedRoute>
+                      <DrawingPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/user/settings"
                   element={
                     <ProtectedRoute>
                       <SettingsPage />

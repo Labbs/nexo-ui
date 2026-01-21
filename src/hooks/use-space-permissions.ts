@@ -8,6 +8,7 @@ export interface SpacePermission {
   group_id?: string
   group_name?: string
   role: string
+  created_at?: string
 }
 
 interface ListSpacePermissionsResponse {

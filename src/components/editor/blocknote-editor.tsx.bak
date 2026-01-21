@@ -129,7 +129,7 @@ export function BlockNoteEditor({ content, onChange, editable = true, fullWidth 
   )
 
   return (
-    <div className={`blocknote-editor-wrapper h-full overflow-auto ${fullWidth ? 'full-width' : ''}`}>
+    <div className={`blocknote-editor-wrapper h-full overflow-auto ${fullWidth ? 'full-width' : ''}`} style={{ backgroundColor: 'var(--main-bg)' }}>
       <BlockNoteView
         editor={editor}
         editable={editable}
@@ -164,7 +164,7 @@ export function BlockNoteEditor({ content, onChange, editable = true, fullWidth 
 
         .blocknote-editor-wrapper .bn-editor {
           padding: 1.5rem 2rem;
-          min-height: calc(100vh - 10rem);
+          min-height: 100%;
           max-width: 720px;
           margin: 0 auto;
           transition: max-width 0.2s ease;

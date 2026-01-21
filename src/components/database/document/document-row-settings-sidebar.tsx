@@ -76,7 +76,7 @@ export function DocumentRowSettingsSidebar({
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-40"
+          className="absolute inset-0 bg-black/20 z-40"
           onClick={onClose}
         />
       )}
@@ -84,11 +84,11 @@ export function DocumentRowSettingsSidebar({
       {/* Sidebar */}
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-80 border-l transition-transform duration-200 ease-in-out z-50',
+          'absolute top-0 right-0 h-full w-80 border-l transition-transform duration-200 ease-in-out z-50',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
         style={{
-          backgroundColor: 'hsl(var(--background))',
+          backgroundColor: 'var(--main-bg)',
         }}
       >
         <div className="flex flex-col h-full w-80">

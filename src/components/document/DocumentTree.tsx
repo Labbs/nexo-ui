@@ -1,16 +1,15 @@
-import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronRight, ChevronDown, FileText, Plus, Database, Pencil } from 'lucide-react'
+import { ChevronRight, ChevronDown, FileText, Plus, Database, Table2, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDocuments, useCreateDocument } from '@/hooks/use-documents'
 import { useDatabases } from '@/hooks/use-databases'
 import { useUIState } from '@/contexts/ui-state-context'
-import { CreateDatabaseModal } from '@/components/database/common/create-database-modal'
+import { useCreateDatabase, type DatabaseType } from '@/hooks/use-database'
+import { useDrawings, useCreateDrawing } from '@/hooks/use-drawings'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -55,7 +54,32 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true }: {
   const navigate = useNavigate()
   const isActive = location.pathname === `/space/${spaceId}/${slug}`
   const { mutateAsync: createDocument } = useCreateDocument()
-  const [isCreateDatabaseOpen, setIsCreateDatabaseOpen] = useState(false)
+  const { mutateAsync: createDrawing } = useCreateDrawing()
+  const { mutateAsync: createDatabase } = useCreateDatabase()
+
+  const handleCreateDatabaseOrSpreadsheet = async (type: DatabaseType) => {
+    const isSpreadsheet = type === 'spreadsheet'
+    const defaultSchema = isSpreadsheet
+      ? [
+          { id: 'title', name: 'Name', type: 'title' },
+          { id: 'status', name: 'Status', type: 'select', options: { options: [
+            { id: 'not_started', name: 'Not started', color: 'gray' },
+            { id: 'in_progress', name: 'In progress', color: 'blue' },
+            { id: 'done', name: 'Done', color: 'green' },
+          ]}},
+        ]
+      : [{ id: 'title', name: 'Title', type: 'title' }]
+
+    const result = await createDatabase({
+      spaceId,
+      documentId: docId,
+      name: isSpreadsheet ? 'Untitled Spreadsheet' : 'Untitled Database',
+      icon: isSpreadsheet ? '📊' : '📚',
+      schema: defaultSchema,
+      type,
+    })
+    if (result.id) navigate(`/space/${spaceId}/database/${result.id}`)
+  }
 
   // Ne faire la requête que si docId est valide (UUID) et que l'élément est expandé
   // Vérifier si c'est un UUID valide (format: 8-4-4-4-12 hexadécimal)
@@ -68,6 +92,10 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true }: {
   // Fetch databases for this space to filter child databases
   const { data: allDatabases = [] } = useDatabases(spaceId)
   const childDatabases = allDatabases.filter((db) => db.document_id === docId)
+
+  // Fetch drawings for this space to filter child drawings
+  const { data: allDrawings = [] } = useDrawings(spaceId)
+  const childDrawings = allDrawings.filter((d) => d.document_id === docId)
 
   return (
     <div className="group/item">
@@ -116,22 +144,42 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true }: {
                 }}
               >
                 <FileText className="h-4 w-4 mr-2" />
-                New subpage
+                New document
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation()
-                  setIsCreateDatabaseOpen(true)
+                  handleCreateDatabaseOrSpreadsheet('document')
                 }}
               >
                 <Database className="h-4 w-4 mr-2" />
                 New database
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled className="text-muted-foreground">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCreateDatabaseOrSpreadsheet('spreadsheet')
+                }}
+              >
+                <Table2 className="h-4 w-4 mr-2" />
+                New spreadsheet
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  const result = await createDrawing({
+                    spaceId,
+                    documentId: docId,
+                    name: 'Untitled Drawing',
+                    elements: [],
+                    appState: {},
+                    files: {},
+                  })
+                  if (result.id) navigate(`/space/${spaceId}/drawing/${result.id}`)
+                }}
+              >
                 <Pencil className="h-4 w-4 mr-2" />
-                Excalidraw
-                <span className="ml-auto text-xs">Soon</span>
+                New drawing
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -156,7 +204,7 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true }: {
                 icon: child?.config?.icon || null,
               }))
               const validChildren = normalized.filter((c) => !!c.id && c.id !== docId)
-              const hasContent = validChildren.length > 0 || childDatabases.length > 0
+              const hasContent = validChildren.length > 0 || childDatabases.length > 0 || childDrawings.length > 0
               if (!hasContent) {
                 return <div className="text-xs text-muted-foreground px-2 py-1">No subpages</div>
               }
@@ -189,6 +237,26 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true }: {
                       </div>
                     )
                   })}
+                  {childDrawings.map((drawing) => {
+                    const isDrawingActive = location.pathname === `/space/${spaceId}/drawing/${drawing.id}`
+                    return (
+                      <div
+                        key={drawing.id}
+                        className={cn(
+                          'flex items-center gap-1 py-1 rounded text-[14px] transition-colors duration-100',
+                          'hover:bg-accent',
+                          isDrawingActive && 'bg-accent font-medium',
+                          !isDrawingActive && 'text-foreground/80'
+                        )}
+                        style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }}
+                      >
+                        <Pencil className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+                        <Link to={`/space/${spaceId}/drawing/${drawing.id}`} className="flex-1 truncate pl-1">
+                          {drawing.name || 'Untitled Drawing'}
+                        </Link>
+                      </div>
+                    )
+                  })}
                 </>
               )
             })()
@@ -196,16 +264,6 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true }: {
         </div>
       )}
 
-      {/* Create Database Modal */}
-      <CreateDatabaseModal
-        open={isCreateDatabaseOpen}
-        onOpenChange={setIsCreateDatabaseOpen}
-        spaceId={spaceId}
-        documentId={docId}
-        onSuccess={(databaseId) => {
-          navigate(`/space/${spaceId}/database/${databaseId}`)
-        }}
-      />
     </div>
   )
 }

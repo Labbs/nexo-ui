@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { MainLayout } from '@/components/layout/main-layout'
 import { DocumentEditor } from '@/components/document/document-editor'
 import { DocumentRowSettingsSidebar } from '@/components/database/document/document-row-settings-sidebar'
-import { type BlockNoteContent } from '@/components/editor/blocknote-editor'
+import { type OpenBlockContent } from '@/components/editor/openblock-editor'
 import {
   useDatabase,
   useRow,
@@ -13,7 +13,7 @@ import {
 
 // Content type for database document rows
 interface RowContent {
-  blocks?: BlockNoteContent
+  blocks?: OpenBlockContent
   icon?: string
   lock?: boolean
   full_width?: boolean
@@ -158,7 +158,7 @@ export function DatabaseDocumentPage() {
   }, [updateContent])
 
   // Handle content change
-  const handleContentChange = useCallback((content: BlockNoteContent) => {
+  const handleContentChange = useCallback((content: OpenBlockContent) => {
     updateContent({ blocks: content })
   }, [updateContent])
 

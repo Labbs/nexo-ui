@@ -1,20 +1,8 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useDebouncedCallback } from 'use-debounce'
-import { formatDistanceToNow } from 'date-fns'
-import { BlockNoteEditor, BlockNoteContent } from '@/components/editor/blocknote-editor'
-import { EmojiPicker } from '@/components/ui/emoji-picker'
+import { OpenBlockEditor, OpenBlockContent } from '@/components/editor/openblock-editor'
 import { FieldEditor } from '@/components/database/common/field-editor'
-import { Button } from '@/components/ui/button'
-import { Loader2, Star, Lock, Unlock, ChevronRight, MoreHorizontal, History } from 'lucide-react'
+import { ContentHeader, type BreadcrumbItem } from '@/components/shared/content-header'
+import { Loader2 } from 'lucide-react'
 import type { PropertySchema } from '@/hooks/use-database'
-
-// Types for breadcrumb items
-interface BreadcrumbItem {
-  label: string
-  href?: string
-  icon?: string
-}
 
 // Types for document fields (from database schema)
 interface DocumentField {
@@ -25,9 +13,10 @@ interface DocumentField {
 // Props for the unified document editor
 interface DocumentEditorProps {
   // Core document data
+  documentId?: string // Used as key to force editor remount on document change
   title: string
   icon: string | null
-  content: BlockNoteContent | null
+  content: OpenBlockContent | null
 
   // Loading states
   isLoading?: boolean
@@ -36,7 +25,7 @@ interface DocumentEditorProps {
   // Callbacks for changes
   onTitleChange: (title: string) => void
   onIconChange: (icon: string | null) => void
-  onContentChange: (content: BlockNoteContent) => void
+  onContentChange: (content: OpenBlockContent) => void
 
   // Optional fields (for database documents)
   fields?: DocumentField[]
@@ -67,6 +56,7 @@ interface DocumentEditorProps {
 }
 
 export function DocumentEditor({
+  documentId,
   title,
   icon,
   content,
@@ -91,34 +81,6 @@ export function DocumentEditor({
   comparisonPanel,
   isInitialized = true,
 }: DocumentEditorProps) {
-  // Local state for title editing with debounce
-  const [localTitle, setLocalTitle] = useState(title)
-
-  // Sync local title with prop when it changes externally
-  useEffect(() => {
-    setLocalTitle(title)
-  }, [title])
-
-  // Debounced title save
-  const debouncedTitleChange = useDebouncedCallback(
-    (newTitle: string) => {
-      onTitleChange(newTitle)
-    },
-    800
-  )
-
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value
-    setLocalTitle(newTitle)
-    debouncedTitleChange(newTitle)
-  }
-
-  // Handle icon change
-  const handleIconChange = (newIcon: string) => {
-    // Empty string means remove icon
-    onIconChange(newIcon || null)
-  }
-
   // Determine if editor should be editable
   const isEditable = !isLocked || temporaryUnlock
 
@@ -137,130 +99,28 @@ export function DocumentEditor({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header with breadcrumb */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        {/* Breadcrumb row */}
-        <div className="px-4 py-2 flex items-center text-sm text-muted-foreground">
-          <nav className="flex items-center gap-1 min-w-0 flex-1">
-            {breadcrumbs.map((crumb, index) => (
-              <span key={index} className="flex items-center gap-1">
-                {index > 0 && <ChevronRight className="h-3 w-3 shrink-0 opacity-50" />}
-                {crumb.href ? (
-                  <Link
-                    to={crumb.href}
-                    className="hover:text-foreground transition-colors truncate max-w-[200px]"
-                  >
-                    {crumb.icon && <span className="mr-1">{crumb.icon}</span>}
-                    {crumb.label}
-                  </Link>
-                ) : (
-                  <span className="text-foreground font-medium truncate">
-                    {crumb.icon && <span className="mr-1">{crumb.icon}</span>}
-                    {crumb.label}
-                  </span>
-                )}
-              </span>
-            ))}
-          </nav>
-
-          {/* Right side actions */}
-          <div className="flex items-center gap-1 shrink-0 ml-2">
-            {/* Last updated */}
-            {updatedAt && (
-              <div className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground">
-                <span>Edited {formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}</span>
-              </div>
-            )}
-
-            {/* Saving indicator */}
-            {isUpdating && (
-              <div className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                <span>Saving...</span>
-              </div>
-            )}
-
-            {/* Lock button */}
-            {isLocked && onTemporaryUnlockToggle && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-7 w-7 ${temporaryUnlock ? 'text-green-500' : 'text-muted-foreground'}`}
-                title={temporaryUnlock ? 'Document temporarily unlocked (click to lock again)' : 'Document locked (click to temporarily unlock)'}
-                onClick={onTemporaryUnlockToggle}
-              >
-                {temporaryUnlock ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-              </Button>
-            )}
-
-            {/* Favorites button */}
-            {onFavoriteToggle && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className={'h-7 w-7 ' + (isFavorited ? 'text-amber-500' : '')}
-                type="button"
-                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                onClick={onFavoriteToggle}
-              >
-                <Star className="h-4 w-4" fill={isFavorited ? 'currentColor' : 'none'} />
-              </Button>
-            )}
-
-            {/* Version history button */}
-            {onHistoryClick && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                title="Version history"
-                onClick={onHistoryClick}
-              >
-                <History className="h-4 w-4" />
-              </Button>
-            )}
-
-            {/* Settings button */}
-            {onSettingsClick && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                title="Document settings"
-                onClick={onSettingsClick}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Icon and Title row */}
-        <div className="px-4 pb-3">
-          <div
-            className="mx-auto flex items-center gap-2 transition-all duration-200"
-            style={{ maxWidth: contentMaxWidth, padding: '0 2rem' }}
-          >
-            <EmojiPicker value={icon} onChange={handleIconChange}>
-              <button
-                className="shrink-0 hover:bg-accent rounded p-1 transition-colors"
-                title="Change icon"
-              >
-                <span className="text-2xl">{icon || '📄'}</span>
-              </button>
-            </EmojiPicker>
-            <input
-              type="text"
-              value={localTitle}
-              onChange={handleTitleChange}
-              placeholder="Untitled"
-              className="text-2xl font-bold bg-transparent border-none outline-none flex-1 placeholder:text-muted-foreground/50"
-              disabled={!isEditable}
-            />
-          </div>
-        </div>
-      </div>
+    <div className="flex h-full flex-col relative">
+      {/* Unified Content Header */}
+      <ContentHeader
+        title={title}
+        onTitleChange={onTitleChange}
+        onSettingsClick={onSettingsClick || (() => {})}
+        placeholder="Untitled"
+        breadcrumbs={breadcrumbs}
+        icon={icon}
+        defaultIcon="📄"
+        onIconChange={onIconChange}
+        isFavorited={isFavorited}
+        onFavoriteToggle={onFavoriteToggle}
+        isLocked={isLocked}
+        temporaryUnlock={temporaryUnlock}
+        onTemporaryUnlockToggle={onTemporaryUnlockToggle}
+        updatedAt={updatedAt}
+        isUpdating={isUpdating}
+        onHistoryClick={onHistoryClick}
+        isFullWidth={isFullWidth}
+        isEditable={isEditable}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Main content area */}
@@ -291,9 +151,10 @@ export function DocumentEditor({
             </div>
           )}
 
-          {/* BlockNote Editor */}
+          {/* OpenBlock Editor */}
           {isInitialized ? (
-            <BlockNoteEditor
+            <OpenBlockEditor
+              key={documentId}
               content={content}
               onChange={onContentChange}
               editable={isEditable}

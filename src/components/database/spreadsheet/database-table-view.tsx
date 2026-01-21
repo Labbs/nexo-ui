@@ -320,7 +320,7 @@ export function DatabaseTableView({
                 onClick={onAddRow}
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>New page</span>
+                <span>New document</span>
               </button>
             </td>
           </tr>

@@ -5,7 +5,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { MainLayout } from '@/components/layout/main-layout'
 import { DocumentEditor } from '@/components/document/document-editor'
-import { BlockNoteEditor, BlockNoteContent } from '@/components/editor/blocknote-editor'
+import { OpenBlockEditor, OpenBlockContent } from '@/components/editor/openblock-editor'
 import { DocumentSettingsSidebar } from '@/components/document/document-settings-sidebar'
 import { VersionHistorySidebar } from '@/components/document/version-history-sidebar'
 import { CreateDatabaseModal } from '@/components/database/common/create-database-modal'
@@ -25,7 +25,7 @@ export function DocumentPage() {
   const { mutate: addFavorite } = useAddFavorite()
   const { mutate: removeFavorite } = useRemoveFavorite()
 
-  const [content, setContent] = useState<BlockNoteContent | null>(null)
+  const [content, setContent] = useState<OpenBlockContent | null>(null)
   const [title, setTitle] = useState('')
   const [icon, setIcon] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -75,16 +75,16 @@ export function DocumentPage() {
     })
   }, [])
 
-  // Listen for create database events from BlockNote database blocks
+  // Listen for create database events from OpenBlock database blocks
   useEffect(() => {
     const handleCreateDatabase = (event: CustomEvent<{ blockId: string }>) => {
       setPendingDatabaseBlockId(event.detail.blockId)
       setIsCreateDatabaseModalOpen(true)
     }
 
-    window.addEventListener('blocknote:createDatabase', handleCreateDatabase as EventListener)
+    window.addEventListener('openblock:createDatabase', handleCreateDatabase as EventListener)
     return () => {
-      window.removeEventListener('blocknote:createDatabase', handleCreateDatabase as EventListener)
+      window.removeEventListener('openblock:createDatabase', handleCreateDatabase as EventListener)
     }
   }, [])
 
@@ -110,7 +110,7 @@ export function DocumentPage() {
     // Only initialize once per document
     if (initializedDocId === docId) return
 
-    const docContent = document.content as BlockNoteContent | null | undefined
+    const docContent = document.content as OpenBlockContent | null | undefined
 
     // Only initialize if we have content OR if content is explicitly empty array
     // This prevents initializing with stale/empty data from list endpoints
@@ -126,7 +126,7 @@ export function DocumentPage() {
 
   // Debounced save function for content
   const debouncedSaveContent = useDebouncedCallback(
-    (newContent: BlockNoteContent) => {
+    (newContent: OpenBlockContent) => {
       if (!spaceId || !slug || !document) return
       const docId = (document as any).id || document.document
       if (!docId) return
@@ -231,8 +231,8 @@ export function DocumentPage() {
 
   const debouncedSaveConfig = useDebouncedCallback(saveConfig, 800)
 
-  // Handle content changes from BlockNote editor
-  const handleContentChange = (newContent: BlockNoteContent) => {
+  // Handle content changes from OpenBlock editor
+  const handleContentChange = (newContent: OpenBlockContent) => {
     setContent(newContent)
     debouncedSaveContent(newContent)
   }
@@ -363,8 +363,8 @@ export function DocumentPage() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <BlockNoteEditor
-            content={comparingVersion?.content as BlockNoteContent}
+          <OpenBlockEditor
+            content={comparingVersion?.content as OpenBlockContent}
             onChange={() => {}}
             editable={false}
           />
@@ -402,6 +402,7 @@ export function DocumentPage() {
   return (
     <MainLayout>
       <DocumentEditor
+        documentId={currentDocId}
         title={title}
         icon={icon}
         content={content}
@@ -471,7 +472,7 @@ export function DocumentPage() {
             // Dispatch event to update the database block with the new database ID
             if (pendingDatabaseBlockId) {
               window.dispatchEvent(
-                new CustomEvent('blocknote:databaseCreated', {
+                new CustomEvent('openblock:databaseCreated', {
                   detail: { blockId: pendingDatabaseBlockId, databaseId },
                 })
               )

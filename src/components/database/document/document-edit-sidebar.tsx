@@ -2,7 +2,7 @@ import { useCallback, useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { X, ExternalLink, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { BlockNoteEditor, type BlockNoteContent } from '@/components/editor/blocknote-editor'
+import { OpenBlockEditor, type OpenBlockContent } from '@/components/editor/openblock-editor'
 import { FieldEditor } from '@/components/database/common/field-editor'
 import { EmojiPicker } from '@/components/ui/emoji-picker'
 import {
@@ -91,7 +91,7 @@ export function DocumentEditSidebar({
   const handleIconChange = useCallback((newIcon: string) => {
     if (!databaseId || !rowId) return
 
-    const currentContent = (row?.content as { blocks?: BlockNoteContent; icon?: string }) || {}
+    const currentContent = (row?.content as { blocks?: OpenBlockContent; icon?: string }) || {}
 
     updateRow.mutate({
       databaseId,
@@ -104,10 +104,10 @@ export function DocumentEditSidebar({
   }, [databaseId, rowId, row?.content, updateRow])
 
   // Handle content change
-  const handleContentChange = useCallback((content: BlockNoteContent) => {
+  const handleContentChange = useCallback((content: OpenBlockContent) => {
     if (!databaseId || !rowId) return
 
-    const currentContent = (row?.content as { blocks?: BlockNoteContent; icon?: string }) || {}
+    const currentContent = (row?.content as { blocks?: OpenBlockContent; icon?: string }) || {}
 
     updateRow.mutate({
       databaseId,
@@ -126,7 +126,7 @@ export function DocumentEditSidebar({
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-40"
+          className="absolute inset-0 bg-black/20 z-40"
           onClick={onClose}
         />
       )}
@@ -134,11 +134,11 @@ export function DocumentEditSidebar({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed top-0 right-0 h-full border-l shadow-xl z-50 transition-transform duration-300 ease-in-out",
+          "absolute top-0 right-0 h-full border-l shadow-xl z-50 transition-transform duration-300 ease-in-out",
           "w-[600px] max-w-[90vw]",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
-        style={{ backgroundColor: 'hsl(var(--background))' }}
+        style={{ backgroundColor: 'var(--main-bg)' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
@@ -251,10 +251,10 @@ export function DocumentEditSidebar({
                 </div>
               )}
 
-              {/* BlockNote Editor for content */}
+              {/* OpenBlock Editor for content */}
               <div className="px-6 py-4 flex-1">
-                <BlockNoteEditor
-                  content={((row.content as { blocks?: BlockNoteContent })?.blocks) || []}
+                <OpenBlockEditor
+                  content={((row.content as { blocks?: OpenBlockContent })?.blocks) || []}
                   onChange={handleContentChange}
                 />
               </div>

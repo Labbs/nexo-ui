@@ -1,9 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-main-bg: #ffffff;
+  --color-sidebar-bg: #f7f7f5;
+}
+
 @layer base {
   :root {
     /* Notion-style light theme */
     --background: 0 0% 100%;             /* #ffffff - main content */
+    --main-bg: #ffffff;
+    --sidebar-bg: #f7f7f5;
     --foreground: 25 5% 22%;             /* #37352f - main text (Notion's dark brown) */
     --card: 0 0% 100%;
     --card-foreground: 25 5% 22%;
@@ -29,29 +36,32 @@
   }
 
   .dark {
-    /* Notion-style dark theme - warm dark grays */
-    --background: 0 0% 12.5%;            /* #202020 - main background */
+    --main-bg: #252837;
+    --sidebar-bg: #1f1d2b;
+    /* Dark theme - custom colors */
+    /* Main content: #252837 */
+    --background: 230 20% 18%;
     --foreground: 0 0% 90%;              /* #e6e6e6 - main text */
-    --card: 0 0% 12.5%;
+    --card: 230 20% 18%;
     --card-foreground: 0 0% 90%;
-    --popover: 0 0% 15%;                 /* #262626 - menus, dropdowns */
+    --popover: 252 20% 10%;              /* darker for menus */
     --popover-foreground: 0 0% 90%;
     --primary: 0 0% 90%;
-    --primary-foreground: 0 0% 12.5%;
-    --secondary: 0 0% 18%;               /* #2e2e2e - hover states */
+    --primary-foreground: 230 20% 18%;
+    --secondary: 230 20% 22%;            /* slightly lighter for hover */
     --secondary-foreground: 0 0% 90%;
-    --muted: 0 0% 16%;                   /* #292929 - muted backgrounds */
+    --muted: 230 20% 20%;                /* muted backgrounds */
     --muted-foreground: 0 0% 55%;        /* #8c8c8c - secondary text */
-    --accent: 0 0% 20%;                  /* #333333 - accent backgrounds */
+    --accent: 230 20% 24%;               /* accent backgrounds */
     --accent-foreground: 0 0% 90%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;                  /* #333333 - borders */
-    --input: 0 0% 18%;
+    --border: 230 18% 28%;               /* borders */
+    --input: 230 20% 20%;
     --ring: 0 0% 50%;
 
-    /* Sidebar specific - slightly different from main bg */
-    --sidebar: 0 0% 10%;                 /* #1a1a1a - darker than main */
+    /* Sidebar/TopBar: #1f1d2b - darker than main content */
+    --sidebar: 252 20% 10%;
   }
 }
 
@@ -93,4 +103,10 @@
 
 .sidebar-item:hover {
   background-color: hsl(var(--accent));
+}
+
+/* Fix for Radix dialogs appearing transparent over Excalidraw */
+[data-radix-portal] [role="alertdialog"],
+[data-radix-portal] [role="dialog"] {
+  background-color: hsl(var(--popover)) !important;
 }
