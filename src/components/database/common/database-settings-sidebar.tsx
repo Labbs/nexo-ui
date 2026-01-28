@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ContentSettingsSidebar } from '@/components/shared/content-settings-sidebar'
 import { useDeleteDatabase, type GetDatabaseResponse } from '@/hooks/use-database'
 import {
@@ -20,6 +21,7 @@ export function DatabaseSettingsSidebar({
   onClose,
   database,
 }: DatabaseSettingsSidebarProps) {
+  const { t } = useTranslation('database')
   const navigate = useNavigate()
   const { spaceId } = useParams<{ spaceId: string }>()
   const { mutateAsync: deleteDatabase, isPending: isDeleting } = useDeleteDatabase()
@@ -94,7 +96,7 @@ export function DatabaseSettingsSidebar({
       }}
       onDelete={handleDelete}
       isDeleting={isDeleting}
-      deleteWarning="This will delete all rows and cannot be undone."
+      deleteWarning={t('settings.deleteWarning')}
     />
   )
 }

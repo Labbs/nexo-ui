@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, username: string, password: string) => Promise<void>
   logout: () => void
+  refreshProfile: () => Promise<void>
   isLoading: boolean
 }
 
@@ -61,6 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await apiClient.post('/auth/register', { email, username, password })
   }
 
+  const refreshProfile = async () => {
+    try {
+      const response = await apiClient.get<User>('/user/profile')
+      setUser(response.data)
+    } catch {
+      // Silently fail - profile will be refreshed on next page load
+    }
+  }
+
   const logout = () => {
     localStorage.removeItem('auth_token')
     setToken(null)
@@ -76,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        refreshProfile,
         isLoading,
       }}
     >

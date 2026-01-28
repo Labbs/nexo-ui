@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { useTranslation } from 'react-i18next'
 
 export interface Permission {
   id: string
@@ -68,6 +69,8 @@ export function PermissionManager({
   const [selectedGroupId, setSelectedGroupId] = useState('')
   const [selectedRole, setSelectedRole] = useState<'owner' | 'editor' | 'viewer'>('viewer')
 
+  const { t } = useTranslation('document')
+
   // Filter out excluded user from permissions display
   const filteredPermissions = excludeUserId
     ? permissions.filter((p) => p.user_id !== excludeUserId)
@@ -81,11 +84,11 @@ export function PermissionManager({
   // Filter out those already in explicit permissions
   const availableUsers = filteredSpacePermissions
     .filter((sp) => sp.user_id && !filteredPermissions.some((p) => p.user_id === sp.user_id))
-    .map((sp) => ({ id: sp.user_id!, username: sp.username || 'Unknown user' }))
+    .map((sp) => ({ id: sp.user_id!, username: sp.username || t('common:unknownUser') }))
 
   const availableGroups = spacePermissions
     .filter((sp) => sp.group_id && !permissions.some((p) => p.group_id === sp.group_id))
-    .map((sp) => ({ id: sp.group_id!, name: sp.group_name || 'Unknown group' }))
+    .map((sp) => ({ id: sp.group_id!, name: sp.group_name || t('common:unknownGroup') }))
 
   // Inherited permissions (from space) that don't have explicit override
   const inheritedPermissions = filteredSpacePermissions.filter((sp) => {
@@ -124,7 +127,7 @@ export function PermissionManager({
   }
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading permissions...</p>
+    return <p className="text-sm text-muted-foreground">{t('permissions.loading')}</p>
   }
 
   const hasExplicitPermissions = filteredPermissions.length > 0
@@ -135,10 +138,10 @@ export function PermissionManager({
       {/* Header with Add button */}
       {canManage && (
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Permissions</span>
+          <span className="text-sm font-medium">{t('permissions.title')}</span>
           <Button variant="outline" size="sm" onClick={() => setIsAddOpen(true)}>
             <Plus className="h-4 w-4 mr-1" />
-            Add
+            {t('permissions.add')}
           </Button>
         </div>
       )}
@@ -146,7 +149,7 @@ export function PermissionManager({
       {/* Explicit permissions */}
       {hasExplicitPermissions && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Explicit</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('permissions.explicit')}</p>
           {filteredPermissions.map((perm) => (
             <PermissionRow
               key={perm.id}
@@ -174,7 +177,7 @@ export function PermissionManager({
       {/* Inherited permissions from space */}
       {hasInheritedPermissions && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Inherited from space</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('permissions.inheritedFromSpace')}</p>
           {inheritedPermissions.map((perm) => (
             <div
               key={perm.id}
@@ -187,8 +190,8 @@ export function PermissionManager({
                       <User className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm">{perm.username || 'Unknown user'}</p>
-                      <p className="text-xs text-muted-foreground">User</p>
+                      <p className="text-sm">{perm.username || t('common:unknownUser')}</p>
+                      <p className="text-xs text-muted-foreground">{t('common:types.user')}</p>
                     </div>
                   </>
                 ) : (
@@ -197,8 +200,8 @@ export function PermissionManager({
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm">{perm.group_name || 'Unknown group'}</p>
-                      <p className="text-xs text-muted-foreground">Group</p>
+                      <p className="text-sm">{perm.group_name || t('common:unknownGroup')}</p>
+                      <p className="text-xs text-muted-foreground">{t('common:types.group')}</p>
                     </div>
                   </>
                 )}
@@ -211,7 +214,7 @@ export function PermissionManager({
                     size="sm"
                     className="h-8 text-muted-foreground hover:text-destructive"
                     onClick={() => handleBlock(perm)}
-                    title="Block access"
+                    title={t('permissions.blockAccess')}
                   >
                     <Ban className="h-4 w-4" />
                   </Button>
@@ -225,7 +228,7 @@ export function PermissionManager({
       {/* Empty state */}
       {!hasExplicitPermissions && !hasInheritedPermissions && (
         <p className="text-sm text-muted-foreground text-center py-4">
-          No specific permissions. Access is based on space permissions.
+          {t('permissions.noPermissions')}
         </p>
       )}
 
@@ -233,15 +236,15 @@ export function PermissionManager({
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Permission</DialogTitle>
+            <DialogTitle>{t('permissions.addTitle')}</DialogTitle>
             <DialogDescription>
-              Add a user or group with specific access to this resource.
+              {t('permissions.addDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {supportGroups && (
               <div className="space-y-2">
-                <Label>Type</Label>
+                <Label>{t('permissions.typeLabel')}</Label>
                 <Select
                   value={permissionType}
                   onValueChange={(v: 'user' | 'group') => setPermissionType(v)}
@@ -250,8 +253,8 @@ export function PermissionManager({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="group">Group</SelectItem>
+                    <SelectItem value="user">{t('common:types.user')}</SelectItem>
+                    <SelectItem value="group">{t('common:types.group')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -259,10 +262,10 @@ export function PermissionManager({
 
             {permissionType === 'user' && (
               <div className="space-y-2">
-                <Label>User</Label>
+                <Label>{t('permissions.userLabel')}</Label>
                 <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select user..." />
+                    <SelectValue placeholder={t('permissions.selectUserPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableUsers.map((user) => (
@@ -277,10 +280,10 @@ export function PermissionManager({
 
             {permissionType === 'group' && supportGroups && (
               <div className="space-y-2">
-                <Label>Group</Label>
+                <Label>{t('permissions.groupLabel')}</Label>
                 <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select group..." />
+                    <SelectValue placeholder={t('permissions.selectGroupPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableGroups.map((group) => (
@@ -294,7 +297,7 @@ export function PermissionManager({
             )}
 
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t('permissions.roleLabel')}</Label>
               <Select
                 value={selectedRole}
                 onValueChange={(v: 'owner' | 'editor' | 'viewer') => setSelectedRole(v)}
@@ -303,16 +306,16 @@ export function PermissionManager({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="owner">Owner</SelectItem>
+                  <SelectItem value="viewer">{t('common:roles.viewer')}</SelectItem>
+                  <SelectItem value="editor">{t('common:roles.editor')}</SelectItem>
+                  <SelectItem value="owner">{t('common:roles.owner')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button
               onClick={handleAdd}
@@ -321,7 +324,7 @@ export function PermissionManager({
                 (permissionType === 'group' && !selectedGroupId)
               }
             >
-              Add Permission
+              {t('permissions.addButton')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -341,6 +344,8 @@ function PermissionRow({ permission, canManage, onRoleChange, onDelete }: Permis
   const isDenied = permission.role === 'denied'
   const isOwner = permission.role === 'owner'
 
+  const { t } = useTranslation('document')
+
   return (
     <div
       className={`flex items-center justify-between py-2 px-3 rounded-md ${
@@ -354,8 +359,8 @@ function PermissionRow({ permission, canManage, onRoleChange, onDelete }: Permis
               <User className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium">{permission.username || 'Unknown user'}</p>
-              <p className="text-xs text-muted-foreground">User</p>
+              <p className="text-sm font-medium">{permission.username || t('common:unknownUser')}</p>
+              <p className="text-xs text-muted-foreground">{t('common:types.user')}</p>
             </div>
           </>
         ) : (
@@ -364,8 +369,8 @@ function PermissionRow({ permission, canManage, onRoleChange, onDelete }: Permis
               <Users className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium">{permission.group_name || 'Unknown group'}</p>
-              <p className="text-xs text-muted-foreground">Group</p>
+              <p className="text-sm font-medium">{permission.group_name || t('common:unknownGroup')}</p>
+              <p className="text-xs text-muted-foreground">{t('common:types.group')}</p>
             </div>
           </>
         )}
@@ -381,10 +386,10 @@ function PermissionRow({ permission, canManage, onRoleChange, onDelete }: Permis
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-                <SelectItem value="owner">Owner</SelectItem>
-                <SelectItem value="denied">Blocked</SelectItem>
+                <SelectItem value="viewer">{t('common:roles.viewer')}</SelectItem>
+                <SelectItem value="editor">{t('common:roles.editor')}</SelectItem>
+                <SelectItem value="owner">{t('common:roles.owner')}</SelectItem>
+                <SelectItem value="denied">{t('common:roles.blocked')}</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -398,7 +403,7 @@ function PermissionRow({ permission, canManage, onRoleChange, onDelete }: Permis
           </>
         ) : (
           <span className={`text-sm capitalize ${isDenied ? 'text-destructive' : ''}`}>
-            {isDenied ? 'Blocked' : permission.role}
+            {isDenied ? t('common:roles.blocked') : permission.role}
           </span>
         )}
       </div>

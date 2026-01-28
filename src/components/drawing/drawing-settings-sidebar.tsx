@@ -1,6 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { ContentSettingsSidebar } from '@/components/shared/content-settings-sidebar'
 import { useDeleteDrawing, useUpdateDrawing, type Drawing } from '@/hooks/use-drawings'
+import type { IconValue } from '@/components/ui/icon-picker'
+import { parseStoredIcon, serializeIcon } from '@/lib/utils'
 
 interface DrawingSettingsSidebarProps {
   isOpen: boolean
@@ -18,9 +20,9 @@ export function DrawingSettingsSidebar({
   const { mutateAsync: deleteDrawing, isPending: isDeleting } = useDeleteDrawing()
   const { mutate: updateDrawing, isPending: isUpdating } = useUpdateDrawing()
 
-  const handleIconChange = (icon: string | null) => {
+  const handleIconChange = (icon: IconValue) => {
     if (!drawing?.id) return
-    updateDrawing({ drawingId: drawing.id, icon: icon || '' })
+    updateDrawing({ drawingId: drawing.id, icon: serializeIcon(icon) || undefined })
   }
 
   const handleDelete = async () => {
@@ -35,7 +37,7 @@ export function DrawingSettingsSidebar({
       isOpen={isOpen}
       onClose={onClose}
       name={drawing?.name}
-      icon={drawing?.icon}
+      icon={parseStoredIcon(drawing?.icon)}
       createdAt={drawing?.created_at}
       updatedAt={drawing?.updated_at}
       createdBy={drawing?.created_by}

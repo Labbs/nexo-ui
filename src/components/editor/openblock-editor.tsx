@@ -107,6 +107,47 @@ function EditorStyles() {
         line-height: 1.5;
       }
 
+      /* Bullet list marker color - use foreground instead of blue */
+      .openblock-editor-wrapper [data-block-type="bulletListItem"]::before,
+      .openblock-editor-wrapper .ob-bullet-list-item::before,
+      .openblock-editor-wrapper ul li::marker,
+      .openblock-editor-wrapper [data-content-type="bulletListItem"] [data-list-marker] {
+        color: hsl(var(--foreground)) !important;
+      }
+
+      /* Also handle the bullet marker element directly */
+      .openblock-editor-wrapper [data-list-marker],
+      .openblock-editor-wrapper .ob-list-marker {
+        color: hsl(var(--foreground)) !important;
+        background: hsl(var(--foreground)) !important;
+      }
+
+      /* OpenBlock specific bullet marker - target the filled circle */
+      .openblock-editor-wrapper [class*="bullet"] svg,
+      .openblock-editor-wrapper [class*="Bullet"] svg {
+        fill: hsl(var(--foreground)) !important;
+        color: hsl(var(--foreground)) !important;
+      }
+
+      /* Target any blue colored element in list items */
+      .openblock-editor-wrapper [data-content-type="bulletListItem"] > div:first-child,
+      .openblock-editor-wrapper [data-block-type="bulletListItem"] > div:first-child {
+        color: hsl(var(--foreground)) !important;
+      }
+
+      /* Force all SVG circles in the editor to use foreground color */
+      .openblock-editor-wrapper svg circle {
+        fill: currentColor !important;
+      }
+
+      /* Target BlockNote/OpenBlock bullet list item marker */
+      .openblock-editor-wrapper .bn-bullet-list-item-bullet,
+      .openblock-editor-wrapper [class*="bulletListItem"] [class*="marker"],
+      .openblock-editor-wrapper [class*="bulletListItem"] [class*="bullet"] {
+        background-color: hsl(var(--foreground)) !important;
+        color: hsl(var(--foreground)) !important;
+      }
+
       /* Code blocks */
       .openblock-editor-wrapper [data-block-type="codeBlock"] {
         font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -207,6 +248,33 @@ function EditorStyles() {
         margin: 0;
         padding: 3px 0;
       }
+
+      /* Hide or make subtle the block selection outline */
+      .openblock-editor-wrapper .ProseMirror .ProseMirror-selectednode,
+      .openblock-editor-wrapper .ProseMirror [data-node-selected="true"],
+      .openblock-editor-wrapper .ProseMirror .bn-block-selected,
+      .openblock-editor-wrapper .ProseMirror [data-block-selected],
+      .openblock-editor-wrapper .ob-block-selected {
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+      }
+
+      /* Hide the blue dot indicator for selected blocks */
+      .openblock-editor-wrapper .ob-block-selected::before,
+      .ob-block-selected::before {
+        display: none !important;
+      }
+
+      /* Remove blue selection background on blocks */
+      .openblock-editor-wrapper .ProseMirror ::selection {
+        background: hsl(var(--primary) / 0.2);
+      }
+
+      .openblock-editor-wrapper .ProseMirror .selection,
+      .openblock-editor-wrapper .ProseMirror .selected {
+        background: transparent !important;
+      }
     `}</style>
   )
 }
@@ -252,6 +320,22 @@ function OpenBlockEditorInner({
     }
   }, [editor, onChange])
 
+  // Update editable state when prop changes
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return
+
+    // Try different ways to set editable based on the library's API
+    // OpenBlock/BlockNote may expose setEditable directly or via underlying TipTap editor
+    if (typeof (editor as any).setEditable === 'function') {
+      (editor as any).setEditable(editable)
+    } else if ((editor as any)._tiptapEditor && typeof (editor as any)._tiptapEditor.setEditable === 'function') {
+      (editor as any)._tiptapEditor.setEditable(editable)
+    } else if ((editor as any).view?.dispatch) {
+      // ProseMirror direct approach - update the editable state via transaction
+      (editor as any).view.setProps({ editable: () => editable })
+    }
+  }, [editor, editable])
+
   // Subscribe to editor changes
   useEffect(() => {
     if (!editor || editor.isDestroyed) return
@@ -283,9 +367,13 @@ function OpenBlockEditorInner({
       data-theme={resolvedTheme}
     >
       <OpenBlockView editor={editor} className="openblock-view" />
-      <SlashMenu editor={editor} additionalItems={customSlashMenuItems} />
-      <BubbleMenu editor={editor} />
-      <TableHandles editor={editor} />
+      {editable && (
+        <>
+          <SlashMenu editor={editor} additionalItems={customSlashMenuItems} />
+          <BubbleMenu editor={editor} />
+          <TableHandles editor={editor} />
+        </>
+      )}
       <EditorStyles />
     </div>
   )
@@ -309,11 +397,12 @@ export function OpenBlockEditor({
     if (content && Array.isArray(content) && content.length > 0) {
       initialContentRef.current = content as Block[]
       setIsReady(true)
-    } else if (content !== undefined) {
-      // Content is defined but empty - also ready (new document)
+    } else if (Array.isArray(content)) {
+      // Content is an empty array - ready (new document with no content)
       initialContentRef.current = undefined
       setIsReady(true)
     }
+    // If content is null or undefined, we're still loading - don't set ready
   }, [content, isReady])
 
   if (!isReady) {

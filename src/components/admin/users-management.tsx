@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { User, Trash2, Shield, Ban, Check, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -39,8 +40,11 @@ import {
   type AdminUser,
 } from '@/hooks/use-admin'
 import { formatDistanceToNow } from 'date-fns'
+import { useLanguage } from '@/i18n/LanguageContext'
 
 export function UsersManagement() {
+  const { t } = useTranslation('admin')
+  const { dateFnsLocale } = useLanguage()
   const { data, isLoading } = useAdminUsers()
   const updateRole = useUpdateUserRole()
   const updateActive = useUpdateUserActive()
@@ -75,7 +79,7 @@ export function UsersManagement() {
   }
 
   if (isLoading) {
-    return <div className="p-4">Loading users...</div>
+    return <div className="p-4">{t('users.loading')}</div>
   }
 
   const users = data?.users || []
@@ -84,14 +88,14 @@ export function UsersManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Users</h3>
+          <h3 className="text-lg font-medium">{t('users.title')}</h3>
           <p className="text-sm text-muted-foreground">
-            Manage user accounts, roles, and access.
+            {t('users.description')}
           </p>
         </div>
         <Button onClick={() => setIsInviteOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
-          Invite User
+          {t('users.inviteButton')}
         </Button>
       </div>
 
@@ -100,7 +104,7 @@ export function UsersManagement() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
               <User className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No users found</p>
+              <p className="text-muted-foreground">{t('users.empty')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -125,7 +129,7 @@ export function UsersManagement() {
                         {user.username}
                         {!user.active && (
                           <Badge variant="destructive" className="text-xs">
-                            Inactive
+                            {t('users.inactiveBadge')}
                           </Badge>
                         )}
                       </CardTitle>
@@ -141,16 +145,16 @@ export function UsersManagement() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="guest">Guest</SelectItem>
+                        <SelectItem value="user">{t('common:roles.user')}</SelectItem>
+                        <SelectItem value="admin">{t('common:roles.admin')}</SelectItem>
+                        <SelectItem value="guest">{t('common:roles.guest')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleToggleActive(user.id, user.active)}
-                      title={user.active ? 'Deactivate user' : 'Activate user'}
+                      title={user.active ? t('users.deactivateTooltip') : t('users.activateTooltip')}
                     >
                       {user.active ? (
                         <Ban className="h-4 w-4 text-orange-500" />
@@ -173,10 +177,10 @@ export function UsersManagement() {
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Shield className="h-3 w-3" />
-                    Role: {user.role}
+                    {t('users.roleLabel', { role: user.role })}
                   </span>
                   <span>
-                    Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
+                    {t('users.joinedLabel')}{formatDistanceToNow(new Date(user.created_at), { addSuffix: true, locale: dateFnsLocale })}
                   </span>
                 </div>
               </CardContent>
@@ -189,42 +193,42 @@ export function UsersManagement() {
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Invite User</DialogTitle>
+            <DialogTitle>{t('users.inviteTitle')}</DialogTitle>
             <DialogDescription>
-              Send an invitation to a new user.
+              {t('users.inviteDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('users.emailLabel')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="user@example.com"
+                placeholder={t('users.emailPlaceholder')}
                 value={inviteEmail}
                 onChange={e => setInviteEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t('users.roleSelectLabel')}</Label>
               <Select value={inviteRole} onValueChange={setInviteRole}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="guest">Guest</SelectItem>
+                  <SelectItem value="user">{t('common:roles.user')}</SelectItem>
+                  <SelectItem value="admin">{t('common:roles.admin')}</SelectItem>
+                  <SelectItem value="guest">{t('common:roles.guest')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleInvite} disabled={!inviteEmail || inviteUser.isPending}>
-              {inviteUser.isPending ? 'Sending...' : 'Send Invitation'}
+              {inviteUser.isPending ? t('users.sendingInvite') : t('users.sendInvite')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -234,18 +238,18 @@ export function UsersManagement() {
       <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogTitle>{t('users.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{userToDelete?.username}"? This action cannot be undone.
+              {t('users.deleteConfirm', { username: userToDelete?.username })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('users.deleteButton')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

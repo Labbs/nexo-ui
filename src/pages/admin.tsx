@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UsersManagement } from '@/components/admin/users-management'
@@ -10,13 +11,14 @@ import { useAuth } from '@/contexts/auth-context'
 import { Navigate } from 'react-router-dom'
 
 export function AdminPage() {
+  const { t } = useTranslation('admin')
   const { user, isLoading } = useAuth()
 
   if (isLoading) {
     return (
       <MainLayout>
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t('common:loading')}</p>
         </div>
       </MainLayout>
     )
@@ -34,9 +36,9 @@ export function AdminPage() {
           <div className="flex items-center gap-3 mb-8">
             <ShieldCheck className="h-8 w-8" />
             <div>
-              <h1 className="text-2xl font-bold">Administration</h1>
+              <h1 className="text-2xl font-bold">{t('title')}</h1>
               <p className="text-muted-foreground">
-                Manage users, groups, spaces, and system settings.
+                {t('subtitle')}
               </p>
             </div>
           </div>
@@ -45,23 +47,23 @@ export function AdminPage() {
             <TabsList>
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                Users
+                {t('tabs.users')}
               </TabsTrigger>
               <TabsTrigger value="groups" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Groups
+                {t('tabs.groups')}
               </TabsTrigger>
               <TabsTrigger value="spaces" className="flex items-center gap-2">
                 <FolderOpen className="h-4 w-4" />
-                Spaces
+                {t('tabs.spaces')}
               </TabsTrigger>
               <TabsTrigger value="apikeys" className="flex items-center gap-2">
                 <Key className="h-4 w-4" />
-                API Keys
+                {t('tabs.apiKeys')}
               </TabsTrigger>
               <TabsTrigger value="sso" className="flex items-center gap-2">
                 <KeyRound className="h-4 w-4" />
-                SSO
+                {t('tabs.sso')}
               </TabsTrigger>
             </TabsList>
 

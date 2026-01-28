@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Filter, ArrowUpDown, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,6 +28,7 @@ export function DatabaseToolbar({
   onSortChange,
   onSearch,
 }: DatabaseToolbarProps) {
+  const { t } = useTranslation('database')
   const [filterOpen, setFilterOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,7 +64,7 @@ export function DatabaseToolbar({
             className="h-8"
           >
             <Filter className="h-4 w-4 mr-2" />
-            Filter
+            {t('toolbar.filter')}
             {filterCount > 0 && (
               <Badge variant="secondary" className="ml-2 h-5 px-1.5">
                 {filterCount}
@@ -73,7 +75,7 @@ export function DatabaseToolbar({
         <PopoverContent className="w-96 p-0" align="start">
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-sm">Filters</h4>
+              <h4 className="font-medium text-sm">{t('toolbar.filters')}</h4>
               {filterCount > 0 && (
                 <Button
                   variant="ghost"
@@ -81,7 +83,7 @@ export function DatabaseToolbar({
                   className="h-7 text-xs text-muted-foreground"
                   onClick={handleClearFilters}
                 >
-                  Clear all
+                  {t('toolbar.clearAll')}
                 </Button>
               )}
             </div>
@@ -103,7 +105,7 @@ export function DatabaseToolbar({
             className="h-8"
           >
             <ArrowUpDown className="h-4 w-4 mr-2" />
-            Sort
+            {t('toolbar.sort')}
             {sortCount > 0 && (
               <Badge variant="secondary" className="ml-2 h-5 px-1.5">
                 {sortCount}
@@ -114,7 +116,7 @@ export function DatabaseToolbar({
         <PopoverContent className="w-80 p-0" align="start">
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-sm">Sort</h4>
+              <h4 className="font-medium text-sm">{t('toolbar.sort')}</h4>
               {sortCount > 0 && (
                 <Button
                   variant="ghost"
@@ -122,7 +124,7 @@ export function DatabaseToolbar({
                   className="h-7 text-xs text-muted-foreground"
                   onClick={handleClearSort}
                 >
-                  Clear all
+                  {t('toolbar.clearAll')}
                 </Button>
               )}
             </div>
@@ -143,7 +145,7 @@ export function DatabaseToolbar({
         <div className="flex items-center gap-2">
           <Input
             type="text"
-            placeholder="Search..."
+            placeholder={t('toolbar.search')}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="h-8 w-48"

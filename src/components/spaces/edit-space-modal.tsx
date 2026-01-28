@@ -10,8 +10,10 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { IconPicker, DocumentIcon, isEmoji, parseIconValue, type IconValue } from '@/components/ui/icon-picker'
 import { useUpdateSpace, useDeleteSpace } from '@/hooks/use-spaces'
 import { useCurrentSpace } from '@/contexts/space-context'
+import { useTranslation } from 'react-i18next'
 
 interface EditSpaceModalProps {
   open: boolean
@@ -32,7 +34,7 @@ const COLOR_OPTIONS = [
 export function EditSpaceModal({ open, onOpenChange }: EditSpaceModalProps) {
   const { currentSpace, setCurrentSpace } = useCurrentSpace()
   const [name, setName] = useState('')
-  const [icon, setIcon] = useState('')
+  const [selectedIcon, setSelectedIcon] = useState<IconValue>('🏠')
   const [iconColor, setIconColor] = useState('#6366f1')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -40,11 +42,32 @@ export function EditSpaceModal({ open, onOpenChange }: EditSpaceModalProps) {
   const queryClient = useQueryClient()
   const { mutateAsync: updateSpace, isPending: isUpdating } = useUpdateSpace()
   const { mutateAsync: deleteSpace, isPending: isDeleting } = useDeleteSpace()
+  const { t } = useTranslation('navigation')
+
+  // Extract icon value for API
+  const getIconForApi = (): string => {
+    if (isEmoji(selectedIcon)) {
+      return selectedIcon as string
+    }
+    const parsed = parseIconValue(selectedIcon)
+    return parsed?.name || 'file-text'
+  }
+
+  // Get color for API
+  const getColorForApi = (): string => {
+    if (!isEmoji(selectedIcon)) {
+      const parsed = parseIconValue(selectedIcon)
+      return parsed?.color || iconColor
+    }
+    return iconColor
+  }
 
   useEffect(() => {
     if (open && currentSpace) {
       setName(currentSpace.name || '')
-      setIcon(currentSpace.icon || '🏠')
+      // Convert stored icon to IconValue
+      const storedIcon = currentSpace.icon || '🏠'
+      setSelectedIcon(storedIcon)
       setIconColor((currentSpace as any).icon_color || '#6366f1')
       setError('')
     }
@@ -59,23 +82,23 @@ export function EditSpaceModal({ open, onOpenChange }: EditSpaceModalProps) {
       const updated = await updateSpace({
         spaceId: currentSpace.id as string,
         name: name || undefined,
-        icon: icon || undefined,
-        iconColor: iconColor || undefined,
+        icon: getIconForApi() || undefined,
+        iconColor: getColorForApi() || undefined,
       })
       // Rafraîchir la liste et le currentSpace
       await queryClient.invalidateQueries({ queryKey: ['spaces'] })
       setCurrentSpace({ ...(currentSpace as any), ...(updated as any) })
-      setSuccess('Espace sauvegardé')
+      setSuccess(t('spaces.saved'))
       setTimeout(() => setSuccess(''), 1500)
       onOpenChange(false)
     } catch (err: any) {
-      setError(err?.response?.data?.details || 'Failed to update space')
+      setError(err?.response?.data?.details || t('spaces.updateError'))
     }
   }
 
   const handleDelete = async () => {
     if (!currentSpace?.id) return
-    if (!window.confirm('Supprimer cet espace ? Cette action est irréversible.')) return
+    if (!window.confirm(t('spaces.deleteConfirm'))) return
     setError('')
     try {
       await deleteSpace({ spaceId: currentSpace.id as string })
@@ -83,7 +106,7 @@ export function EditSpaceModal({ open, onOpenChange }: EditSpaceModalProps) {
       setCurrentSpace(null)
       onOpenChange(false)
     } catch (err: any) {
-      setError(err?.response?.data?.details || 'Failed to delete space')
+      setError(err?.response?.data?.details || t('spaces.deleteError'))
     }
   }
 
@@ -91,9 +114,9 @@ export function EditSpaceModal({ open, onOpenChange }: EditSpaceModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Éditer l’espace</DialogTitle>
+          <DialogTitle>{t('spaces.editTitle')}</DialogTitle>
           <DialogDescription>
-            Modifiez le nom, l’icône et la couleur de l’espace sélectionné.
+            {t('spaces.editDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,60 +127,67 @@ export function EditSpaceModal({ open, onOpenChange }: EditSpaceModalProps) {
             )}
             <div>
               <label htmlFor="space-name" className="block text-sm font-medium mb-2">
-                Nom de l’espace
+                {t('spaces.nameLabel')}
               </label>
               <Input
                 id="space-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Mon Espace"
+                placeholder={t('spaces.namePlaceholder')}
                 maxLength={100}
               />
             </div>
 
             <div>
-              <label htmlFor="space-icon" className="block text-sm font-medium mb-2">
-                Icône (emoji)
+              <label className="block text-sm font-medium mb-2">
+                {t('spaces.iconLabel')}
               </label>
-              <Input
-                id="space-icon"
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                placeholder="Ex: 🏠"
-                maxLength={2}
-              />
+              <IconPicker value={selectedIcon} onChange={setSelectedIcon} defaultTab="emoji">
+                <button
+                  type="button"
+                  className="h-12 w-12 rounded-lg border-2 border-dashed hover:border-primary transition-colors flex items-center justify-center"
+                >
+                  <DocumentIcon value={selectedIcon} size="lg" />
+                </button>
+              </IconPicker>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('spaces.iconHelp')}
+              </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Couleur</label>
-              <div className="flex flex-wrap gap-2">
-                {COLOR_OPTIONS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setIconColor(color)}
-                    className={`h-8 w-8 rounded border ${
-                      iconColor === color ? 'ring-2 ring-offset-2' : ''
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+            {/* Color picker (only for emojis) */}
+            {isEmoji(selectedIcon) && (
+              <div>
+                <label className="block text-sm font-medium mb-2">{t('spaces.backgroundColorLabel')}</label>
+                <div className="flex flex-wrap gap-2">
+                  {COLOR_OPTIONS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setIconColor(color)}
+                      className={`h-8 w-8 rounded border ${
+                        iconColor === color ? 'ring-2 ring-offset-2' : ''
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {error && <div className="text-sm text-destructive">{error}</div>}
           </div>
 
           <DialogFooter>
             <Button type="button" variant="destructive" onClick={handleDelete} disabled={isUpdating || isDeleting}>
-              Supprimer l’espace
+              {t('spaces.deleteButton')}
             </Button>
             <div className="flex-1" />
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isUpdating}>
-              Annuler
+              {t('common:cancel')}
             </Button>
             <Button type="submit" disabled={isUpdating}>
-              {isUpdating ? 'Sauvegarde…' : 'Enregistrer'}
+              {isUpdating ? t('spaces.savingButton') : t('spaces.saveButton')}
             </Button>
           </DialogFooter>
         </form>

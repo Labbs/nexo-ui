@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { MainLayout } from '@/components/layout/main-layout'
 import { DocumentEditor } from '@/components/document/document-editor'
 import { DocumentRowSettingsSidebar } from '@/components/database/document/document-row-settings-sidebar'
 import { type OpenBlockContent } from '@/components/editor/openblock-editor'
+import type { IconValue } from '@/components/ui/icon-picker'
 import {
   useDatabase,
   useRow,
@@ -14,12 +16,13 @@ import {
 // Content type for database document rows
 interface RowContent {
   blocks?: OpenBlockContent
-  icon?: string
+  icon?: IconValue
   lock?: boolean
   full_width?: boolean
 }
 
 export function DatabaseDocumentPage() {
+  const { t } = useTranslation('database')
   const { spaceId, databaseId, rowId } = useParams<{
     spaceId: string
     databaseId: string
@@ -31,8 +34,9 @@ export function DatabaseDocumentPage() {
   const { data: row, isLoading: isLoadingRow } = useRow(databaseId, rowId)
   const updateRow = useUpdateRow()
 
-  // Track initialization for editor
-  const [isInitialized, setIsInitialized] = useState(false)
+  // Track initialization for editor - we need to track which rowId was initialized
+  // to handle the timing issue where the component remounts before effects run
+  const [initializedRowId, setInitializedRowId] = useState<string | null>(null)
 
   // Settings sidebar state
   const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false)
@@ -44,19 +48,23 @@ export function DatabaseDocumentPage() {
 
   // Reset initialization when rowId changes
   useEffect(() => {
-    setIsInitialized(false)
+    setInitializedRowId(null)
     setTemporaryUnlock(false)
   }, [rowId])
 
   // Initialize state from row content
   useEffect(() => {
-    if (row && !isInitialized) {
+    if (row && !initializedRowId) {
+      // Verify the row matches the current URL before initializing
+      // This prevents using stale cached data from a previous row
+      if (row.id && row.id !== rowId) return
+
       const content = row.content as RowContent | undefined
       setIsLocked(content?.lock || false)
       setIsFullWidth(content?.full_width || false)
-      setIsInitialized(true)
+      setInitializedRowId(rowId || null)
     }
-  }, [row, isInitialized])
+  }, [row, initializedRowId, rowId])
 
   // Find title column
   const titleColumn = useMemo(() => {
@@ -82,19 +90,34 @@ export function DatabaseDocumentPage() {
     return content?.icon || null
   }, [row?.content])
 
+  // Compute if we're initialized for the current rowId
+  // This is the key fix: when rowId changes but effects haven't run yet,
+  // initializedRowId won't match rowId, so isInitialized will be false
+  const isInitialized = !!initializedRowId && initializedRowId === rowId
+
   // Get current content blocks
   const contentBlocks = useMemo(() => {
+    if (!isInitialized) return null // Still loading
     const content = row?.content as RowContent | undefined
-    return content?.blocks || null
-  }, [row?.content])
+    // Use empty array for empty content (not null) to signal "ready but empty"
+    return content?.blocks || []
+  }, [row?.content, isInitialized])
 
-  // Get timestamps
+  // Get timestamps and user info
   const updatedAt = useMemo(() => {
     return (row as any)?.updated_at
   }, [row])
 
   const createdAt = useMemo(() => {
     return (row as any)?.created_at
+  }, [row])
+
+  const createdByUser = useMemo(() => {
+    return (row as any)?.created_by_user
+  }, [row])
+
+  const updatedByUser = useMemo(() => {
+    return (row as any)?.updated_by_user
   }, [row])
 
   // Build fields array for DocumentEditor
@@ -111,16 +134,16 @@ export function DatabaseDocumentPage() {
     const crumbs = []
     if (database) {
       crumbs.push({
-        label: database.name || 'Database',
+        label: database.name || t('untitledDatabase'),
         href: `/space/${spaceId}/database/${databaseId}`,
         icon: database.icon,
       })
     }
     crumbs.push({
-      label: titleValue || 'Untitled',
+      label: titleValue || t('common:untitled'),
     })
     return crumbs
-  }, [database, spaceId, databaseId, titleValue])
+  }, [database, spaceId, databaseId, titleValue, t])
 
   // Helper to update content while preserving other fields
   const updateContent = useCallback((updates: Partial<RowContent>) => {
@@ -153,8 +176,8 @@ export function DatabaseDocumentPage() {
   }, [titleColumn, databaseId, rowId, row, updateRow])
 
   // Handle icon change
-  const handleIconChange = useCallback((newIcon: string | null) => {
-    updateContent({ icon: newIcon || '' })
+  const handleIconChange = useCallback((newIcon: IconValue) => {
+    updateContent({ icon: newIcon || undefined })
   }, [updateContent])
 
   // Handle content change
@@ -205,7 +228,7 @@ export function DatabaseDocumentPage() {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center h-full gap-4">
-          <p className="text-muted-foreground">Document not found</p>
+          <p className="text-muted-foreground">{t('document:notFound')}</p>
         </div>
       </MainLayout>
     )
@@ -214,6 +237,7 @@ export function DatabaseDocumentPage() {
   return (
     <MainLayout>
       <DocumentEditor
+        key={rowId}
         title={titleValue}
         icon={iconValue}
         content={contentBlocks}
@@ -247,6 +271,8 @@ export function DatabaseDocumentPage() {
           isFullWidth={isFullWidth}
           updatedAt={updatedAt}
           createdAt={createdAt}
+          createdByUser={createdByUser}
+          updatedByUser={updatedByUser}
           onIconChange={handleIconChange}
           onConfigChange={handleConfigChange}
           isUpdating={updateRow.isPending}

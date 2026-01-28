@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Users, Plus, Trash2, UserPlus, UserMinus, Pencil, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -47,9 +48,12 @@ import {
   type AdminGroup,
 } from '@/hooks/use-admin'
 import { formatDistanceToNow } from 'date-fns'
+import { useLanguage } from '@/i18n/LanguageContext'
 import { ChevronDown } from 'lucide-react'
 
 export function GroupsManagement() {
+  const { t } = useTranslation('admin')
+  const { dateFnsLocale } = useLanguage()
   const { data, isLoading } = useAdminGroups()
   const { data: usersData } = useAdminUsers()
   const createGroup = useCreateGroup()
@@ -144,7 +148,7 @@ export function GroupsManagement() {
   ) || []
 
   if (isLoading) {
-    return <div className="p-4">Loading groups...</div>
+    return <div className="p-4">{t('groups.loading')}</div>
   }
 
   const groups = data?.groups || []
@@ -153,14 +157,14 @@ export function GroupsManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Groups</h3>
+          <h3 className="text-lg font-medium">{t('groups.title')}</h3>
           <p className="text-sm text-muted-foreground">
-            Manage user groups and permissions.
+            {t('groups.description')}
           </p>
         </div>
         <Button onClick={() => { resetForm(); setIsCreateOpen(true) }}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Group
+          {t('groups.createButton')}
         </Button>
       </div>
 
@@ -169,9 +173,9 @@ export function GroupsManagement() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
               <Users className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No groups yet</p>
+              <p className="text-muted-foreground">{t('groups.empty')}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Create a group to organize users and manage permissions.
+                {t('groups.emptyHint')}
               </p>
             </CardContent>
           </Card>
@@ -206,7 +210,7 @@ export function GroupsManagement() {
                         variant="ghost"
                         size="icon"
                         onClick={() => openAddMemberDialog(group)}
-                        title="Add member"
+                        title={t('groups.addMemberTooltip')}
                       >
                         <UserPlus className="h-4 w-4" />
                       </Button>
@@ -214,7 +218,7 @@ export function GroupsManagement() {
                         variant="ghost"
                         size="icon"
                         onClick={() => openEditDialog(group)}
-                        title="Edit group"
+                        title={t('groups.editGroupTooltip')}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -223,7 +227,7 @@ export function GroupsManagement() {
                         size="icon"
                         className="text-destructive hover:text-destructive"
                         onClick={() => setGroupToDelete(group)}
-                        title="Delete group"
+                        title={t('groups.deleteGroupTooltip')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -239,7 +243,7 @@ export function GroupsManagement() {
                   <CardContent className="pt-0">
                     <div className="border-t pt-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-medium">Members ({group.member_count})</h4>
+                        <h4 className="text-sm font-medium">{t('groups.membersCount', { count: group.member_count })}</h4>
                       </div>
                       {group.members && group.members.length > 0 ? (
                         <div className="space-y-2">
@@ -267,7 +271,7 @@ export function GroupsManagement() {
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                 onClick={() => handleRemoveMember(group.id, member.id)}
-                                title="Remove from group"
+                                title={t('groups.removeMemberTooltip')}
                               >
                                 <UserMinus className="h-4 w-4" />
                               </Button>
@@ -276,20 +280,20 @@ export function GroupsManagement() {
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">
-                          No members in this group
+                          {t('groups.noMembers')}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4 pt-4 border-t">
                       <span className="flex items-center gap-1">
                         <Shield className="h-3 w-3" />
-                        Role: {group.role}
+                        {t('groups.roleLabel', { role: group.role })}
                       </span>
                       {group.owner_name && (
-                        <span>Owner: {group.owner_name}</span>
+                        <span>{t('groups.ownerLabel', { owner: group.owner_name })}</span>
                       )}
                       <span>
-                        Created {formatDistanceToNow(new Date(group.created_at), { addSuffix: true })}
+                        {t('groups.createdLabel')}{formatDistanceToNow(new Date(group.created_at), { addSuffix: true, locale: dateFnsLocale })}
                       </span>
                     </div>
                   </CardContent>
@@ -304,50 +308,50 @@ export function GroupsManagement() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Group</DialogTitle>
+            <DialogTitle>{t('groups.createTitle')}</DialogTitle>
             <DialogDescription>
-              Create a new group to organize users.
+              {t('groups.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('groups.nameLabel')}</Label>
               <Input
                 id="name"
-                placeholder="Group name"
+                placeholder={t('groups.namePlaceholder')}
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('groups.descriptionLabel')}</Label>
               <Textarea
                 id="description"
-                placeholder="Optional description"
+                placeholder={t('groups.descriptionPlaceholder')}
                 value={formDescription}
                 onChange={e => setFormDescription(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Default Role</Label>
+              <Label>{t('groups.defaultRoleLabel')}</Label>
               <Select value={formRole} onValueChange={setFormRole}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="guest">Guest</SelectItem>
+                  <SelectItem value="user">{t('common:roles.user')}</SelectItem>
+                  <SelectItem value="admin">{t('common:roles.admin')}</SelectItem>
+                  <SelectItem value="guest">{t('common:roles.guest')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleCreate} disabled={!formName || createGroup.isPending}>
-              {createGroup.isPending ? 'Creating...' : 'Create'}
+              {createGroup.isPending ? t('groups.creating') : t('groups.createSubmit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -357,50 +361,50 @@ export function GroupsManagement() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Group</DialogTitle>
+            <DialogTitle>{t('groups.editTitle')}</DialogTitle>
             <DialogDescription>
-              Update the group's name, description, or role.
+              {t('groups.editDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name">{t('groups.nameLabel')}</Label>
               <Input
                 id="edit-name"
-                placeholder="Group name"
+                placeholder={t('groups.namePlaceholder')}
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description">{t('groups.descriptionLabel')}</Label>
               <Textarea
                 id="edit-description"
-                placeholder="Optional description"
+                placeholder={t('groups.descriptionPlaceholder')}
                 value={formDescription}
                 onChange={e => setFormDescription(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Default Role</Label>
+              <Label>{t('groups.defaultRoleLabel')}</Label>
               <Select value={formRole} onValueChange={setFormRole}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="guest">Guest</SelectItem>
+                  <SelectItem value="user">{t('common:roles.user')}</SelectItem>
+                  <SelectItem value="admin">{t('common:roles.admin')}</SelectItem>
+                  <SelectItem value="guest">{t('common:roles.guest')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleEdit} disabled={!formName || updateGroup.isPending}>
-              {updateGroup.isPending ? 'Saving...' : 'Save'}
+              {updateGroup.isPending ? t('groups.saving') : t('groups.saveSubmit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -410,17 +414,17 @@ export function GroupsManagement() {
       <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Member</DialogTitle>
+            <DialogTitle>{t('groups.addMemberTitle')}</DialogTitle>
             <DialogDescription>
-              Add a user to {selectedGroup?.name}.
+              {t('groups.addMemberDescription', { name: selectedGroup?.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Select User</Label>
+              <Label>{t('groups.selectUserLabel')}</Label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a user..." />
+                  <SelectValue placeholder={t('groups.selectUserPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableUsers.map(user => (
@@ -432,17 +436,17 @@ export function GroupsManagement() {
               </Select>
               {availableUsers.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  All users are already members of this group.
+                  {t('groups.allUsersAreMembersMessage')}
                 </p>
               )}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddMemberOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleAddMember} disabled={!selectedUserId || addMember.isPending}>
-              {addMember.isPending ? 'Adding...' : 'Add Member'}
+              {addMember.isPending ? t('groups.addingMember') : t('groups.addMemberSubmit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -452,18 +456,18 @@ export function GroupsManagement() {
       <AlertDialog open={!!groupToDelete} onOpenChange={() => setGroupToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Group</AlertDialogTitle>
+            <AlertDialogTitle>{t('groups.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{groupToDelete?.name}"? All members will be removed from this group. This action cannot be undone.
+              {t('groups.deleteConfirm', { name: groupToDelete?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('groups.deleteSubmit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

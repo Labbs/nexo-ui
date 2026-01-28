@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Loader2, Type, Hash, CheckSquare, List, ListChecks, Calendar, Link, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,63 +22,6 @@ interface AddPropertyModalProps {
   onAdd: (property: PropertySchema) => Promise<void>
 }
 
-const propertyTypes = [
-  {
-    type: 'text',
-    name: 'Text',
-    description: 'Plain text content',
-    icon: Type,
-  },
-  {
-    type: 'number',
-    name: 'Number',
-    description: 'Numeric values',
-    icon: Hash,
-  },
-  {
-    type: 'checkbox',
-    name: 'Checkbox',
-    description: 'Yes or no values',
-    icon: CheckSquare,
-  },
-  {
-    type: 'select',
-    name: 'Select',
-    description: 'Single option from a list',
-    icon: List,
-  },
-  {
-    type: 'multi_select',
-    name: 'Multi-select',
-    description: 'Multiple options from a list',
-    icon: ListChecks,
-  },
-  {
-    type: 'date',
-    name: 'Date',
-    description: 'Date and time values',
-    icon: Calendar,
-  },
-  {
-    type: 'url',
-    name: 'URL',
-    description: 'Web links',
-    icon: Link,
-  },
-  {
-    type: 'email',
-    name: 'Email',
-    description: 'Email addresses',
-    icon: Mail,
-  },
-  {
-    type: 'phone',
-    name: 'Phone',
-    description: 'Phone numbers',
-    icon: Phone,
-  },
-]
-
 // Default select options for new select/multi-select properties
 const defaultSelectOptions = [
   { id: 'option_1', name: 'Option 1', color: 'gray' },
@@ -91,10 +35,68 @@ export function AddPropertyModal({
   existingProperties: _existingProperties,
   onAdd,
 }: AddPropertyModalProps) {
+  const { t } = useTranslation('database')
   const [step, setStep] = useState<'type' | 'configure'>('type')
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const propertyTypes = [
+    {
+      type: 'text',
+      name: t('properties.text'),
+      description: t('properties.textDescription'),
+      icon: Type,
+    },
+    {
+      type: 'number',
+      name: t('properties.number'),
+      description: t('properties.numberDescription'),
+      icon: Hash,
+    },
+    {
+      type: 'checkbox',
+      name: t('properties.checkbox'),
+      description: t('properties.checkboxDescription'),
+      icon: CheckSquare,
+    },
+    {
+      type: 'select',
+      name: t('properties.select'),
+      description: t('properties.selectDescription'),
+      icon: List,
+    },
+    {
+      type: 'multi_select',
+      name: t('properties.multiSelect'),
+      description: t('properties.multiSelectDescription'),
+      icon: ListChecks,
+    },
+    {
+      type: 'date',
+      name: t('properties.date'),
+      description: t('properties.dateDescription'),
+      icon: Calendar,
+    },
+    {
+      type: 'url',
+      name: t('properties.url'),
+      description: t('properties.urlDescription'),
+      icon: Link,
+    },
+    {
+      type: 'email',
+      name: t('properties.email'),
+      description: t('properties.emailDescription'),
+      icon: Mail,
+    },
+    {
+      type: 'phone',
+      name: t('properties.phone'),
+      description: t('properties.phoneDescription'),
+      icon: Phone,
+    },
+  ]
 
   const resetForm = () => {
     setStep('type')
@@ -152,9 +154,9 @@ export function AddPropertyModal({
         {step === 'type' ? (
           <>
             <DialogHeader>
-              <DialogTitle>Add property</DialogTitle>
+              <DialogTitle>{t('properties.addPropertyTitle')}</DialogTitle>
               <DialogDescription>
-                Choose a property type for your new column.
+                {t('properties.chooseType')}
               </DialogDescription>
             </DialogHeader>
 
@@ -183,18 +185,18 @@ export function AddPropertyModal({
 
             <DialogFooter>
               <Button variant="outline" onClick={handleClose}>
-                Cancel
+                {t('common:cancel')}
               </Button>
             </DialogFooter>
           </>
         ) : (
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>Configure property</DialogTitle>
+              <DialogTitle>{t('properties.configurePropertyTitle')}</DialogTitle>
               <DialogDescription>
-                Set a name for your new{' '}
-                {propertyTypes.find((t) => t.type === selectedType)?.name.toLowerCase()}{' '}
-                property.
+                {t('properties.configureDescription', {
+                  type: propertyTypes.find((t) => t.type === selectedType)?.name.toLowerCase(),
+                })}
               </DialogDescription>
             </DialogHeader>
 
@@ -219,18 +221,18 @@ export function AddPropertyModal({
                   className="ml-auto text-xs"
                   onClick={() => setStep('type')}
                 >
-                  Change type
+                  {t('views.changeType')}
                 </Button>
               </div>
 
               {/* Name input */}
               <div>
-                <Label htmlFor="property-name">Property name</Label>
+                <Label htmlFor="property-name">{t('properties.propertyName')}</Label>
                 <Input
                   id="property-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter property name"
+                  placeholder={t('properties.enterPropertyName')}
                   className="mt-1.5"
                   autoFocus
                 />
@@ -239,8 +241,7 @@ export function AddPropertyModal({
               {/* Select options info */}
               {(selectedType === 'select' || selectedType === 'multi_select') && (
                 <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
-                  Default options will be created. You can customize them after adding
-                  the property.
+                  {t('properties.defaultOptionsInfo')}
                 </div>
               )}
             </div>
@@ -252,11 +253,11 @@ export function AddPropertyModal({
                 onClick={handleClose}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button type="submit" disabled={!name.trim() || isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Add property
+                {t('properties.addPropertyTitle')}
               </Button>
             </DialogFooter>
           </form>

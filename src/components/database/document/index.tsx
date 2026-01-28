@@ -1,4 +1,5 @@
 import { useCallback, useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { ContentHeader } from '@/components/shared/content-header'
@@ -16,12 +17,18 @@ import {
   type PropertySchema,
   type ViewConfig,
 } from '@/hooks/use-database'
+import type { ColumnOptions } from '@/lib/database'
+import type { IconValue } from '@/components/ui/icon-picker'
 import { DatabaseSettingsSidebar } from '../common/database-settings-sidebar'
 import { ViewTabs } from '../common/view-tabs'
 import { DocumentTableView } from './document-table-view'
+import { DocumentBoardView } from './document-board-view'
+import { DocumentGalleryView } from './document-gallery-view'
+import { DocumentListView } from './document-list-view'
 import { DocumentEditSidebar } from './document-edit-sidebar'
 
 export function DocumentDatabaseView() {
+  const { t } = useTranslation('database')
   const { spaceId, databaseId } = useParams<{ spaceId: string; databaseId: string }>()
 
   // View state - initialize from localStorage if available
@@ -34,6 +41,12 @@ export function DocumentDatabaseView() {
 
   // Document edit sidebar state
   const [editingRowId, setEditingRowId] = useState<string | null>(null)
+
+  // Insert column state
+  const [insertColumnPosition, setInsertColumnPosition] = useState<{ columnId: string; position: 'left' | 'right' } | null>(null)
+
+  // Filter panel state (for opening from column menu)
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false)
 
   // API hooks
   const { data: database, isLoading: isLoadingDatabase } = useDatabase(databaseId)
@@ -58,6 +71,7 @@ export function DocumentDatabaseView() {
       sort: view.sort as ViewConfig['sort'],
       columns: view.columns as string[] | undefined,
       hiddenColumns: (view.hidden_columns ?? view.hiddenColumns) as string[] | undefined,
+      groupBy: (view.group_by ?? view.groupBy) as string | undefined,
     }))
   }, [database?.views])
 
@@ -106,12 +120,69 @@ export function DocumentDatabaseView() {
   // Convert rows from API format
   const rows = useMemo(() => {
     if (!rowsData?.rows) return []
-    return rowsData.rows.map(row => ({
-      id: row.id || '',
-      properties: row.properties || {},
-      showInSidebar: (row as { show_in_sidebar?: boolean }).show_in_sidebar,
-    }))
-  }, [rowsData?.rows])
+
+    // Find system date columns in schema to inject values by column ID
+    const systemDateColumns = (database?.schema || []).filter(col =>
+      ['created_time', 'updated_time', 'created_at', 'updated_at', 'last_edited_time'].includes(col.type || '')
+    )
+
+    // Find system user columns (created_by, last_edited_by)
+    const systemUserColumns = (database?.schema || []).filter(col =>
+      ['created_by', 'last_edited_by'].includes(col.type || '')
+    )
+
+    return rowsData.rows.map(row => {
+      // Get row-level fields that might be used as column values
+      const rowWithMeta = row as {
+        id?: string
+        properties?: Record<string, unknown>
+        content?: { icon?: IconValue; blocks?: unknown }
+        show_in_sidebar?: boolean
+        created_at?: string
+        updated_at?: string
+        created_by?: string
+        created_by_user?: { id?: string; username?: string; avatar_url?: string }
+        updated_by_user?: { id?: string; username?: string; avatar_url?: string }
+      }
+
+      // Start with existing properties
+      const properties: Record<string, unknown> = {
+        ...rowWithMeta.properties,
+      }
+
+      // Inject values for system date columns using their actual column IDs
+      systemDateColumns.forEach(col => {
+        if (!col.id) return
+        const colType = col.type || ''
+
+        if (colType === 'created_time' || colType === 'created_at') {
+          properties[col.id] = rowWithMeta.created_at
+        } else if (colType === 'updated_time' || colType === 'updated_at' || colType === 'last_edited_time') {
+          properties[col.id] = rowWithMeta.updated_at
+        }
+      })
+
+      // Inject values for system user columns using their actual column IDs
+      systemUserColumns.forEach(col => {
+        if (!col.id) return
+        const colType = col.type || ''
+
+        if (colType === 'created_by') {
+          properties[col.id] = rowWithMeta.created_by_user
+        } else if (colType === 'last_edited_by') {
+          // Fallback to created_by_user if updated_by_user is not set
+          properties[col.id] = rowWithMeta.updated_by_user || rowWithMeta.created_by_user
+        }
+      })
+
+      return {
+        id: row.id || '',
+        properties,
+        content: rowWithMeta.content,
+        showInSidebar: rowWithMeta.show_in_sidebar,
+      }
+    })
+  }, [rowsData?.rows, database?.schema])
 
   // Handle adding a new row
   const handleAddRow = useCallback(() => {
@@ -160,12 +231,42 @@ export function DocumentDatabaseView() {
   const handleAddProperty = useCallback(async (property: PropertySchema) => {
     if (!databaseId || !database?.schema) return
 
-    const newSchema = [...database.schema, property]
+    let newSchema: PropertySchema[]
+
+    if (insertColumnPosition) {
+      // Insert at specific position
+      const index = database.schema.findIndex(col => col.id === insertColumnPosition.columnId)
+      if (index !== -1) {
+        const insertIndex = insertColumnPosition.position === 'left' ? index : index + 1
+        newSchema = [
+          ...database.schema.slice(0, insertIndex),
+          property,
+          ...database.schema.slice(insertIndex),
+        ]
+      } else {
+        newSchema = [...database.schema, property]
+      }
+      setInsertColumnPosition(null)
+    } else {
+      // Add to end
+      newSchema = [...database.schema, property]
+    }
+
     await updateDatabase.mutateAsync({
       databaseId,
       schema: newSchema,
     })
-  }, [databaseId, database?.schema, updateDatabase])
+  }, [databaseId, database?.schema, updateDatabase, insertColumnPosition])
+
+  // Handle insert column (opens add property popover at position)
+  const handleInsertColumn = useCallback((columnId: string, position: 'left' | 'right') => {
+    setInsertColumnPosition({ columnId, position })
+  }, [])
+
+  // Handle filter column (opens filter panel)
+  const handleFilterColumn = useCallback(() => {
+    setFilterPanelOpen(true)
+  }, [])
 
   // Show/hide column
   const showColumn = useCallback((columnId: string) => {
@@ -204,6 +305,112 @@ export function DocumentDatabaseView() {
     })
   }, [databaseId, activeViewId, updateView])
 
+  // Rename column
+  const handleRenameColumn = useCallback((columnId: string, name: string) => {
+    if (!databaseId || !database?.schema) return
+
+    const newSchema = database.schema.map(col =>
+      col.id === columnId ? { ...col, name } : col
+    )
+    updateDatabase.mutate({
+      databaseId,
+      schema: newSchema,
+    })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  // Delete column
+  const handleDeleteColumn = useCallback((columnId: string) => {
+    if (!databaseId || !database?.schema) return
+
+    const newSchema = database.schema.filter(col => col.id !== columnId)
+    updateDatabase.mutate({
+      databaseId,
+      schema: newSchema,
+    })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  // Sort column
+  const handleSortColumn = useCallback((columnId: string, direction: 'asc' | 'desc') => {
+    if (!databaseId || !activeViewId) return
+
+    updateView.mutate({
+      databaseId,
+      viewId: activeViewId,
+      sort: [{ property_id: columnId, direction }],
+    })
+  }, [databaseId, activeViewId, updateView])
+
+  // Update column options (for select/multi_select)
+  const handleUpdateColumnOptions = useCallback((columnId: string, options: { id: string; name: string; color: string }[]) => {
+    if (!databaseId || !database?.schema) return
+
+    const newSchema = database.schema.map(col =>
+      col.id === columnId
+        ? { ...col, options: { ...col.options, options } }
+        : col
+    )
+    updateDatabase.mutate({
+      databaseId,
+      schema: newSchema,
+    })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  // Toggle wrap text for a column
+  const handleToggleWrapText = useCallback((columnId: string, wrapText: boolean) => {
+    if (!databaseId || !database?.schema) return
+
+    const newSchema = database.schema.map(col =>
+      col.id === columnId
+        ? { ...col, options: { ...col.options, wrapText } }
+        : col
+    )
+    updateDatabase.mutate({
+      databaseId,
+      schema: newSchema,
+    })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  // Update column format options (number format, date format, conditional rules, custom icon, etc.)
+  const handleUpdateColumnFormat = useCallback((columnId: string, options: Partial<ColumnOptions>) => {
+    if (!databaseId || !database?.schema) return
+
+    const newSchema = database.schema.map(col =>
+      col.id === columnId
+        ? { ...col, options: { ...col.options, ...options } }
+        : col
+    )
+    updateDatabase.mutate({
+      databaseId,
+      schema: newSchema,
+    })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  // Duplicate column
+  const handleDuplicateColumn = useCallback((columnId: string) => {
+    if (!databaseId || !database?.schema) return
+
+    const columnToDuplicate = database.schema.find(col => col.id === columnId)
+    if (!columnToDuplicate) return
+
+    const columnIndex = database.schema.findIndex(col => col.id === columnId)
+    const newColumn: PropertySchema = {
+      ...columnToDuplicate,
+      id: `col-${Date.now()}`,
+      name: t('common:copyName', { name: columnToDuplicate.name || t('common:untitled') }),
+    }
+
+    const newSchema = [
+      ...database.schema.slice(0, columnIndex + 1),
+      newColumn,
+      ...database.schema.slice(columnIndex + 1),
+    ]
+
+    updateDatabase.mutate({
+      databaseId,
+      schema: newSchema,
+    })
+  }, [databaseId, database?.schema, updateDatabase])
+
   // Loading state
   if (isLoadingDatabase || isLoadingRows) {
     return (
@@ -220,7 +427,7 @@ export function DocumentDatabaseView() {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-full">
-          <p className="text-muted-foreground">Database not found</p>
+          <p className="text-muted-foreground">{t('notFound')}</p>
         </div>
       </MainLayout>
     )
@@ -236,11 +443,11 @@ export function DocumentDatabaseView() {
             if (!databaseId) return
             updateDatabase.mutate({
               databaseId,
-              name: name.trim() || 'Untitled Database',
+              name: name.trim() || t('untitledDatabase'),
             })
           }}
           onSettingsClick={() => setIsSettingsSidebarOpen(true)}
-          placeholder="Untitled Database"
+          placeholder={t('untitledDatabase')}
         />
 
         {/* View tabs with filter/sort */}
@@ -269,13 +476,17 @@ export function DocumentDatabaseView() {
               if (!databaseId) return
               updateView.mutate({ databaseId, viewId, name })
             }}
+            onChangeViewType={(viewId, type) => {
+              if (!databaseId) return
+              updateView.mutate({ databaseId, viewId, type })
+            }}
             onDuplicateView={(viewId) => {
               if (!databaseId) return
               const viewToDuplicate = views.find(v => v.id === viewId)
               if (!viewToDuplicate) return
               createView.mutate({
                 databaseId,
-                name: `${viewToDuplicate.name} (copy)`,
+                name: t('common:copyName', { name: viewToDuplicate.name }),
                 type: viewToDuplicate.type,
                 filter: viewToDuplicate.filter,
                 sort: viewToDuplicate.sort,
@@ -326,25 +537,78 @@ export function DocumentDatabaseView() {
                 })
               }
             }}
+            onGroupByChange={(columnId) => {
+              if (!databaseId || !activeViewId) return
+              updateView.mutate({ databaseId, viewId: activeViewId, groupBy: columnId })
+            }}
             onShowColumn={showColumn}
             onHideColumn={hideColumn}
             onShowAllColumns={showAllColumns}
             canDeleteView={views.length > 1}
+            externalFilterOpen={filterPanelOpen}
+            onExternalFilterOpenChange={setFilterPanelOpen}
           />
         )}
 
-        {/* Document table view */}
-        <div className="flex-1 min-h-0 overflow-auto px-12 py-4">
-          <DocumentTableView
-            schema={visibleSchema}
-            rows={rows}
-            onUpdateRow={handleUpdateRow}
-            onDeleteRow={handleDeleteRow}
-            onAddRow={handleAddRow}
-            onAddProperty={handleAddProperty}
-            onOpenDocument={setEditingRowId}
-            isLoading={isLoadingRows}
-          />
+        {/* Document view - render based on active view type */}
+        <div className="flex-1 min-h-0 overflow-auto py-4">
+          {activeView?.type === 'board' ? (
+            <DocumentBoardView
+              schema={visibleSchema}
+              rows={rows}
+              groupByColumnId={activeView?.groupBy}
+              onUpdateRow={handleUpdateRow}
+              onDeleteRow={handleDeleteRow}
+              onAddRow={handleAddRow}
+              onOpenDocument={setEditingRowId}
+              isLoading={isLoadingRows}
+            />
+          ) : activeView?.type === 'gallery' ? (
+            <DocumentGalleryView
+              schema={visibleSchema}
+              rows={rows}
+              onUpdateRow={handleUpdateRow}
+              onDeleteRow={handleDeleteRow}
+              onAddRow={handleAddRow}
+              onOpenDocument={setEditingRowId}
+              isLoading={isLoadingRows}
+            />
+          ) : activeView?.type === 'list' ? (
+            <DocumentListView
+              schema={visibleSchema}
+              rows={rows}
+              onUpdateRow={handleUpdateRow}
+              onDeleteRow={handleDeleteRow}
+              onAddRow={handleAddRow}
+              onOpenDocument={setEditingRowId}
+              isLoading={isLoadingRows}
+            />
+          ) : (
+            <DocumentTableView
+              schema={visibleSchema}
+              rows={rows}
+              onUpdateRow={handleUpdateRow}
+              onDeleteRow={handleDeleteRow}
+              onAddRow={handleAddRow}
+              onAddProperty={handleAddProperty}
+              onOpenDocument={setEditingRowId}
+              onRenameColumn={handleRenameColumn}
+              onDeleteColumn={handleDeleteColumn}
+              onHideColumn={hideColumn}
+              onSortColumn={handleSortColumn}
+              onUpdateColumnOptions={handleUpdateColumnOptions}
+              onInsertColumn={handleInsertColumn}
+              insertColumnOpen={!!insertColumnPosition}
+              onInsertColumnOpenChange={(open) => {
+                if (!open) setInsertColumnPosition(null)
+              }}
+              onFilterColumn={handleFilterColumn}
+              onToggleWrapText={handleToggleWrapText}
+              onUpdateColumnFormat={handleUpdateColumnFormat}
+              onDuplicateColumn={handleDuplicateColumn}
+              isLoading={isLoadingRows}
+            />
+          )}
         </div>
       </div>
 
@@ -363,6 +627,7 @@ export function DocumentDatabaseView() {
           databaseId={databaseId}
           rowId={editingRowId}
           spaceId={spaceId}
+          initialRowData={rowsData?.rows?.find(r => r.id === editingRowId)}
         />
       )}
     </MainLayout>

@@ -1,7 +1,7 @@
 // Database utilities barrel export
 
 // Formatters
-export { formatCurrency, currencyOptions } from './formatters'
+export { formatCurrency, formatNumber, formatDate, currencyOptions } from './formatters'
 export type { CurrencyOption } from './formatters'
 
 // Formula evaluation
@@ -28,4 +28,11 @@ export type {
   SelectOption,
   SelectOptionColor,
   ColumnTypeOption,
+  // New types for column customization
+  NumberFormat,
+  NumberFormatOptions,
+  DateFormat,
+  TimeFormat,
+  DateFormatOptions,
+  ColumnOptions,
 } from './columnTypes'

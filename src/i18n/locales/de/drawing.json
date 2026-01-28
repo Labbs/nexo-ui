@@ -1,0 +1,11 @@
+{
+  "untitledDrawing": "Unbenannte Zeichnung",
+  "notFound": "Zeichnung nicht gefunden",
+  "create": {
+    "title": "Zeichnung erstellen",
+    "description": "Erstelle eine neue Excalidraw-Zeichnung für Diagramme, Wireframes und mehr.",
+    "nameLabel": "Name",
+    "namePlaceholder": "Zeichnungsname",
+    "submit": "Zeichnung erstellen"
+  }
+}

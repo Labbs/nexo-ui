@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Loader2, ArrowLeft } from 'lucide-react'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Button } from '@/components/ui/button'
@@ -8,8 +9,11 @@ import { DrawingSettingsSidebar } from '@/components/drawing/drawing-settings-si
 import { ContentHeader, type BreadcrumbItem } from '@/components/shared/content-header'
 import { useDrawing, useUpdateDrawing } from '@/hooks/use-drawings'
 import { useSpaces } from '@/hooks/use-spaces'
+import type { IconValue } from '@/components/ui/icon-picker'
+import { parseStoredIcon, serializeIcon } from '@/lib/utils'
 
 export function DrawingPage() {
+  const { t } = useTranslation('drawing')
   const { spaceId, drawingId } = useParams<{ spaceId: string; drawingId: string }>()
   const navigate = useNavigate()
   const { data: drawing, isLoading, error } = useDrawing(drawingId)
@@ -28,24 +32,25 @@ export function DrawingPage() {
     const crumbs: BreadcrumbItem[] = []
     if (space) {
       crumbs.push({
-        label: space.name || 'Space',
+        label: space.name || t('common:untitled'),
         href: `/space/${spaceId}`,
       })
     }
     crumbs.push({
-      label: drawing?.name || 'Untitled Drawing',
+      label: drawing?.name || t('untitledDrawing'),
     })
     return crumbs
-  }, [space, spaceId, drawing?.name])
+  }, [space, spaceId, drawing?.name, t])
 
   const handleTitleChange = (newTitle: string) => {
     if (!drawingId) return
-    updateDrawing({ drawingId, name: newTitle || 'Untitled Drawing' })
+    updateDrawing({ drawingId, name: newTitle || t('untitledDrawing') })
   }
 
-  const handleIconChange = (newIcon: string | null) => {
+  const handleIconChange = (newIcon: IconValue) => {
     if (!drawingId) return
-    updateDrawing({ drawingId, icon: newIcon || undefined })
+    const iconString = serializeIcon(newIcon) || undefined
+    updateDrawing({ drawingId, icon: iconString })
   }
 
   if (isLoading) {
@@ -62,10 +67,10 @@ export function DrawingPage() {
     return (
       <MainLayout>
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <p className="text-muted-foreground">Drawing not found</p>
+          <p className="text-muted-foreground">{t('notFound')}</p>
           <Button variant="outline" onClick={() => navigate(`/space/${spaceId}`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Go back
+            {t('common:goBack')}
           </Button>
         </div>
       </MainLayout>
@@ -80,10 +85,9 @@ export function DrawingPage() {
           title={drawing?.name || ''}
           onTitleChange={handleTitleChange}
           onSettingsClick={() => setIsSettingsSidebarOpen(true)}
-          placeholder="Untitled Drawing"
+          placeholder={t('untitledDrawing')}
           breadcrumbs={breadcrumbs}
-          icon={drawing?.icon}
-          defaultIcon="🎨"
+          icon={parseStoredIcon(drawing?.icon)}
           onIconChange={handleIconChange}
           updatedAt={drawing?.updated_at}
         />

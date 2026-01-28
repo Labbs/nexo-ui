@@ -4,6 +4,7 @@ const STORAGE_KEY = 'nexo_ui_state'
 
 interface UIState {
   expandedDocuments: Record<string, string[]> // spaceId -> docIds[]
+  expandedSpaces: string[] // space IDs that are expanded in sidebar
   favoritesExpanded: boolean
 }
 
@@ -13,10 +14,15 @@ interface UIStateContextType {
   setDocumentExpanded: (spaceId: string, docId: string, expanded: boolean) => void
   favoritesExpanded: boolean
   setFavoritesExpanded: (expanded: boolean) => void
+  isSpaceExpanded: (spaceId: string) => boolean
+  toggleSpaceExpanded: (spaceId: string) => void
+  isCommandPaletteOpen: boolean
+  setCommandPaletteOpen: (open: boolean) => void
 }
 
 const defaultState: UIState = {
   expandedDocuments: {},
+  expandedSpaces: [],
   favoritesExpanded: true,
 }
 
@@ -87,6 +93,25 @@ export function UIStateProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, favoritesExpanded: expanded }))
   }
 
+  const isSpaceExpanded = (spaceId: string): boolean => {
+    return state.expandedSpaces.includes(spaceId)
+  }
+
+  const toggleSpaceExpanded = (spaceId: string) => {
+    setState((prev) => {
+      const isExpanded = prev.expandedSpaces.includes(spaceId)
+      return {
+        ...prev,
+        expandedSpaces: isExpanded
+          ? prev.expandedSpaces.filter((id) => id !== spaceId)
+          : [...prev.expandedSpaces, spaceId],
+      }
+    })
+  }
+
+  // Transient state (not persisted)
+  const [isCommandPaletteOpen, setCommandPaletteOpen] = useState(false)
+
   return (
     <UIStateContext.Provider
       value={{
@@ -95,6 +120,10 @@ export function UIStateProvider({ children }: { children: ReactNode }) {
         setDocumentExpanded,
         favoritesExpanded: state.favoritesExpanded,
         setFavoritesExpanded,
+        isSpaceExpanded,
+        toggleSpaceExpanded,
+        isCommandPaletteOpen,
+        setCommandPaletteOpen,
       }}
     >
       {children}

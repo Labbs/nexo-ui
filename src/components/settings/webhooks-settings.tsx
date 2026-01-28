@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Webhook, Plus, Trash2, Copy, Check, AlertCircle, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +27,7 @@ import {
 } from '@/hooks/use-webhooks'
 
 export function WebhooksSettings() {
+  const { t } = useTranslation('settings')
   const { data: webhooks, isLoading } = useWebhooks()
   const { data: availableEvents } = useAvailableEvents()
   const createWebhook = useCreateWebhook()
@@ -77,7 +79,7 @@ export function WebhooksSettings() {
   }
 
   const handleDelete = async (webhookId: string) => {
-    if (confirm('Are you sure you want to delete this webhook? This action cannot be undone.')) {
+    if (confirm(t('webhooks.deleteConfirm'))) {
       await deleteWebhook.mutateAsync({ webhookId })
     }
   }
@@ -89,21 +91,21 @@ export function WebhooksSettings() {
   }
 
   if (isLoading) {
-    return <div className="p-4">Loading...</div>
+    return <div className="p-4">{t('common:loading')}</div>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Webhooks</h3>
+          <h3 className="text-lg font-medium">{t('webhooks.title')}</h3>
           <p className="text-sm text-muted-foreground">
-            Receive HTTP notifications when events occur in your account.
+            {t('webhooks.description')}
           </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Webhook
+          {t('webhooks.createButton')}
         </Button>
       </div>
 
@@ -112,9 +114,9 @@ export function WebhooksSettings() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
               <Webhook className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No webhooks configured</p>
+              <p className="text-muted-foreground">{t('webhooks.empty')}</p>
               <p className="text-sm text-muted-foreground">
-                Create a webhook to receive notifications about events.
+                {t('webhooks.emptyHint')}
               </p>
             </CardContent>
           </Card>
@@ -137,33 +139,33 @@ export function WebhooksSettings() {
           {!createdSecret ? (
             <>
               <DialogHeader>
-                <DialogTitle>Create Webhook</DialogTitle>
+                <DialogTitle>{t('webhooks.createTitle')}</DialogTitle>
                 <DialogDescription>
-                  Configure a webhook endpoint to receive event notifications.
+                  {t('webhooks.createDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">{t('webhooks.nameLabel')}</Label>
                   <Input
                     id="name"
-                    placeholder="My Webhook"
+                    placeholder={t('webhooks.namePlaceholder')}
                     value={newWebhookName}
                     onChange={e => setNewWebhookName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="url">Endpoint URL</Label>
+                  <Label htmlFor="url">{t('webhooks.urlLabel')}</Label>
                   <Input
                     id="url"
                     type="url"
-                    placeholder="https://example.com/webhook"
+                    placeholder={t('webhooks.urlPlaceholder')}
                     value={newWebhookUrl}
                     onChange={e => setNewWebhookUrl(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Events</Label>
+                  <Label>{t('webhooks.eventsLabel')}</Label>
                   <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
                     {availableEvents?.map(event => (
                       <div key={event.event} className="flex items-center space-x-2">
@@ -188,27 +190,27 @@ export function WebhooksSettings() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={handleCloseCreate}>
-                  Cancel
+                  {t('common:cancel')}
                 </Button>
                 <Button
                   onClick={handleCreate}
                   disabled={!newWebhookName || !newWebhookUrl || selectedEvents.length === 0 || createWebhook.isPending}
                 >
-                  {createWebhook.isPending ? 'Creating...' : 'Create'}
+                  {createWebhook.isPending ? t('webhooks.creating') : t('common:create')}
                 </Button>
               </DialogFooter>
             </>
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Webhook Created</DialogTitle>
+                <DialogTitle>{t('webhooks.createdTitle')}</DialogTitle>
                 <DialogDescription>
-                  Copy your webhook secret now. You'll need it to verify webhook signatures.
+                  {t('webhooks.createdDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Webhook Secret</Label>
+                  <Label>{t('webhooks.secretLabel')}</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       readOnly
@@ -227,12 +229,12 @@ export function WebhooksSettings() {
                 </div>
                 <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3">
                   <p className="text-sm text-yellow-500">
-                    Store this secret securely. You won't be able to see it again!
+                    {t('webhooks.secretWarning')}
                   </p>
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleCloseCreate}>Done</Button>
+                <Button onClick={handleCloseCreate}>{t('common:done')}</Button>
               </DialogFooter>
             </>
           )}
@@ -261,6 +263,8 @@ function WebhookCard({
   onDelete: (id: string) => void
   onSelect: () => void
 }) {
+  const { t } = useTranslation('settings')
+
   return (
     <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={onSelect}>
       <CardHeader className="pb-3">
@@ -299,9 +303,9 @@ function WebhookCard({
           ))}
         </div>
         <div className="mt-3 text-xs text-muted-foreground">
-          Created: {new Date(webhook.created_at).toLocaleDateString()}
+          {t('webhooks.created')}: {new Date(webhook.created_at).toLocaleDateString()}
           {webhook.last_triggered_at && (
-            <> • Last triggered: {new Date(webhook.last_triggered_at).toLocaleDateString()}</>
+            <> &bull; {t('webhooks.lastTriggered')}: {new Date(webhook.last_triggered_at).toLocaleDateString()}</>
           )}
         </div>
       </CardContent>
@@ -316,6 +320,7 @@ function WebhookDetailsDialog({
   webhook: WebhookType
   onClose: () => void
 }) {
+  const { t } = useTranslation('settings')
   const { data: deliveries, isLoading } = useWebhookDeliveries(webhook.id)
 
   return (
@@ -329,7 +334,7 @@ function WebhookDetailsDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <h4 className="text-sm font-medium mb-2">Events</h4>
+            <h4 className="text-sm font-medium mb-2">{t('webhooks.eventsHeading')}</h4>
             <div className="flex flex-wrap gap-2">
               {webhook.events?.map(event => (
                 <Badge key={event} variant="secondary">
@@ -339,11 +344,11 @@ function WebhookDetailsDialog({
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-medium mb-2">Recent Deliveries</h4>
+            <h4 className="text-sm font-medium mb-2">{t('webhooks.recentDeliveries')}</h4>
             {isLoading ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
+              <div className="text-sm text-muted-foreground">{t('common:loading')}</div>
             ) : deliveries?.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No deliveries yet</div>
+              <div className="text-sm text-muted-foreground">{t('webhooks.noDeliveries')}</div>
             ) : (
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {deliveries?.map(delivery => (
@@ -370,7 +375,7 @@ function WebhookDetailsDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose}>{t('common:close')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -53,7 +53,7 @@ export function EmojiPicker({ value, onChange, children }: EmojiPickerProps) {
       <PopoverTrigger asChild>
         {children}
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
+      <PopoverContent className="w-80 p-0 z-[100]" align="start" side="right" sideOffset={8}>
         <div className="p-2 border-b">
           <Input
             placeholder="Search emoji..."

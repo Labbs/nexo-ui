@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   MoreHorizontal,
   Settings,
@@ -63,6 +64,7 @@ export function DatabaseHeader({
   viewType = 'table',
   onViewChange,
 }: DatabaseHeaderProps) {
+  const { t } = useTranslation('database')
   const [isEditingName, setIsEditingName] = useState(false)
   const [editedName, setEditedName] = useState(database.name)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -87,10 +89,10 @@ export function DatabaseHeader({
   }
 
   const views = [
-    { id: 'table' as const, icon: Table, label: 'Table' },
-    { id: 'board' as const, icon: LayoutGrid, label: 'Board' },
-    { id: 'calendar' as const, icon: Calendar, label: 'Calendar' },
-    { id: 'list' as const, icon: List, label: 'List' },
+    { id: 'table' as const, icon: Table, label: t('header.tableLayout') },
+    { id: 'board' as const, icon: LayoutGrid, label: t('views.board') },
+    { id: 'calendar' as const, icon: Calendar, label: t('views.calendar') },
+    { id: 'list' as const, icon: List, label: t('views.list') },
   ]
 
   const currentView = views.find((v) => v.id === viewType)
@@ -130,7 +132,7 @@ export function DatabaseHeader({
                 className="text-3xl font-bold cursor-text hover:bg-accent/50 rounded px-2 py-1 transition-colors inline-block text-foreground/90"
                 onClick={() => setIsEditingName(true)}
               >
-                {database.name || 'Untitled Database'}
+                {database.name || t('untitledDatabase')}
               </h1>
             )}
 
@@ -152,11 +154,11 @@ export function DatabaseHeader({
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem onClick={onAddProperty}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add property
+                {t('header.addProperty')}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings className="h-4 w-4 mr-2" />
-                Database settings
+                {t('header.databaseSettings')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -164,7 +166,7 @@ export function DatabaseHeader({
                 onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete database
+                {t('header.deleteDatabase')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -192,7 +194,7 @@ export function DatabaseHeader({
           className="h-7 px-2 text-sm font-normal text-muted-foreground hover:text-foreground"
         >
           <Filter className="h-3.5 w-3.5 mr-1.5" />
-          Filter
+          {t('header.filter')}
         </Button>
 
         {/* Sort button */}
@@ -202,7 +204,7 @@ export function DatabaseHeader({
           className="h-7 px-2 text-sm font-normal text-muted-foreground hover:text-foreground"
         >
           <ArrowUpDown className="h-3.5 w-3.5 mr-1.5" />
-          Sort
+          {t('header.sort')}
         </Button>
 
         <div className="flex-1" />
@@ -214,7 +216,7 @@ export function DatabaseHeader({
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
+              placeholder={t('header.search')}
               className="h-7 w-48 pl-7 text-sm"
               autoFocus
               onBlur={() => {
@@ -257,7 +259,7 @@ export function DatabaseHeader({
           size="sm"
           className="h-7 px-3 text-sm font-medium ml-1 bg-primary hover:bg-primary/90"
         >
-          New
+          {t('header.new')}
         </Button>
       </div>
 
@@ -291,15 +293,14 @@ export function DatabaseHeader({
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete database</DialogTitle>
+            <DialogTitle>{t('header.deleteDatabase')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{database.name}"? This will permanently delete
-              the database and all its rows. This action cannot be undone.
+              {t('header.deleteConfirm', { name: database.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -308,7 +309,7 @@ export function DatabaseHeader({
                 setShowDeleteDialog(false)
               }}
             >
-              Delete
+              {t('common:delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -320,7 +321,7 @@ export function DatabaseHeader({
           <SheetHeader className="px-4 py-3 border-b">
             <SheetTitle className="text-sm font-medium flex items-center gap-2">
               <Input
-                defaultValue="View name"
+                defaultValue={t('header.viewName')}
                 className="h-7 text-sm font-medium border-none shadow-none focus-visible:ring-1 px-2"
               />
             </SheetTitle>
@@ -331,16 +332,16 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Table className="h-4 w-4 text-muted-foreground" />
-                <span>Layout</span>
+                <span>{t('header.layout')}</span>
               </div>
-              <span className="text-muted-foreground">Table</span>
+              <span className="text-muted-foreground">{t('header.tableLayout')}</span>
             </button>
 
             {/* Property visibility */}
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Eye className="h-4 w-4 text-muted-foreground" />
-                <span>Property visibility</span>
+                <span>{t('header.propertyVisibility')}</span>
               </div>
               <span className="text-muted-foreground">{database.schema.length}</span>
             </button>
@@ -349,7 +350,7 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <span>Filter</span>
+                <span>{t('header.filter')}</span>
               </div>
             </button>
 
@@ -357,7 +358,7 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                <span>Sort</span>
+                <span>{t('header.sort')}</span>
               </div>
             </button>
 
@@ -365,7 +366,7 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                <span>Group</span>
+                <span>{t('header.group')}</span>
               </div>
             </button>
 
@@ -373,7 +374,7 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Paintbrush className="h-4 w-4 text-muted-foreground" />
-                <span>Conditional color</span>
+                <span>{t('header.conditionalColor')}</span>
               </div>
             </button>
 
@@ -381,7 +382,7 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Link2 className="h-4 w-4 text-muted-foreground" />
-                <span>Copy link to view</span>
+                <span>{t('header.copyLink')}</span>
               </div>
             </button>
 
@@ -389,14 +390,14 @@ export function DatabaseHeader({
 
             {/* Data source settings */}
             <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Data source settings
+              {t('header.dataSourceSettings')}
             </div>
 
             {/* Source */}
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Database className="h-4 w-4 text-muted-foreground" />
-                <span>Source</span>
+                <span>{t('header.source')}</span>
               </div>
               <span className="text-muted-foreground truncate max-w-[120px]">
                 {database.name}
@@ -407,7 +408,7 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Settings className="h-4 w-4 text-muted-foreground" />
-                <span>Edit properties</span>
+                <span>{t('header.editProperties')}</span>
               </div>
             </button>
 
@@ -417,7 +418,7 @@ export function DatabaseHeader({
             <button className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-accent">
               <div className="flex items-center gap-3">
                 <Lock className="h-4 w-4 text-muted-foreground" />
-                <span>Lock database</span>
+                <span>{t('header.lockDatabase')}</span>
               </div>
             </button>
           </div>

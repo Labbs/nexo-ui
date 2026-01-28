@@ -1,11 +1,12 @@
 import { X, History, RotateCcw, Loader2, GitCompare } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { useVersions, useRestoreVersion, type VersionItem } from '@/hooks/use-versions'
 import { formatDistanceToNow } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { useLanguage } from '@/i18n/LanguageContext'
 
 interface VersionHistorySidebarProps {
   isOpen: boolean
@@ -24,6 +25,7 @@ export function VersionHistorySidebar({
   onCompare,
   comparingVersionId,
 }: VersionHistorySidebarProps) {
+  const { t } = useTranslation('document')
   // Only fetch when sidebar is open
   const { data, isLoading } = useVersions(spaceId, documentId, { enabled: isOpen })
   const { mutateAsync: restoreVersion } = useRestoreVersion()
@@ -31,7 +33,7 @@ export function VersionHistorySidebar({
 
   const handleRestore = async (version: VersionItem) => {
     if (!spaceId || !documentId) return
-    if (!window.confirm(`Restore to version ${version.version}? Current changes will be saved as a new version.`)) return
+    if (!window.confirm(t('versionHistory.restoreConfirm', { version: version.version }))) return
 
     setRestoringId(version.id)
     try {
@@ -59,7 +61,7 @@ export function VersionHistorySidebar({
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <History className="h-4 w-4" />
-            <h2 className="font-semibold">Version History</h2>
+            <h2 className="font-semibold">{t('versionHistory.title')}</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -74,8 +76,8 @@ export function VersionHistorySidebar({
             </div>
           ) : !data?.versions || data.versions.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">
-              <p className="text-sm">No versions yet</p>
-              <p className="text-xs mt-1">Versions are created automatically when you save changes.</p>
+              <p className="text-sm">{t('versionHistory.noVersions')}</p>
+              <p className="text-xs mt-1">{t('versionHistory.noVersionsDescription')}</p>
             </div>
           ) : (
             <div className="divide-y">
@@ -98,7 +100,7 @@ export function VersionHistorySidebar({
           <>
             <Separator />
             <div className="p-3 text-xs text-muted-foreground text-center">
-              {data.total_count} version{data.total_count > 1 ? 's' : ''} total
+              {t('versionHistory.totalCount', { count: data.total_count })}
             </div>
           </>
         )}
@@ -116,9 +118,11 @@ interface VersionListItemProps {
 }
 
 function VersionListItem({ version, onRestore, onCompare, isRestoring, isComparing }: VersionListItemProps) {
+  const { t } = useTranslation('document')
+  const { dateFnsLocale } = useLanguage()
   const timeAgo = formatDistanceToNow(new Date(version.created_at), {
     addSuffix: true,
-    locale: fr,
+    locale: dateFnsLocale,
   })
 
   return (
@@ -134,7 +138,7 @@ function VersionListItem({ version, onRestore, onCompare, isRestoring, isCompari
               <span className="text-sm text-muted-foreground truncate">{version.name}</span>
             )}
             {isComparing && (
-              <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">Comparing</span>
+              <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">{t('versionHistory.comparing')}</span>
             )}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
@@ -152,7 +156,7 @@ function VersionListItem({ version, onRestore, onCompare, isRestoring, isCompari
             size="icon"
             className="h-7 w-7"
             onClick={onCompare}
-            title={isComparing ? 'Stop comparing' : 'Compare with current'}
+            title={isComparing ? t('versionHistory.stopComparing') : t('versionHistory.compareWithCurrent')}
           >
             <GitCompare className="h-3.5 w-3.5" />
           </Button>
@@ -162,7 +166,7 @@ function VersionListItem({ version, onRestore, onCompare, isRestoring, isCompari
             className="h-7 w-7"
             onClick={onRestore}
             disabled={isRestoring}
-            title="Restore this version"
+            title={t('versionHistory.restoreVersion')}
           >
             {isRestoring ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

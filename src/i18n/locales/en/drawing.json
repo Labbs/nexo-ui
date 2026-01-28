@@ -1,0 +1,11 @@
+{
+  "untitledDrawing": "Untitled Drawing",
+  "notFound": "Drawing not found",
+  "create": {
+    "title": "Create drawing",
+    "description": "Create a new Excalidraw drawing to sketch diagrams, wireframes, and more.",
+    "nameLabel": "Name",
+    "namePlaceholder": "Drawing name",
+    "submit": "Create drawing"
+  }
+}

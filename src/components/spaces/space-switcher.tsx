@@ -10,10 +10,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { useSpaces } from '@/hooks/use-spaces'
 import { useCurrentSpace } from '@/contexts/space-context'
+import { useTranslation } from 'react-i18next'
 
 export function SpaceSwitcher() {
   const { data: spaces = [], isLoading } = useSpaces()
   const { currentSpace, setCurrentSpace } = useCurrentSpace()
+  const { t } = useTranslation('navigation')
 
   if (isLoading) {
     return (
@@ -46,14 +48,14 @@ export function SpaceSwitcher() {
                 <span className="truncate">{currentSpace.name}</span>
               </>
             ) : (
-              <span className="text-muted-foreground">Select a space</span>
+              <span className="text-muted-foreground">{t('spaces.selectSpace')}</span>
             )}
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="start">
-        <DropdownMenuLabel>Spaces</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('spaces.spaces')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {spaces.map((space) => (
           <DropdownMenuItem
@@ -81,7 +83,7 @@ export function SpaceSwitcher() {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="cursor-pointer">
           <Plus className="h-4 w-4 mr-2" />
-          Create new space
+          {t('spaces.createNewSpace')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

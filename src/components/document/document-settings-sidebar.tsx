@@ -1,8 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { ContentSettingsSidebar } from '@/components/shared/content-settings-sidebar'
 import type { components } from '@/api/types'
+import type { IconValue } from '@/components/ui/icon-picker'
+import { parseStoredIcon } from '@/lib/utils'
 import { useDeleteDocument } from '@/hooks/use-documents'
 import {
   useDocumentPermissions,
@@ -26,7 +29,7 @@ interface DocumentSettingsSidebarProps {
   } | null
   isLocked?: boolean
   isFullWidth?: boolean
-  onIconChange: (icon: string | null) => void
+  onIconChange: (icon: IconValue) => void
   onConfigChange: (config: Partial<{ fullWidth: boolean; lock: boolean }>) => void
   isUpdating?: boolean
 }
@@ -41,6 +44,7 @@ export function DocumentSettingsSidebar({
   onConfigChange,
   isUpdating = false,
 }: DocumentSettingsSidebarProps) {
+  const { t } = useTranslation('document')
   const navigate = useNavigate()
   const { spaceId } = useParams<{ spaceId: string }>()
   const { mutateAsync: deleteDocument, isPending: isDeleting } = useDeleteDocument()
@@ -81,12 +85,12 @@ export function DocumentSettingsSidebar({
   // Custom settings for documents
   const customSettings = (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium">Settings</h3>
+      <h3 className="text-sm font-medium">{t('settingsSidebar.settings')}</h3>
 
       {/* Full width toggle */}
       <div className="flex items-center justify-between">
         <Label htmlFor="full-width" className="cursor-pointer">
-          Full width
+          {t('settingsSidebar.fullWidth')}
         </Label>
         <Switch
           id="full-width"
@@ -99,7 +103,7 @@ export function DocumentSettingsSidebar({
       {/* Lock toggle */}
       <div className="flex items-center justify-between">
         <Label htmlFor="lock" className="cursor-pointer">
-          Lock document
+          {t('settingsSidebar.lockDocument')}
         </Label>
         <Switch
           id="lock"
@@ -117,7 +121,7 @@ export function DocumentSettingsSidebar({
       isOpen={isOpen}
       onClose={onClose}
       name={document?.name}
-      icon={document?.config?.icon}
+      icon={parseStoredIcon(document?.config?.icon)}
       createdAt={(document as any)?.created_at}
       updatedAt={(document as any)?.updated_at}
       onIconChange={onIconChange}

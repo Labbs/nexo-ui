@@ -1,17 +1,21 @@
 import { useCallback, useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { X, ExternalLink, Loader2 } from 'lucide-react'
+import { X, ExternalLink, Loader2, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { OpenBlockEditor, type OpenBlockContent } from '@/components/editor/openblock-editor'
 import { FieldEditor } from '@/components/database/common/field-editor'
-import { EmojiPicker } from '@/components/ui/emoji-picker'
+import { IconPicker, DocumentIcon, type IconValue } from '@/components/ui/icon-picker'
 import {
   useDatabase,
   useRow,
   useUpdateRow,
   type PropertySchema,
+  type RowItem,
 } from '@/hooks/use-database'
 import { cn } from '@/lib/utils'
+import { formatDistanceToNow } from 'date-fns'
+import { useLanguage } from '@/i18n/LanguageContext'
 
 interface DocumentEditSidebarProps {
   isOpen: boolean
@@ -19,6 +23,7 @@ interface DocumentEditSidebarProps {
   databaseId: string
   rowId: string
   spaceId: string
+  initialRowData?: RowItem
 }
 
 export function DocumentEditSidebar({
@@ -27,10 +32,16 @@ export function DocumentEditSidebar({
   databaseId,
   rowId,
   spaceId,
+  initialRowData,
 }: DocumentEditSidebarProps) {
+  const { t } = useTranslation('database')
+  const { dateFnsLocale } = useLanguage()
   const { data: database, isLoading: isLoadingDatabase } = useDatabase(databaseId)
   const { data: row, isLoading: isLoadingRow } = useRow(databaseId, rowId)
   const updateRow = useUpdateRow()
+
+  // Use initial row data from list or fetched data
+  const rowData = row || initialRowData
 
   // Local state for title editing
   const [isEditingTitle, setIsEditingTitle] = useState(false)
@@ -50,15 +61,32 @@ export function DocumentEditSidebar({
 
   // Get current title value
   const titleValue = useMemo(() => {
-    if (!row?.properties || !titleColumn || !titleColumn.id) return ''
-    return (row.properties[titleColumn.id] as string) || ''
-  }, [row?.properties, titleColumn])
+    if (!rowData?.properties || !titleColumn || !titleColumn.id) return ''
+    return (rowData.properties[titleColumn.id] as string) || ''
+  }, [rowData?.properties, titleColumn])
 
   // Get current icon from content
-  const iconValue = useMemo(() => {
-    const content = row?.content as { icon?: string } | undefined
+  const iconValue = useMemo((): IconValue => {
+    const content = (rowData as { content?: { icon?: IconValue } })?.content
     return content?.icon || null
-  }, [row?.content])
+  }, [rowData])
+
+  // Get user info for display
+  const createdByUser = useMemo(() => {
+    return (rowData as RowItem)?.created_by_user
+  }, [rowData])
+
+  const updatedByUser = useMemo(() => {
+    return (rowData as RowItem)?.updated_by_user
+  }, [rowData])
+
+  const createdAt = useMemo(() => {
+    return (rowData as RowItem)?.created_at
+  }, [rowData])
+
+  const updatedAt = useMemo(() => {
+    return (rowData as RowItem)?.updated_at
+  }, [rowData])
 
   // Reset title when row changes
   useEffect(() => {
@@ -68,17 +96,17 @@ export function DocumentEditSidebar({
 
   // Handle property change
   const handlePropertyChange = useCallback((propertyId: string, value: unknown) => {
-    if (!databaseId || !rowId || !row) return
+    if (!databaseId || !rowId || !rowData) return
 
     updateRow.mutate({
       databaseId,
       rowId,
       properties: {
-        ...row.properties,
+        ...rowData.properties,
         [propertyId]: value,
       },
     })
-  }, [databaseId, rowId, row, updateRow])
+  }, [databaseId, rowId, rowData, updateRow])
 
   // Handle title save
   const handleTitleSave = useCallback(() => {
@@ -88,10 +116,10 @@ export function DocumentEditSidebar({
   }, [titleColumn, localTitle, titleValue, handlePropertyChange])
 
   // Handle icon change
-  const handleIconChange = useCallback((newIcon: string) => {
+  const handleIconChange = useCallback((newIcon: IconValue) => {
     if (!databaseId || !rowId) return
 
-    const currentContent = (row?.content as { blocks?: OpenBlockContent; icon?: string }) || {}
+    const currentContent = ((rowData as { content?: { blocks?: OpenBlockContent; icon?: IconValue } })?.content) || {}
 
     updateRow.mutate({
       databaseId,
@@ -101,13 +129,13 @@ export function DocumentEditSidebar({
         icon: newIcon,
       } as Record<string, unknown>,
     })
-  }, [databaseId, rowId, row?.content, updateRow])
+  }, [databaseId, rowId, rowData, updateRow])
 
   // Handle content change
   const handleContentChange = useCallback((content: OpenBlockContent) => {
     if (!databaseId || !rowId) return
 
-    const currentContent = (row?.content as { blocks?: OpenBlockContent; icon?: string }) || {}
+    const currentContent = ((rowData as { content?: { blocks?: OpenBlockContent; icon?: string } })?.content) || {}
 
     updateRow.mutate({
       databaseId,
@@ -117,9 +145,10 @@ export function DocumentEditSidebar({
         blocks: content,
       } as Record<string, unknown>,
     })
-  }, [databaseId, rowId, row?.content, updateRow])
+  }, [databaseId, rowId, rowData, updateRow])
 
-  const isLoading = isLoadingDatabase || isLoadingRow
+  // Only show loading if we don't have initial data
+  const isLoading = (isLoadingDatabase || isLoadingRow) && !initialRowData
 
   return (
     <>
@@ -144,7 +173,7 @@ export function DocumentEditSidebar({
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {database?.name || 'Document'}
+              {database?.name || t('documentEdit.document')}
             </span>
           </div>
           <div className="flex items-center gap-1">
@@ -152,7 +181,7 @@ export function DocumentEditSidebar({
               variant="ghost"
               size="icon"
               asChild
-              title="Open as full page"
+              title={t('documentEdit.openAsFullPage')}
             >
               <Link to={`/space/${spaceId}/database/${databaseId}/doc/${rowId}`}>
                 <ExternalLink className="h-4 w-4" />
@@ -162,7 +191,7 @@ export function DocumentEditSidebar({
               variant="ghost"
               size="icon"
               onClick={onClose}
-              title="Close"
+              title={t('documentEdit.close')}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -175,23 +204,23 @@ export function DocumentEditSidebar({
             <div className="flex items-center justify-center h-full">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : !row ? (
+          ) : !rowData ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground">Document not found</p>
+              <p className="text-muted-foreground">{t('documentEdit.notFound')}</p>
             </div>
           ) : (
-            <div className="flex flex-col">
+            <div className="flex flex-col h-full">
               {/* Icon and Title */}
               <div className="px-6 pt-6 pb-4">
                 <div className="flex items-center gap-2">
-                  <EmojiPicker value={iconValue} onChange={handleIconChange}>
+                  <IconPicker value={iconValue} onChange={handleIconChange}>
                     <button
                       className="shrink-0 hover:bg-accent rounded p-1 transition-colors"
-                      title="Change icon"
+                      title={t('documentEdit.changeIcon')}
                     >
-                      <span className="text-2xl">{iconValue || '📄'}</span>
+                      <DocumentIcon value={iconValue} size="lg" />
                     </button>
-                  </EmojiPicker>
+                  </IconPicker>
                   {isEditingTitle ? (
                     <input
                       type="text"
@@ -208,7 +237,7 @@ export function DocumentEditSidebar({
                         }
                       }}
                       className="text-2xl font-bold bg-transparent border-none outline-none flex-1"
-                      placeholder="Untitled"
+                      placeholder={t('common:untitled')}
                       autoFocus
                     />
                   ) : (
@@ -219,7 +248,7 @@ export function DocumentEditSidebar({
                         setIsEditingTitle(true)
                       }}
                     >
-                      {titleValue || 'Untitled'}
+                      {titleValue || t('common:untitled')}
                     </h1>
                   )}
                 </div>
@@ -240,7 +269,7 @@ export function DocumentEditSidebar({
                         <div className="flex-1 min-w-0">
                           <FieldEditor
                             property={property}
-                            value={property.id ? row.properties[property.id] : undefined}
+                            value={property.id ? rowData.properties?.[property.id] : undefined}
                             onChange={(value) => property.id && handlePropertyChange(property.id, value)}
                             className="w-full"
                           />
@@ -254,9 +283,33 @@ export function DocumentEditSidebar({
               {/* OpenBlock Editor for content */}
               <div className="px-6 py-4 flex-1">
                 <OpenBlockEditor
-                  content={((row.content as { blocks?: OpenBlockContent })?.blocks) || []}
+                  content={(((rowData as { content?: { blocks?: OpenBlockContent } })?.content)?.blocks) || []}
                   onChange={handleContentChange}
                 />
+              </div>
+
+              {/* Document info */}
+              <div className="px-6 py-4 border-t mt-auto">
+                <div className="space-y-1.5 text-xs text-muted-foreground">
+                  {updatedAt && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        {t('documentEdit.edited', { time: formatDistanceToNow(new Date(updatedAt as unknown as string), { addSuffix: true, locale: dateFnsLocale }) })}
+                        {(updatedByUser?.username || createdByUser?.username) && ` ${t('documentEdit.by', { name: updatedByUser?.username || createdByUser?.username })}`}
+                      </span>
+                    </div>
+                  )}
+                  {createdAt && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        {t('documentEdit.created', { time: formatDistanceToNow(new Date(createdAt as unknown as string), { addSuffix: true, locale: dateFnsLocale }) })}
+                        {createdByUser?.username && ` ${t('documentEdit.by', { name: createdByUser.username })}`}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

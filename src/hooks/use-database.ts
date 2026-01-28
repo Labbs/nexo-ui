@@ -18,6 +18,7 @@ export interface ViewConfig {
   sort?: SortConfig[]
   columns?: string[]
   hiddenColumns?: string[]
+  groupBy?: string
 }
 
 export interface SortConfig {
@@ -140,8 +141,8 @@ export function useRow(databaseId?: string, rowId?: string) {
   })
 }
 
-// Database type
-export type DatabaseType = 'spreadsheet' | 'document'
+// Database type (keeping 'spreadsheet' for backward compatibility)
+export type DatabaseType = 'document' | 'spreadsheet'
 
 // Create a new database
 export function useCreateDatabase() {
@@ -174,7 +175,7 @@ export function useCreateDatabase() {
           icon,
           schema,
           document_id: documentId,
-          type: type || 'spreadsheet',
+          type: type || 'document',
         }
       )
       return response.data
@@ -291,6 +292,7 @@ export function useUpdateRow() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.rows(variables.databaseId) })
+      queryClient.invalidateQueries({ queryKey: databaseKeys.row(variables.databaseId, variables.rowId) })
     },
   })
 }
@@ -378,28 +380,34 @@ export function useUpdateView() {
       databaseId,
       viewId,
       name,
+      type,
       filter,
       sort,
       columns,
       hiddenColumns,
+      groupBy,
       clearFilter,
       clearSort,
     }: {
       databaseId: string
       viewId: string
       name?: string
+      type?: string
       filter?: Record<string, unknown>
       sort?: SortConfig[]
       columns?: string[]
       hiddenColumns?: string[]
+      groupBy?: string
       clearFilter?: boolean
       clearSort?: boolean
     }) => {
       // Build payload - send empty object/array to clear, undefined to not change
       const payload: Record<string, unknown> = {}
       if (name !== undefined) payload.name = name
+      if (type !== undefined) payload.type = type
       if (columns !== undefined) payload.columns = columns
       if (hiddenColumns !== undefined) payload.hidden_columns = hiddenColumns
+      if (groupBy !== undefined) payload.group_by = groupBy
 
       // Handle filter: clearFilter=true sends empty object to clear
       if (clearFilter) {

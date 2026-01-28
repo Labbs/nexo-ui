@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronDown, Calendar as CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -41,6 +42,7 @@ const selectOptionColors: Record<string, { bg: string; text: string }> = {
 }
 
 export function FieldEditor({ property, value, onChange, className }: FieldEditorProps) {
+  const { t } = useTranslation('database')
   const [isEditing, setIsEditing] = useState(false)
   const [localValue, setLocalValue] = useState<string>('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -85,7 +87,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           className={cn("h-8", className)}
-          placeholder={`Enter ${propertyName.toLowerCase()}...`}
+          placeholder={t('fields.enterValue', { name: propertyName.toLowerCase() })}
         />
       )
     }
@@ -102,7 +104,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
           className
         )}
       >
-        {(value as string) || `Add ${propertyName.toLowerCase()}...`}
+        {(value as string) || t('fields.addValue', { name: propertyName.toLowerCase() })}
       </div>
     )
   }
@@ -142,7 +144,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
           className
         )}
       >
-        {displayValue || 'Empty'}
+        {displayValue || t('cells.empty')}
       </div>
     )
   }
@@ -175,7 +177,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateValue ? format(dateValue, "PPP") : "Pick a date"}
+            {dateValue ? format(dateValue, "PPP") : t('cells.pickDate')}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -190,8 +192,8 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
     )
   }
 
-  // Select editor
-  if (propertyType === 'select') {
+  // Select/Status editor
+  if (propertyType === 'select' || propertyType === 'status') {
     const options = (property.options?.options as SelectOption[]) || []
     const selectedOption = options.find(opt => opt.id === value || opt.name === value)
     const colorInfo = selectedOption?.color
@@ -214,7 +216,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
                 {selectedOption.name}
               </span>
             ) : (
-              "Select..."
+              t('cells.selectPlaceholder')
             )}
             <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
           </Button>
@@ -243,7 +245,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
             onClick={() => onChange('')}
             className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-muted text-muted-foreground text-sm"
           >
-            Clear
+            {t('cells.clear')}
           </div>
         </PopoverContent>
       </Popover>
@@ -281,7 +283,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
                 )
               })
             ) : (
-              "Select..."
+              t('cells.selectPlaceholder')
             )}
             <ChevronDown className="h-4 w-4 ml-auto opacity-50" />
           </Button>
@@ -317,7 +319,7 @@ export function FieldEditor({ property, value, onChange, className }: FieldEdito
               onClick={() => onChange([])}
               className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-muted text-muted-foreground text-sm border-t mt-1 pt-1"
             >
-              Clear all
+              {t('cells.clearAll')}
             </div>
           )}
         </PopoverContent>

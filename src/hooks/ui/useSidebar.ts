@@ -113,32 +113,21 @@ export function useSidebar() {
   }, [currentSpace?.id, createDrawing, navigate, show])
 
   // Handle create database (directly without modal)
-  const handleCreateDatabaseOrSpreadsheet = useCallback(async (type: DatabaseType, documentId?: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleCreateDatabaseOrSpreadsheet = useCallback(async (_type: DatabaseType, documentId?: string) => {
     if (!currentSpace?.id) return
     try {
-      const isSpreadsheet = type === 'spreadsheet'
-      const defaultSchema = isSpreadsheet
-        ? [
-            { id: 'title', name: 'Name', type: 'title' },
-            { id: 'status', name: 'Status', type: 'select', options: { options: [
-              { id: 'not_started', name: 'Not started', color: 'gray' },
-              { id: 'in_progress', name: 'In progress', color: 'blue' },
-              { id: 'done', name: 'Done', color: 'green' },
-            ]}},
-          ]
-        : [{ id: 'title', name: 'Title', type: 'title' }]
-
       const result = await createDatabase({
         spaceId: currentSpace.id,
         documentId,
-        name: isSpreadsheet ? 'Untitled Spreadsheet' : 'Untitled Database',
-        icon: isSpreadsheet ? '📊' : '📚',
-        schema: defaultSchema,
-        type,
+        name: 'Untitled Database',
+        icon: '📚',
+        schema: [{ id: 'title', name: 'Title', type: 'title' }],
+        type: 'document',
       })
       if (result.id) navigate(`/space/${currentSpace.id}/database/${result.id}`)
     } catch {
-      show({ title: `Failed to create ${type}`, variant: 'destructive' })
+      show({ title: 'Failed to create database', variant: 'destructive' })
     }
   }, [currentSpace?.id, createDatabase, navigate, show])
 
@@ -167,7 +156,7 @@ export function useSidebar() {
 
   // Navigate to settings
   const navigateToSettings = useCallback(() => {
-    navigate('/settings')
+    navigate('/user/settings')
   }, [navigate])
 
   // Navigate to admin

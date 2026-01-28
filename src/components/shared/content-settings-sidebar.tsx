@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { X, Trash2, Clock, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -10,10 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { IconEmojiSelector } from '@/components/document/icon-emoji-selector'
+import { IconPicker, DocumentIcon, type IconValue } from '@/components/ui/icon-picker'
 import { PermissionManager, type Permission, type SpacePermission } from '@/components/permissions/permission-manager'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
+import { useLanguage } from '@/i18n/LanguageContext'
+import type { TFunction } from 'i18next'
 
 // Helper to parse date from API (can be string or object)
 function parseDate(date: unknown): Date | null {
@@ -36,14 +39,14 @@ interface ContentSettingsSidebarProps {
 
   // Content info
   name?: string
-  icon?: string
+  icon?: IconValue
   description?: string
   createdAt?: string | unknown
   updatedAt?: string | unknown
   createdBy?: string
 
   // Icon management
-  onIconChange?: (icon: string | null) => void
+  onIconChange?: (icon: IconValue) => void
   isIconUpdating?: boolean
 
   // Custom settings section (for document-specific settings like fullWidth, lock)
@@ -67,22 +70,24 @@ interface ContentSettingsSidebarProps {
   deleteWarning?: string
 }
 
-const contentTypeLabels: Record<ContentType, { title: string; deleteLabel: string; defaultName: string }> = {
-  document: {
-    title: 'Document Settings',
-    deleteLabel: 'Delete this document',
-    defaultName: 'Untitled',
-  },
-  database: {
-    title: 'Database Settings',
-    deleteLabel: 'Delete this database',
-    defaultName: 'Untitled Database',
-  },
-  drawing: {
-    title: 'Drawing Settings',
-    deleteLabel: 'Delete this drawing',
-    defaultName: 'Untitled Drawing',
-  },
+function getContentTypeLabels(t: TFunction): Record<ContentType, { title: string; deleteLabel: string; defaultName: string }> {
+  return {
+    document: {
+      title: t('settingsSidebar.contentTypes.document.title'),
+      deleteLabel: t('settingsSidebar.contentTypes.document.deleteLabel'),
+      defaultName: t('settingsSidebar.contentTypes.document.defaultName'),
+    },
+    database: {
+      title: t('settingsSidebar.contentTypes.database.title'),
+      deleteLabel: t('settingsSidebar.contentTypes.database.deleteLabel'),
+      defaultName: t('settingsSidebar.contentTypes.database.defaultName'),
+    },
+    drawing: {
+      title: t('settingsSidebar.contentTypes.drawing.title'),
+      deleteLabel: t('settingsSidebar.contentTypes.drawing.deleteLabel'),
+      defaultName: t('settingsSidebar.contentTypes.drawing.defaultName'),
+    },
+  }
 }
 
 export function ContentSettingsSidebar({
@@ -112,7 +117,10 @@ export function ContentSettingsSidebar({
   isDeleting = false,
   deleteWarning,
 }: ContentSettingsSidebarProps) {
+  const { t } = useTranslation('document')
+  const { dateFnsLocale } = useLanguage()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const contentTypeLabels = getContentTypeLabels(t)
   const labels = contentTypeLabels[contentType]
 
   const handleDelete = async () => {
@@ -153,12 +161,16 @@ export function ContentSettingsSidebar({
           {onIconChange && (
             <>
               <div>
-                <h3 className="text-sm font-medium mb-2">Icon</h3>
-                <IconEmojiSelector
-                  currentIcon={icon || undefined}
-                  isUpdating={isIconUpdating}
-                  onApplyIcon={onIconChange}
-                />
+                <h3 className="text-sm font-medium mb-2">{t('settingsSidebar.icon')}</h3>
+                <IconPicker value={icon} onChange={onIconChange}>
+                  <button
+                    className="flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-accent transition-colors w-full"
+                    disabled={isIconUpdating}
+                  >
+                    <DocumentIcon value={icon} size="lg" />
+                    <span className="text-sm text-muted-foreground">{t('settingsSidebar.changeIcon')}</span>
+                  </button>
+                </IconPicker>
               </div>
               <Separator />
             </>
@@ -168,7 +180,7 @@ export function ContentSettingsSidebar({
           {description && (
             <>
               <div className="space-y-2">
-                <h3 className="text-sm font-medium">Description</h3>
+                <h3 className="text-sm font-medium">{t('settingsSidebar.description')}</h3>
                 <p className="text-sm text-muted-foreground">{description}</p>
               </div>
               <Separator />
@@ -185,33 +197,33 @@ export function ContentSettingsSidebar({
 
           {/* Information */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Information</h3>
+            <h3 className="text-sm font-medium">{t('settingsSidebar.information')}</h3>
             <div className="space-y-1.5 text-sm text-muted-foreground">
               {parsedUpdatedAt ? (
                 <div className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Edited {formatDistanceToNow(parsedUpdatedAt, { addSuffix: true })}</span>
+                  <span>{t('settingsSidebar.edited', { time: formatDistanceToNow(parsedUpdatedAt, { addSuffix: true, locale: dateFnsLocale }) })}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-xs">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>No edit date</span>
+                  <span>{t('common:noEditDate')}</span>
                 </div>
               )}
               {parsedCreatedAt ? (
                 <div className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Created {formatDistanceToNow(parsedCreatedAt, { addSuffix: true })}</span>
+                  <span>{t('settingsSidebar.created', { time: formatDistanceToNow(parsedCreatedAt, { addSuffix: true, locale: dateFnsLocale }) })}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-xs">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>No creation date</span>
+                  <span>{t('common:noCreationDate')}</span>
                 </div>
               )}
               {createdBy && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs">By {createdBy}</span>
+                  <span className="text-xs">{t('settingsSidebar.createdBy', { name: createdBy })}</span>
                 </div>
               )}
             </div>
@@ -242,7 +254,7 @@ export function ContentSettingsSidebar({
 
           {/* Danger zone */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-destructive">Danger zone</h3>
+            <h3 className="text-sm font-medium text-destructive">{t('settingsSidebar.dangerZone')}</h3>
             <Button
               variant="outline"
               className="w-full justify-start border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
@@ -261,13 +273,13 @@ export function ContentSettingsSidebar({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Delete {contentType}
+              {t('settingsSidebar.deleteContentType', { type: contentType })}
             </DialogTitle>
             <DialogDescription className="pt-2">
-              Are you sure you want to delete <strong>"{name || labels.defaultName}"</strong>?
+              {t('settingsSidebar.deleteConfirm', { name: name || labels.defaultName })}
               <br />
               <span className="text-destructive">
-                {deleteWarning || 'This action cannot be undone.'}
+                {deleteWarning || t('common:cannotBeUndone')}
               </span>
             </DialogDescription>
           </DialogHeader>
@@ -277,14 +289,14 @@ export function ContentSettingsSidebar({
               onClick={() => setShowDeleteDialog(false)}
               disabled={isDeleting}
             >
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button
               className="bg-red-600 hover:bg-red-700 text-white"
               onClick={handleDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? t('common:deleting') : t('common:delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

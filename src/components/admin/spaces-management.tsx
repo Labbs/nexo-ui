@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FolderOpen, Plus, Trash2, Pencil, User, Users, ChevronDown, UserPlus, UserMinus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -50,8 +51,10 @@ import {
   type AdminSpace,
 } from '@/hooks/use-admin'
 import { formatDistanceToNow } from 'date-fns'
+import { useLanguage } from '@/i18n/LanguageContext'
 
 export function SpacesManagement() {
+  const { t } = useTranslation('admin')
   const { data, isLoading } = useAdminSpaces()
   const { data: usersData } = useAdminUsers()
   const { data: groupsData } = useAdminGroups()
@@ -206,7 +209,7 @@ export function SpacesManagement() {
   ) || []
 
   if (isLoading) {
-    return <div className="p-4">Loading spaces...</div>
+    return <div className="p-4">{t('spaces.loading')}</div>
   }
 
   const spaces = data?.spaces || []
@@ -217,14 +220,14 @@ export function SpacesManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Spaces</h3>
+          <h3 className="text-lg font-medium">{t('spaces.title')}</h3>
           <p className="text-sm text-muted-foreground">
-            Manage spaces and their permissions.
+            {t('spaces.description')}
           </p>
         </div>
         <Button onClick={() => { resetForm(); setIsCreateOpen(true) }}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Space
+          {t('spaces.createButton')}
         </Button>
       </div>
 
@@ -232,9 +235,9 @@ export function SpacesManagement() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10">
             <FolderOpen className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No spaces found</p>
+            <p className="text-muted-foreground">{t('spaces.empty')}</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Create a space to get started.
+              {t('spaces.emptyHint')}
             </p>
           </CardContent>
         </Card>
@@ -242,9 +245,9 @@ export function SpacesManagement() {
         <>
           {/* Regular Spaces Section */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-muted-foreground">Spaces ({regularSpaces.length})</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">{t('spaces.spacesCount', { count: regularSpaces.length })}</h4>
             {regularSpaces.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No spaces</p>
+              <p className="text-sm text-muted-foreground">{t('spaces.noSpaces')}</p>
             ) : (
               regularSpaces.map(space => (
                 <SpaceCard
@@ -272,7 +275,7 @@ export function SpacesManagement() {
                   <button className="flex items-center justify-between w-full p-4 hover:bg-muted/50 transition-colors">
                     <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      Personal Spaces ({personalSpaces.length})
+                      {t('spaces.personalSpacesCount', { count: personalSpaces.length })}
                     </h4>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${!personalSpacesCollapsed ? 'rotate-180' : ''}`} />
                   </button>
@@ -306,23 +309,23 @@ export function SpacesManagement() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Space</DialogTitle>
+            <DialogTitle>{t('spaces.createTitle')}</DialogTitle>
             <DialogDescription>
-              Create a new space. You can optionally assign an owner.
+              {t('spaces.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('spaces.nameLabel')}</Label>
               <Input
                 id="name"
-                placeholder="Space name"
+                placeholder={t('spaces.namePlaceholder')}
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="icon">Icon (emoji)</Label>
+              <Label htmlFor="icon">{t('spaces.iconLabel')}</Label>
               <Input
                 id="icon"
                 placeholder="📁"
@@ -331,26 +334,26 @@ export function SpacesManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t('spaces.typeLabel')}</Label>
               <Select value={formType} onValueChange={setFormType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="restricted">Restricted</SelectItem>
+                  <SelectItem value="public">{t('spaces.typePublic')}</SelectItem>
+                  <SelectItem value="private">{t('spaces.typePrivate')}</SelectItem>
+                  <SelectItem value="restricted">{t('spaces.typeRestricted')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Owner (optional)</Label>
+              <Label>{t('spaces.ownerLabel')}</Label>
               <Select value={formOwnerId || '__none__'} onValueChange={(v) => setFormOwnerId(v === '__none__' ? '' : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="No owner" />
+                  <SelectValue placeholder={t('spaces.ownerNone')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No owner</SelectItem>
+                  <SelectItem value="__none__">{t('spaces.ownerNone')}</SelectItem>
                   {usersData?.users.map(user => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.username} ({user.email})
@@ -362,10 +365,10 @@ export function SpacesManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleCreate} disabled={!formName || createSpace.isPending}>
-              {createSpace.isPending ? 'Creating...' : 'Create'}
+              {createSpace.isPending ? t('spaces.creating') : t('spaces.createSubmit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -375,23 +378,23 @@ export function SpacesManagement() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Space</DialogTitle>
+            <DialogTitle>{t('spaces.editTitle')}</DialogTitle>
             <DialogDescription>
-              Update the space's name, type, or owner.
+              {t('spaces.editDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name">{t('spaces.nameLabel')}</Label>
               <Input
                 id="edit-name"
-                placeholder="Space name"
+                placeholder={t('spaces.namePlaceholder')}
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-icon">Icon (emoji)</Label>
+              <Label htmlFor="edit-icon">{t('spaces.iconLabel')}</Label>
               <Input
                 id="edit-icon"
                 placeholder="📁"
@@ -400,26 +403,26 @@ export function SpacesManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t('spaces.typeLabel')}</Label>
               <Select value={formType} onValueChange={setFormType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="restricted">Restricted</SelectItem>
+                  <SelectItem value="public">{t('spaces.typePublic')}</SelectItem>
+                  <SelectItem value="private">{t('spaces.typePrivate')}</SelectItem>
+                  <SelectItem value="restricted">{t('spaces.typeRestricted')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Owner</Label>
+              <Label>{t('spaces.ownerLabel')}</Label>
               <Select value={formOwnerId || '__none__'} onValueChange={(v) => setFormOwnerId(v === '__none__' ? '' : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="No owner" />
+                  <SelectValue placeholder={t('spaces.ownerNone')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No owner</SelectItem>
+                  <SelectItem value="__none__">{t('spaces.ownerNone')}</SelectItem>
                   {usersData?.users.map(user => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.username} ({user.email})
@@ -431,10 +434,10 @@ export function SpacesManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleEdit} disabled={!formName || updateSpace.isPending}>
-              {updateSpace.isPending ? 'Saving...' : 'Save'}
+              {updateSpace.isPending ? t('spaces.saving') : t('spaces.saveSubmit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -444,30 +447,30 @@ export function SpacesManagement() {
       <Dialog open={isAddPermissionOpen} onOpenChange={setIsAddPermissionOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Permission</DialogTitle>
+            <DialogTitle>{t('spaces.addPermissionTitle')}</DialogTitle>
             <DialogDescription>
-              Add a user or group permission to {selectedSpace?.name}.
+              {t('spaces.addPermissionDescription', { name: selectedSpace?.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Permission Type</Label>
+              <Label>{t('spaces.permissionTypeLabel')}</Label>
               <Select value={permissionType} onValueChange={(v) => setPermissionType(v as 'user' | 'group')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="group">Group</SelectItem>
+                  <SelectItem value="user">{t('common:types.user')}</SelectItem>
+                  <SelectItem value="group">{t('spaces.permissionTypeGroup')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {permissionType === 'user' ? (
               <div className="space-y-2">
-                <Label>Select User</Label>
+                <Label>{t('spaces.selectUserLabel')}</Label>
                 <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a user..." />
+                    <SelectValue placeholder={t('spaces.selectUserPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableUsers.map(user => (
@@ -480,10 +483,10 @@ export function SpacesManagement() {
               </div>
             ) : (
               <div className="space-y-2">
-                <Label>Select Group</Label>
+                <Label>{t('spaces.selectGroupLabel')}</Label>
                 <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a group..." />
+                    <SelectValue placeholder={t('spaces.selectGroupPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableGroups.map(group => (
@@ -496,22 +499,22 @@ export function SpacesManagement() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t('spaces.roleLabel')}</Label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="viewer">{t('common:roles.viewer')}</SelectItem>
+                  <SelectItem value="editor">{t('common:roles.editor')}</SelectItem>
+                  <SelectItem value="admin">{t('common:roles.admin')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddPermissionOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button
               onClick={handleAddPermission}
@@ -522,7 +525,7 @@ export function SpacesManagement() {
                 addGroupPermission.isPending
               }
             >
-              {addUserPermission.isPending || addGroupPermission.isPending ? 'Adding...' : 'Add Permission'}
+              {addUserPermission.isPending || addGroupPermission.isPending ? t('spaces.adding') : t('spaces.addPermissionSubmit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -532,18 +535,18 @@ export function SpacesManagement() {
       <AlertDialog open={!!spaceToDelete} onOpenChange={() => setSpaceToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Space</AlertDialogTitle>
+            <AlertDialogTitle>{t('spaces.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{spaceToDelete?.name}"? All documents and permissions will be removed. This action cannot be undone.
+              {t('spaces.deleteConfirm', { name: spaceToDelete?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('spaces.deleteSubmit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -576,6 +579,9 @@ function SpaceCard({
   onUpdateUserRole: (spaceId: string, userId: string, role: string) => void
   onUpdateGroupRole: (spaceId: string, groupId: string, role: string) => void
 }) {
+  const { t } = useTranslation('admin')
+  const { dateFnsLocale } = useLanguage()
+
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
       <Card>
@@ -610,7 +616,7 @@ function SpaceCard({
                 variant="ghost"
                 size="icon"
                 onClick={(e) => { e.stopPropagation(); onAddPermission() }}
-                title="Add permission"
+                title={t('spaces.addPermissionTooltip')}
               >
                 <UserPlus className="h-4 w-4" />
               </Button>
@@ -618,7 +624,7 @@ function SpaceCard({
                 variant="ghost"
                 size="icon"
                 onClick={(e) => { e.stopPropagation(); onEdit() }}
-                title="Edit space"
+                title={t('spaces.editSpaceTooltip')}
               >
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -627,7 +633,7 @@ function SpaceCard({
                 size="icon"
                 className="text-destructive hover:text-destructive"
                 onClick={(e) => { e.stopPropagation(); onDelete() }}
-                title="Delete space"
+                title={t('spaces.deleteSpaceTooltip')}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -643,7 +649,7 @@ function SpaceCard({
           <CardContent className="pt-0">
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium">Permissions</h4>
+                <h4 className="text-sm font-medium">{t('spaces.permissionsSection')}</h4>
               </div>
               <SpacePermissionsList
                 spaceId={space.id}
@@ -655,7 +661,7 @@ function SpaceCard({
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4 pt-4 border-t">
               <span>
-                Created {formatDistanceToNow(new Date(space.created_at), { addSuffix: true })}
+                {t('spaces.createdLabel')}{formatDistanceToNow(new Date(space.created_at), { addSuffix: true, locale: dateFnsLocale })}
               </span>
             </div>
           </CardContent>
@@ -679,10 +685,11 @@ function SpacePermissionsList({
   onUpdateUserRole: (spaceId: string, userId: string, role: string) => void
   onUpdateGroupRole: (spaceId: string, groupId: string, role: string) => void
 }) {
+  const { t } = useTranslation('admin')
   const { data, isLoading } = useAdminSpacePermissions(spaceId)
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading permissions...</p>
+    return <p className="text-sm text-muted-foreground">{t('spaces.loadingPermissions')}</p>
   }
 
   const permissions = data?.permissions || []
@@ -690,7 +697,7 @@ function SpacePermissionsList({
   if (permissions.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-4">
-        No permissions configured
+        {t('spaces.noPermissions')}
       </p>
     )
   }
@@ -706,8 +713,8 @@ function SpacePermissionsList({
                   <User className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{perm.username || 'Unknown user'}</p>
-                  <p className="text-xs text-muted-foreground">User</p>
+                  <p className="text-sm font-medium">{perm.username || t('common:unknownUser')}</p>
+                  <p className="text-xs text-muted-foreground">{t('common:types.user')}</p>
                 </div>
               </>
             ) : (
@@ -716,8 +723,8 @@ function SpacePermissionsList({
                   <Users className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{perm.group_name || 'Unknown group'}</p>
-                  <p className="text-xs text-muted-foreground">Group</p>
+                  <p className="text-sm font-medium">{perm.group_name || t('common:unknownGroup')}</p>
+                  <p className="text-xs text-muted-foreground">{t('spaces.permissionTypeGroup')}</p>
                 </div>
               </>
             )}
@@ -737,9 +744,9 @@ function SpacePermissionsList({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="viewer">{t('common:roles.viewer')}</SelectItem>
+                <SelectItem value="editor">{t('common:roles.editor')}</SelectItem>
+                <SelectItem value="admin">{t('common:roles.admin')}</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -753,7 +760,7 @@ function SpacePermissionsList({
                   onRemoveGroup(spaceId, perm.group_id)
                 }
               }}
-              title="Remove permission"
+              title={t('spaces.removePermissionTooltip')}
             >
               <UserMinus className="h-4 w-4" />
             </Button>

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useDebouncedCallback } from 'use-debounce'
 import { formatDistanceToNow } from 'date-fns'
-import { EmojiPicker } from '@/components/ui/emoji-picker'
+import { useLanguage } from '@/i18n/LanguageContext'
+import { IconPicker, DocumentIcon, type IconValue } from '@/components/ui/icon-picker'
 import { Button } from '@/components/ui/button'
 import {
   Loader2,
@@ -33,9 +35,8 @@ export interface ContentHeaderProps {
   breadcrumbs?: BreadcrumbItem[]
 
   // Icon picker (document only)
-  icon?: string | null
-  defaultIcon?: string
-  onIconChange?: (icon: string | null) => void
+  icon?: IconValue
+  onIconChange?: (icon: IconValue) => void
 
   // Favorites (document only)
   isFavorited?: boolean
@@ -65,10 +66,9 @@ export function ContentHeader({
   title,
   onTitleChange,
   onSettingsClick,
-  placeholder = 'Untitled',
+  placeholder,
   breadcrumbs,
   icon,
-  defaultIcon = '📄',
   onIconChange,
   isFavorited,
   onFavoriteToggle,
@@ -82,6 +82,9 @@ export function ContentHeader({
   isFullWidth = false,
   isEditable = true,
 }: ContentHeaderProps) {
+  const { t } = useTranslation('document')
+  const { dateFnsLocale } = useLanguage()
+
   // Local state for title editing with debounce
   const [localTitle, setLocalTitle] = useState(title)
 
@@ -102,9 +105,9 @@ export function ContentHeader({
   }
 
   // Handle icon change
-  const handleIconChange = (newIcon: string) => {
+  const handleIconChange = (newIcon: IconValue) => {
     if (onIconChange) {
-      onIconChange(newIcon || null)
+      onIconChange(newIcon)
     }
   }
 
@@ -156,10 +159,7 @@ export function ContentHeader({
           {updatedAt && (
             <div className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground">
               <span>
-                Edited{' '}
-                {formatDistanceToNow(new Date(updatedAt), {
-                  addSuffix: true,
-                })}
+                {t('contentHeader.edited', { time: formatDistanceToNow(new Date(updatedAt), { addSuffix: true, locale: dateFnsLocale }) })}
               </span>
             </div>
           )}
@@ -168,7 +168,7 @@ export function ContentHeader({
           {isUpdating && (
             <div className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Saving...</span>
+              <span>{t('contentHeader.saving')}</span>
             </div>
           )}
 
@@ -180,8 +180,8 @@ export function ContentHeader({
               className={`h-7 w-7 ${temporaryUnlock ? 'text-green-500' : 'text-muted-foreground'}`}
               title={
                 temporaryUnlock
-                  ? 'Document temporarily unlocked (click to lock again)'
-                  : 'Document locked (click to temporarily unlock)'
+                  ? t('contentHeader.unlockTooltip')
+                  : t('contentHeader.lockTooltip')
               }
               onClick={onTemporaryUnlockToggle}
             >
@@ -201,7 +201,7 @@ export function ContentHeader({
               className={'h-7 w-7 ' + (isFavorited ? 'text-amber-500' : '')}
               type="button"
               title={
-                isFavorited ? 'Remove from favorites' : 'Add to favorites'
+                isFavorited ? t('contentHeader.removeFromFavorites') : t('contentHeader.addToFavorites')
               }
               onClick={onFavoriteToggle}
             >
@@ -218,7 +218,7 @@ export function ContentHeader({
               variant="ghost"
               size="icon"
               className="h-7 w-7"
-              title="Version history"
+              title={t('contentHeader.versionHistory')}
               onClick={onHistoryClick}
             >
               <History className="h-4 w-4" />
@@ -230,7 +230,7 @@ export function ContentHeader({
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            title="Settings"
+            title={t('contentHeader.settings')}
             onClick={onSettingsClick}
           >
             <MoreHorizontal className="h-4 w-4" />
@@ -246,14 +246,14 @@ export function ContentHeader({
         <div className="flex items-center gap-3">
           {/* Icon picker (if onIconChange provided) */}
           {onIconChange && (
-            <EmojiPicker value={icon} onChange={handleIconChange}>
+            <IconPicker value={icon} onChange={handleIconChange}>
               <button
                 className="shrink-0 hover:bg-accent rounded p-1 transition-colors"
-                title="Change icon"
+                title={t('contentHeader.changeIcon')}
               >
-                <span className="text-4xl">{icon || defaultIcon}</span>
+                <DocumentIcon value={icon} size="xl" />
               </button>
-            </EmojiPicker>
+            </IconPicker>
           )}
 
           {/* Title input */}
@@ -261,7 +261,7 @@ export function ContentHeader({
             type="text"
             value={localTitle}
             onChange={handleTitleChange}
-            placeholder={placeholder}
+            placeholder={placeholder ?? t('common:untitled')}
             className="text-3xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 min-w-0 flex-1"
             disabled={!inputEditable}
           />

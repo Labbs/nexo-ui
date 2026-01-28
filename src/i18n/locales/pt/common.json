@@ -1,0 +1,47 @@
+{
+  "appName": "Nexo",
+  "loading": "A carregar...",
+  "save": "Guardar",
+  "saving": "A guardar...",
+  "cancel": "Cancelar",
+  "close": "Fechar",
+  "done": "Concluído",
+  "delete": "Eliminar",
+  "deleting": "A eliminar...",
+  "create": "Criar",
+  "creating": "A criar...",
+  "add": "Adicionar",
+  "adding": "A adicionar...",
+  "edit": "Editar",
+  "duplicate": "Duplicar",
+  "rename": "Renomear",
+  "search": "Pesquisar...",
+  "confirm": "Confirmar",
+  "goBack": "Voltar",
+  "goBackHome": "Voltar ao início",
+  "untitled": "Sem título",
+  "noEditDate": "Sem data de edição",
+  "noCreationDate": "Sem data de criação",
+  "cannotBeUndone": "Esta ação não pode ser revertida.",
+  "roles": {
+    "user": "Utilizador",
+    "admin": "Administrador",
+    "guest": "Convidado",
+    "viewer": "Leitor",
+    "editor": "Editor",
+    "owner": "Proprietário",
+    "blocked": "Bloqueado"
+  },
+  "types": {
+    "user": "Utilizador",
+    "group": "Grupo"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema"
+  },
+  "unknownUser": "Utilizador desconhecido",
+  "unknownGroup": "Grupo desconhecido",
+  "copyName": "{{name}} (cópia)"
+}

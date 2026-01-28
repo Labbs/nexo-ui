@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +29,7 @@ export function CreateDrawingModal({
   documentId,
   onSuccess,
 }: CreateDrawingModalProps) {
+  const { t } = useTranslation('drawing')
   const [name, setName] = useState('')
 
   const { mutateAsync: createDrawing, isPending } = useCreateDrawing()
@@ -64,20 +66,20 @@ export function CreateDrawingModal({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create drawing</DialogTitle>
+            <DialogTitle>{t('create.title')}</DialogTitle>
             <DialogDescription>
-              Create a new Excalidraw drawing to sketch diagrams, wireframes, and more.
+              {t('create.description')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('create.nameLabel')}</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Drawing name"
+                placeholder={t('create.namePlaceholder')}
                 className="mt-1.5"
                 autoFocus
               />
@@ -91,11 +93,11 @@ export function CreateDrawingModal({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="submit" disabled={!name.trim() || isPending}>
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Create drawing
+              {t('create.submit')}
             </Button>
           </DialogFooter>
         </form>

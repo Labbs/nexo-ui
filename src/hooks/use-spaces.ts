@@ -1,14 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import type { components } from '@/api/types'
+import { useAuth } from '@/contexts/auth-context'
 
 export function useSpaces() {
+  const { token } = useAuth()
+
   return useQuery({
     queryKey: ['spaces'],
     queryFn: async () => {
       const response = await apiClient.get<components['schemas']['GetMySpacesResponse']>('/user/my-spaces')
       return response.data.spaces || []
     },
+    enabled: !!token,
   })
 }
 

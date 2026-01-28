@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { PropertySchema } from '@/hooks/use-database'
+import type { IconValue } from '@/components/ui/icon-picker'
 
 // Column types we support (mapped from backend)
 export type ColumnType =
@@ -51,6 +52,59 @@ export interface SelectOption {
   id: string
   name: string
   color: string
+}
+
+// ============================================
+// NUMBER FORMAT OPTIONS
+// ============================================
+
+export type NumberFormat = 'integer' | 'decimal' | 'percent' | 'currency'
+
+export interface NumberFormatOptions {
+  format: NumberFormat
+  decimals?: 1 | 2 | 3 | 4        // For decimal/currency/percent
+  currency?: string               // Currency code (USD, EUR, GBP...)
+  showThousandsSeparator?: boolean
+}
+
+// ============================================
+// DATE FORMAT OPTIONS
+// ============================================
+
+export type DateFormat = 'us' | 'eu' | 'iso' | 'relative' | 'full'
+export type TimeFormat = '12h' | '24h'
+
+export interface DateFormatOptions {
+  dateFormat: DateFormat          // MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD, relative
+  includeTime?: boolean
+  timeFormat?: TimeFormat
+}
+
+// ============================================
+// CONDITIONAL FORMATTING (re-export from conditionalStyles)
+// ============================================
+
+export type { ConditionalRule, ConditionalStyleResult } from './conditionalStyles'
+export { evaluateConditionalStyle } from './conditionalStyles'
+
+// ============================================
+// COLUMN OPTIONS (stored in PropertySchema.options)
+// ============================================
+
+export interface ColumnOptions {
+  // Common options for all column types
+  customIcon?: IconValue          // Custom icon (emoji or Lucide icon with color)
+  description?: string            // Column description (shown in tooltip)
+  wrapText?: boolean              // Wrap text in cell
+  width?: number                  // Column width
+
+  // Type-specific options
+  numberFormat?: NumberFormatOptions
+  dateFormat?: DateFormatOptions
+  conditionalRules?: import('./conditionalStyles').ConditionalRule[]
+
+  // Select/multi-select options
+  options?: SelectOption[]
 }
 
 // Column type options for the dropdown

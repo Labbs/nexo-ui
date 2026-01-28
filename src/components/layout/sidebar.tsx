@@ -1,64 +1,37 @@
 import {
   FileText,
-  Plus,
-  Settings,
-  Moon,
-  Sun,
-  X,
-  PanelLeftClose,
   ChevronRight,
-  ChevronsUpDown,
-  Check,
-  FolderPlus,
-  Database,
-  Table2,
-  Pencil,
-  ShieldCheck,
+  X,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useCallback, useState } from 'react'
+import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { EditSpaceModal } from '@/components/spaces/edit-space-modal'
-import { DocumentTree } from '@/components/document/DocumentTree'
-import { DatabaseTree } from '@/components/database/DatabaseTree'
-import { DrawingTree } from '@/components/drawing/DrawingTree'
-import { cn } from '@/lib/utils'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { SidebarItem } from '@/components/sidebar/sidebar-item'
+import { AppSwitcherHeader } from '@/components/sidebar/app-switcher-header'
+import { QuickActions } from '@/components/sidebar/quick-actions'
+import { SpacesList } from '@/components/sidebar/spaces-list'
+import { UserMenu } from '@/components/sidebar/user-menu'
+import { cn, parseStoredIcon } from '@/lib/utils'
+import { DocumentIcon } from '@/components/ui/icon-picker'
+import { useAuth } from '@/contexts/auth-context'
+import { useCurrentSpace } from '@/contexts/space-context'
+import { useUIState } from '@/contexts/ui-state-context'
+import { useFavorites } from '@/hooks/use-favorites'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { useResizable } from '@/hooks/use-resizable'
 
-// Import the hook that contains all logic
-import { useSidebar, type Space, type Favorite } from '@/hooks/ui/useSidebar'
-
-// Sidebar item component
-function SidebarItem({
-  children,
-  onClick,
-  isActive,
-  className,
-}: {
-  children: React.ReactNode
-  onClick?: () => void
-  isActive?: boolean
-  className?: string
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-2 px-2 py-1 rounded text-[14px]',
-        'transition-colors duration-100',
-        'hover:bg-accent',
-        isActive && 'bg-accent text-foreground font-medium',
-        !isActive && 'text-foreground/80 hover:text-foreground',
-        className
-      )}
-    >
-      {children}
-    </button>
-  )
+// Types for favorite
+interface Favorite {
+  id: string
+  document?: {
+    id?: string
+    name?: string
+    slug?: string
+    config?: { icon?: string }
+  }
 }
 
 interface SidebarProps {
@@ -66,135 +39,82 @@ interface SidebarProps {
   onCreateSpace?: () => void
 }
 
-export function Sidebar({ onClose, onCreateSpace }: SidebarProps) {
-  const sb = useSidebar()
+export function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps) {
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const { width, isResizing, handleMouseDown } = useResizable({
+    minWidth: 200,
+    maxWidthVw: 33,
+    defaultWidth: 256,
+  })
+  const { user, logout } = useAuth()
+  const { theme, setTheme } = useTheme()
+  const isDarkMode = theme === 'dark'
+  const toggleTheme = useCallback(() => {
+    setTheme(isDarkMode ? 'light' : 'dark')
+  }, [isDarkMode, setTheme])
+  const navigate = useNavigate()
+  const isAdmin = user?.role === 'admin'
+
+  const [isEditSpaceOpen, setIsEditSpaceOpen] = useState(false)
 
   return (
     <aside
       className="border-r border-border/40 flex flex-col h-full relative"
       style={{
-        width: sb.isDesktop ? `${sb.width}px` : '16rem',
+        width: isDesktop ? `${width}px` : '16rem',
         backgroundColor: 'hsl(var(--sidebar))',
       }}
     >
-      {/* Desktop header with space selector */}
-      {sb.isDesktop && (
-        <DesktopHeader sb={sb} onCreateSpace={onCreateSpace} />
+      {/* Header */}
+      {isDesktop ? (
+        <AppSwitcherHeader />
+      ) : (
+        onClose && <MobileHeader onClose={onClose} />
       )}
 
-      {/* Mobile header */}
-      {!sb.isDesktop && onClose && (
-        <MobileHeader onClose={onClose} />
-      )}
+      {/* Quick Actions */}
+      <QuickActions />
 
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
-        {/* Favorites Section */}
-        <FavoritesSection sb={sb} />
+      {/* Favorites Section */}
+      <FavoritesSection />
 
-        {/* Private Section */}
-        <PrivateSection sb={sb} />
-      </div>
+      {/* Spaces List (scrollable) */}
+      <SpacesList />
 
-      {/* Desktop footer with user menu */}
-      {sb.isDesktop && (
-        <DesktopUserMenu sb={sb} />
-      )}
-
-      {/* Mobile footer with user menu */}
-      {!sb.isDesktop && (
-        <MobileUserMenu sb={sb} />
-      )}
+      {/* User Menu */}
+      <UserMenu
+        user={user}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+        navigateToSettings={() => navigate('/user/settings')}
+        navigateToAdmin={() => navigate('/admin')}
+        isAdmin={isAdmin}
+        logout={logout}
+        isMobile={!isDesktop}
+      />
 
       {/* Resize handle - desktop only */}
-      {sb.isDesktop && (
+      {isDesktop && (
         <div
           className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 transition-colors"
-          onMouseDown={sb.handleMouseDown}
-          style={{ cursor: sb.isResizing ? 'col-resize' : undefined }}
+          onMouseDown={handleMouseDown}
+          style={{ cursor: isResizing ? 'col-resize' : undefined }}
         />
       )}
 
       {/* Modals */}
-      <EditSpaceModal open={sb.isEditSpaceOpen} onOpenChange={sb.setIsEditSpaceOpen} />
+      <EditSpaceModal open={isEditSpaceOpen} onOpenChange={setIsEditSpaceOpen} />
     </aside>
-  )
-}
-
-// Desktop Header Component
-function DesktopHeader({
-  sb,
-  onCreateSpace,
-}: {
-  sb: ReturnType<typeof useSidebar>
-  onCreateSpace?: () => void
-}) {
-  return (
-    <div className="p-2">
-      <div className="flex items-center gap-1">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex-1 justify-start gap-2 px-2 h-8 min-w-0">
-              {sb.currentSpace ? (
-                <>
-                  <SpaceIcon space={sb.currentSpace} />
-                  <span className="font-medium truncate">{sb.currentSpace.name}</span>
-                </>
-              ) : (
-                <span className="text-muted-foreground">Select a space</span>
-              )}
-              <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-50 ml-auto" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            {sb.spaces.map((space) => (
-              <DropdownMenuItem
-                key={space.id}
-                onClick={() => sb.handleSpaceChange(space)}
-                className="flex items-center gap-2"
-              >
-                <SpaceIcon space={space} />
-                <span className="truncate flex-1">{space.name}</span>
-                {sb.currentSpace?.id === space.id && (
-                  <Check className="h-4 w-4 shrink-0" />
-                )}
-              </DropdownMenuItem>
-            ))}
-            {sb.currentSpace && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => sb.setIsEditSpaceOpen(true)}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Space settings
-                </DropdownMenuItem>
-              </>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onCreateSpace}>
-              <FolderPlus className="h-4 w-4 mr-2" />
-              Create new space
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          onClick={sb.toggleSidebars}
-          title="Hide sidebars"
-        >
-          <PanelLeftClose className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
   )
 }
 
 // Mobile Header Component
 function MobileHeader({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation('navigation')
+
   return (
     <div className="p-3 border-b flex items-center justify-between">
-      <span className="font-semibold">Menu</span>
+      <span className="font-semibold">{t('sidebar.menu')}</span>
       <Button variant="ghost" size="icon" onClick={onClose}>
         <X className="h-4 w-4" />
       </Button>
@@ -202,240 +122,74 @@ function MobileHeader({ onClose }: { onClose: () => void }) {
   )
 }
 
-// Space Icon Component
-function SpaceIcon({ space }: { space: Space }) {
-  return (
-    <div
-      className="h-5 w-5 rounded flex items-center justify-center text-xs font-medium shrink-0"
-      style={{
-        backgroundColor: space.icon_color || '#6366f1',
-        color: 'white',
-      }}
-    >
-      {space.icon || space.name?.[0]?.toUpperCase()}
-    </div>
-  )
-}
-
 // Favorites Section Component
-function FavoritesSection({ sb }: { sb: ReturnType<typeof useSidebar> }) {
-  if (!sb.isLoadingFavs && sb.favorites.length === 0) return null
+function FavoritesSection() {
+  const { t } = useTranslation('navigation')
+  const navigate = useNavigate()
+  const { slug } = useParams<{ slug?: string }>()
+  const { currentSpace } = useCurrentSpace()
+  const { data: favorites = [], isLoading: isLoadingFavs } = useFavorites()
+  const { favoritesExpanded, setFavoritesExpanded } = useUIState()
+
+  if (!isLoadingFavs && favorites.length === 0) return null
+
+  const handleFavoriteClick = (favorite: Favorite) => {
+    const doc = favorite.document
+    const docSlug = doc?.slug
+    if (currentSpace?.id && docSlug) {
+      navigate(`/space/${currentSpace.id}/${docSlug}`)
+    }
+  }
+
+  const isFavoriteActive = (favorite: Favorite) => {
+    const docSlug = favorite.document?.slug
+    return !!(docSlug && slug === docSlug)
+  }
 
   return (
-    <div className="mb-3">
+    <div className="px-2 mb-1">
       <button
-        onClick={() => sb.setFavoritesExpanded(!sb.favoritesExpanded)}
+        onClick={() => setFavoritesExpanded(!favoritesExpanded)}
         className="w-full flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
       >
         <ChevronRight
           className={cn(
             'h-3 w-3 transition-transform duration-150',
-            sb.favoritesExpanded && 'rotate-90'
+            favoritesExpanded && 'rotate-90'
           )}
         />
-        <span className="uppercase tracking-wider">Favorites</span>
+        <span className="uppercase tracking-wider">{t('sidebar.favorites')}</span>
       </button>
-      {sb.favoritesExpanded && (
+      {favoritesExpanded && (
         <div className="mt-1 space-y-0.5">
-          {sb.isLoadingFavs ? (
+          {isLoadingFavs ? (
             <>
               <div className="h-7 rounded bg-muted/50 animate-pulse mx-1" />
               <div className="h-7 rounded bg-muted/50 animate-pulse mx-1" />
             </>
           ) : (
-            sb.favorites.map((favorite) => (
-              <FavoriteItem key={favorite.id} favorite={favorite} sb={sb} />
-            ))
+            (favorites as Favorite[]).map((favorite) => {
+              const doc = favorite.document
+              const docIcon = parseStoredIcon(doc?.config?.icon)
+
+              return (
+                <SidebarItem
+                  key={favorite.id}
+                  isActive={isFavoriteActive(favorite)}
+                  onClick={() => handleFavoriteClick(favorite)}
+                >
+                  {docIcon ? (
+                    <DocumentIcon value={docIcon} size="sm" />
+                  ) : (
+                    <FileText className="h-4 w-4 shrink-0 opacity-60" />
+                  )}
+                  <span className="truncate">{doc?.name || t('common:untitled')}</span>
+                </SidebarItem>
+              )
+            })
           )}
         </div>
       )}
-    </div>
-  )
-}
-
-// Favorite Item Component
-function FavoriteItem({
-  favorite,
-  sb,
-}: {
-  favorite: Favorite
-  sb: ReturnType<typeof useSidebar>
-}) {
-  const doc = favorite.document
-  const docIcon = doc?.config?.icon
-
-  return (
-    <SidebarItem
-      isActive={sb.isFavoriteActive(favorite)}
-      onClick={() => sb.handleFavoriteClick(favorite)}
-    >
-      {docIcon ? (
-        <span className="text-base shrink-0">{docIcon}</span>
-      ) : (
-        <FileText className="h-4 w-4 shrink-0 opacity-60" />
-      )}
-      <span className="truncate">{doc?.name || 'Untitled'}</span>
-    </SidebarItem>
-  )
-}
-
-// Private Section Component
-function PrivateSection({ sb }: { sb: ReturnType<typeof useSidebar> }) {
-  if (!sb.currentSpace) return null
-
-  return (
-    <div>
-      <div className="flex items-center justify-between px-2 py-1 group">
-        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-          Private
-        </span>
-        {sb.canEdit && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Add new..."
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={sb.handleCreateDocument}>
-                <FileText className="h-4 w-4 mr-2" />
-                New document
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => sb.handleCreateDatabaseOrSpreadsheet('document')}>
-                <Database className="h-4 w-4 mr-2" />
-                New database
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => sb.handleCreateDatabaseOrSpreadsheet('spreadsheet')}>
-                <Table2 className="h-4 w-4 mr-2" />
-                New spreadsheet
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => sb.handleCreateDrawing()}>
-                <Pencil className="h-4 w-4 mr-2" />
-                New drawing
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
-      <div className="mt-1 space-y-0.5">
-        {sb.isLoadingDocs ? (
-          <>
-            <div className="h-7 rounded bg-muted/50 animate-pulse mx-1" />
-            <div className="h-7 rounded bg-muted/50 animate-pulse mx-1" />
-            <div className="h-7 rounded bg-muted/50 animate-pulse mx-1" />
-          </>
-        ) : sb.rootDocuments.length === 0 ? (
-          <>
-            <DatabaseTree spaceId={sb.currentSpace.id!} canEdit={sb.canEdit} />
-            <DrawingTree spaceId={sb.currentSpace.id!} canEdit={sb.canEdit} />
-            <div className="px-2 py-6 text-xs text-muted-foreground text-center">
-              <p>No pages yet</p>
-              {sb.canEdit && (
-                <button
-                  onClick={sb.handleCreateDocument}
-                  className="mt-2 text-primary hover:underline"
-                >
-                  Create your first page
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            <DocumentTree spaceId={sb.currentSpace.id!} canEdit={sb.canEdit} />
-            <DatabaseTree spaceId={sb.currentSpace.id!} canEdit={sb.canEdit} />
-            <DrawingTree spaceId={sb.currentSpace.id!} canEdit={sb.canEdit} />
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// Desktop User Menu Component
-function DesktopUserMenu({ sb }: { sb: ReturnType<typeof useSidebar> }) {
-  return (
-    <div className="p-2 border-t">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="w-full justify-start">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                {sb.user?.username?.[0]?.toUpperCase()}
-              </div>
-              <span className="text-sm truncate">{sb.user?.username}</span>
-            </div>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem onClick={sb.toggleTheme}>
-            {sb.isDarkMode ? (
-              <>
-                <Sun className="h-4 w-4 mr-2" />
-                Light mode
-              </>
-            ) : (
-              <>
-                <Moon className="h-4 w-4 mr-2" />
-                Dark mode
-              </>
-            )}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={sb.navigateToSettings}>
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </DropdownMenuItem>
-          {sb.isAdmin && (
-            <DropdownMenuItem onClick={sb.navigateToAdmin}>
-              <ShieldCheck className="h-4 w-4 mr-2" />
-              Administration
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={sb.logout}>
-            Log out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  )
-}
-
-// Mobile User Menu Component
-function MobileUserMenu({ sb }: { sb: ReturnType<typeof useSidebar> }) {
-  return (
-    <div className="p-2 border-t space-y-1">
-      <Button variant="ghost" className="w-full justify-start" onClick={sb.toggleTheme}>
-        {sb.isDarkMode ? (
-          <>
-            <Sun className="h-4 w-4 mr-2" />
-            Light mode
-          </>
-        ) : (
-          <>
-            <Moon className="h-4 w-4 mr-2" />
-            Dark mode
-          </>
-        )}
-      </Button>
-      <Button variant="ghost" className="w-full justify-start" onClick={sb.navigateToSettings}>
-        <Settings className="h-4 w-4 mr-2" />
-        Settings
-      </Button>
-      {sb.isAdmin && (
-        <Button variant="ghost" className="w-full justify-start" onClick={sb.navigateToAdmin}>
-          <ShieldCheck className="h-4 w-4 mr-2" />
-          Administration
-        </Button>
-      )}
-      <Button variant="ghost" className="w-full justify-start text-destructive" onClick={sb.logout}>
-        Log out
-      </Button>
     </div>
   )
 }

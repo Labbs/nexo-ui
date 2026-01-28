@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Zap, Plus, Trash2, Play, CheckCircle, AlertCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,6 +36,7 @@ import {
 } from '@/hooks/use-actions'
 
 export function ActionsSettings() {
+  const { t } = useTranslation('settings')
   const { data: actions, isLoading } = useActions()
   const { data: availableTriggers } = useAvailableTriggers()
   const { data: availableSteps } = useAvailableSteps()
@@ -78,7 +80,7 @@ export function ActionsSettings() {
   }
 
   const handleDelete = async (actionId: string) => {
-    if (confirm('Are you sure you want to delete this action? This action cannot be undone.')) {
+    if (confirm(t('actions.deleteConfirm'))) {
       await deleteAction.mutateAsync({ actionId })
     }
   }
@@ -98,21 +100,21 @@ export function ActionsSettings() {
   }
 
   if (isLoading) {
-    return <div className="p-4">Loading...</div>
+    return <div className="p-4">{t('common:loading')}</div>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Actions</h3>
+          <h3 className="text-lg font-medium">{t('actions.title')}</h3>
           <p className="text-sm text-muted-foreground">
-            Automate workflows with triggers and actions.
+            {t('actions.description')}
           </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Action
+          {t('actions.createButton')}
         </Button>
       </div>
 
@@ -121,9 +123,9 @@ export function ActionsSettings() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
               <Zap className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No actions configured</p>
+              <p className="text-muted-foreground">{t('actions.empty')}</p>
               <p className="text-sm text-muted-foreground">
-                Create an action to automate your workflows.
+                {t('actions.emptyHint')}
               </p>
             </CardContent>
           </Card>
@@ -144,35 +146,35 @@ export function ActionsSettings() {
       <Dialog open={isCreateOpen} onOpenChange={handleCloseCreate}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Create Action</DialogTitle>
+            <DialogTitle>{t('actions.createTitle')}</DialogTitle>
             <DialogDescription>
-              Set up an automated action with a trigger and steps.
+              {t('actions.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('actions.nameLabel')}</Label>
               <Input
                 id="name"
-                placeholder="My Automation"
+                placeholder={t('actions.namePlaceholder')}
                 value={newActionName}
                 onChange={e => setNewActionName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('actions.descriptionLabel')}</Label>
               <Input
                 id="description"
-                placeholder="What does this action do?"
+                placeholder={t('actions.descriptionPlaceholder')}
                 value={newActionDescription}
                 onChange={e => setNewActionDescription(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Trigger</Label>
+              <Label>{t('actions.triggerLabel')}</Label>
               <Select value={selectedTrigger} onValueChange={setSelectedTrigger}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a trigger" />
+                  <SelectValue placeholder={t('actions.triggerPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableTriggers?.map(trigger => (
@@ -188,15 +190,15 @@ export function ActionsSettings() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Steps</Label>
+                <Label>{t('actions.stepsLabel')}</Label>
                 <Button variant="outline" size="sm" onClick={addStep}>
                   <Plus className="mr-1 h-3 w-3" />
-                  Add Step
+                  {t('actions.addStep')}
                 </Button>
               </div>
               {steps.length === 0 ? (
                 <div className="text-sm text-muted-foreground p-4 border rounded-md text-center">
-                  No steps added. Click "Add Step" to add an action.
+                  {t('actions.noSteps')}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -208,7 +210,7 @@ export function ActionsSettings() {
                         onValueChange={(value: string) => updateStep(index, value)}
                       >
                         <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Select step type" />
+                          <SelectValue placeholder={t('actions.stepTypePlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableSteps?.map(s => (
@@ -233,13 +235,13 @@ export function ActionsSettings() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseCreate}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button
               onClick={handleCreate}
               disabled={!newActionName || !selectedTrigger || createAction.isPending}
             >
-              {createAction.isPending ? 'Creating...' : 'Create'}
+              {createAction.isPending ? t('actions.creating') : t('common:create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -267,6 +269,7 @@ function ActionCard({
   onDelete: (id: string) => void
   onSelect: () => void
 }) {
+  const { t } = useTranslation('settings')
   const successRate = action.run_count > 0
     ? Math.round((action.success_count / action.run_count) * 100)
     : 0
@@ -312,18 +315,18 @@ function ActionCard({
         <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Play className="h-3 w-3" />
-            {action.run_count} runs
+            {t('actions.runCount', { count: action.run_count })}
           </span>
           {action.run_count > 0 && (
             <span className="flex items-center gap-1">
               <CheckCircle className="h-3 w-3 text-green-500" />
-              {successRate}% success
+              {t('actions.successRate', { rate: successRate })}
             </span>
           )}
           {action.last_run_at && (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              Last run: {new Date(action.last_run_at).toLocaleDateString()}
+              {t('actions.lastRun')} {new Date(action.last_run_at).toLocaleDateString()}
             </span>
           )}
         </div>
@@ -344,6 +347,7 @@ function ActionDetailsDialog({
   action: Action
   onClose: () => void
 }) {
+  const { t } = useTranslation('settings')
   const { data: actionDetail } = useAction(action.id)
   const { data: runs, isLoading } = useActionRuns(action.id)
 
@@ -358,12 +362,12 @@ function ActionDetailsDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <h4 className="text-sm font-medium mb-2">Trigger</h4>
+            <h4 className="text-sm font-medium mb-2">{t('actions.detailsTrigger')}</h4>
             <Badge variant="secondary">{action.trigger_type}</Badge>
           </div>
           {actionDetail?.steps && actionDetail.steps.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium mb-2">Steps</h4>
+              <h4 className="text-sm font-medium mb-2">{t('actions.detailsSteps')}</h4>
               <div className="space-y-2">
                 {actionDetail.steps.map((step, index) => (
                   <div key={index} className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
@@ -375,11 +379,11 @@ function ActionDetailsDialog({
             </div>
           )}
           <div>
-            <h4 className="text-sm font-medium mb-2">Recent Runs</h4>
+            <h4 className="text-sm font-medium mb-2">{t('actions.recentRuns')}</h4>
             {isLoading ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
+              <div className="text-sm text-muted-foreground">{t('common:loading')}</div>
             ) : runs?.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No runs yet</div>
+              <div className="text-sm text-muted-foreground">{t('actions.noRuns')}</div>
             ) : (
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {runs?.map(run => (
@@ -394,7 +398,7 @@ function ActionDetailsDialog({
                         <AlertCircle className="h-4 w-4 text-destructive" />
                       )}
                       <span className="text-sm">
-                        {run.success ? 'Success' : 'Failed'}
+                        {run.success ? t('actions.runSuccess') : t('actions.runFailed')}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {run.duration_ms}ms
@@ -410,7 +414,7 @@ function ActionDetailsDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose}>{t('common:close')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Key, Trash2, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,8 +16,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useAdminApiKeys, useRevokeApiKey, type AdminApiKey } from '@/hooks/use-admin'
 import { formatDistanceToNow } from 'date-fns'
+import { useLanguage } from '@/i18n/LanguageContext'
 
 export function ApiKeysManagement() {
+  const { t } = useTranslation('admin')
+  const { dateFnsLocale } = useLanguage()
   const { data, isLoading } = useAdminApiKeys()
   const revokeApiKey = useRevokeApiKey()
   const [keyToRevoke, setKeyToRevoke] = useState<AdminApiKey | null>(null)
@@ -28,7 +32,7 @@ export function ApiKeysManagement() {
   }
 
   if (isLoading) {
-    return <div className="p-4">Loading API keys...</div>
+    return <div className="p-4">{t('apiKeys.loading')}</div>
   }
 
   const apiKeys = data?.api_keys || []
@@ -36,9 +40,9 @@ export function ApiKeysManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">API Keys</h3>
+        <h3 className="text-lg font-medium">{t('apiKeys.title')}</h3>
         <p className="text-sm text-muted-foreground">
-          View and revoke API keys across all users.
+          {t('apiKeys.description')}
         </p>
       </div>
 
@@ -47,7 +51,7 @@ export function ApiKeysManagement() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
               <Key className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No API keys found</p>
+              <p className="text-muted-foreground">{t('apiKeys.empty')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -85,19 +89,19 @@ export function ApiKeysManagement() {
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    Owner: {apiKey.username || apiKey.user_id}
+                    {t('apiKeys.ownerLabel')}{apiKey.username || apiKey.user_id}
                   </span>
                   <span>
-                    Created {formatDistanceToNow(new Date(apiKey.created_at), { addSuffix: true })}
+                    {t('apiKeys.createdLabel')}{formatDistanceToNow(new Date(apiKey.created_at), { addSuffix: true, locale: dateFnsLocale })}
                   </span>
                   {apiKey.last_used_at && (
                     <span>
-                      Last used {formatDistanceToNow(new Date(apiKey.last_used_at), { addSuffix: true })}
+                      {t('apiKeys.lastUsedLabel')}{formatDistanceToNow(new Date(apiKey.last_used_at), { addSuffix: true, locale: dateFnsLocale })}
                     </span>
                   )}
                   {apiKey.expires_at && (
                     <span>
-                      Expires {formatDistanceToNow(new Date(apiKey.expires_at), { addSuffix: true })}
+                      {t('apiKeys.expiresLabel')}{formatDistanceToNow(new Date(apiKey.expires_at), { addSuffix: true, locale: dateFnsLocale })}
                     </span>
                   )}
                 </div>
@@ -111,18 +115,18 @@ export function ApiKeysManagement() {
       <AlertDialog open={!!keyToRevoke} onOpenChange={() => setKeyToRevoke(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Revoke API Key</AlertDialogTitle>
+            <AlertDialogTitle>{t('apiKeys.revokeTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to revoke "{keyToRevoke?.name}"? This will immediately disable the key and cannot be undone.
+              {t('apiKeys.revokeConfirm', { name: keyToRevoke?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRevoke}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Revoke
+              {t('apiKeys.revokeButton')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

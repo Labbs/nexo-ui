@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Smile, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,7 @@ const ICON_OPTIONS = [
 ]
 
 export function IconEmojiSelector({ currentIcon, isUpdating, onApplyIcon }: IconEmojiSelectorProps) {
+  const { t } = useTranslation('document')
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'emoji' | 'icon'>('emoji')
 
@@ -53,7 +55,7 @@ export function IconEmojiSelector({ currentIcon, isUpdating, onApplyIcon }: Icon
         className="flex items-center gap-2 w-full text-sm font-medium py-2 hover:bg-accent rounded px-2 transition-colors"
       >
         <Smile className="h-4 w-4" />
-        <span>Choose your icon</span>
+        <span>{t('iconSelector.chooseIcon')}</span>
       </button>
 
       {isOpen && (
@@ -73,7 +75,7 @@ export function IconEmojiSelector({ currentIcon, isUpdating, onApplyIcon }: Icon
                 ) : (
                   <>
                     <X className="h-4 w-4 mr-1" />
-                    Remove
+                    {t('iconSelector.remove')}
                   </>
                 )}
               </Button>
@@ -88,7 +90,7 @@ export function IconEmojiSelector({ currentIcon, isUpdating, onApplyIcon }: Icon
               onClick={() => setActiveTab('emoji')}
               className="flex-1"
             >
-              Emojis
+              {t('iconSelector.emojis')}
             </Button>
             <Button
               variant={activeTab === 'icon' ? 'default' : 'outline'}
@@ -96,7 +98,7 @@ export function IconEmojiSelector({ currentIcon, isUpdating, onApplyIcon }: Icon
               onClick={() => setActiveTab('icon')}
               className="flex-1"
             >
-              Icons
+              {t('iconSelector.icons')}
             </Button>
           </div>
 

@@ -1,4 +1,5 @@
 import { Plus, X, ArrowUp, ArrowDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -16,6 +17,8 @@ interface SortBuilderProps {
 }
 
 export function SortBuilder({ columns, sort, onChange }: SortBuilderProps) {
+  const { t } = useTranslation('database')
+
   const addSort = () => {
     // Find first column not already in sort
     const usedProperties = new Set(sort.map((s) => s.property_id))
@@ -60,10 +63,10 @@ export function SortBuilder({ columns, sort, onChange }: SortBuilderProps) {
   if (sort.length === 0) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">No sorting applied</p>
+        <p className="text-sm text-muted-foreground">{t('sort.noSorting')}</p>
         <Button variant="outline" size="sm" onClick={addSort} className="w-full">
           <Plus className="h-4 w-4 mr-2" />
-          Add sort
+          {t('sort.addSort')}
         </Button>
       </div>
     )
@@ -107,12 +110,12 @@ export function SortBuilder({ columns, sort, onChange }: SortBuilderProps) {
             {sortItem.direction === 'asc' ? (
               <>
                 <ArrowUp className="h-4 w-4 mr-1" />
-                Asc
+                {t('sort.ascending')}
               </>
             ) : (
               <>
                 <ArrowDown className="h-4 w-4 mr-1" />
-                Desc
+                {t('sort.descending')}
               </>
             )}
           </Button>
@@ -132,7 +135,7 @@ export function SortBuilder({ columns, sort, onChange }: SortBuilderProps) {
       {canAddSort && (
         <Button variant="ghost" size="sm" onClick={addSort} className="w-full">
           <Plus className="h-4 w-4 mr-2" />
-          Add sort
+          {t('sort.addSort')}
         </Button>
       )}
     </div>

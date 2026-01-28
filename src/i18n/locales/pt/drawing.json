@@ -1,0 +1,11 @@
+{
+  "untitledDrawing": "Desenho sem título",
+  "notFound": "Desenho não encontrado",
+  "create": {
+    "title": "Criar desenho",
+    "description": "Cria um novo desenho Excalidraw para esboçar diagramas, wireframes e mais.",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Nome do desenho",
+    "submit": "Criar desenho"
+  }
+}

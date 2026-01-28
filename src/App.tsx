@@ -2,8 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/contexts/theme-provider'
 import { AuthProvider } from '@/contexts/auth-context'
+import { LanguageProvider } from '@/i18n/LanguageContext'
 import { SpaceProvider } from '@/contexts/space-context'
 import { UIStateProvider } from '@/contexts/ui-state-context'
+import { ActiveAppProvider } from '@/contexts/active-app-context'
 import { ProtectedRoute } from '@/components/protected-route'
 import { LoginPage } from '@/pages/login'
 import { RegisterPage } from '@/pages/register'
@@ -15,6 +17,8 @@ import { DrawingPage } from '@/pages/drawing'
 import { SettingsPage } from '@/pages/settings'
 import { AdminPage } from '@/pages/admin'
 import { ToasterProvider } from '@/components/ui/toaster'
+
+import '@/i18n'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,8 +35,10 @@ function App() {
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <BrowserRouter>
           <AuthProvider>
+            <LanguageProvider>
             <SpaceProvider>
               <UIStateProvider>
+              <ActiveAppProvider>
               <ToasterProvider>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
@@ -96,8 +102,10 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               </ToasterProvider>
+              </ActiveAppProvider>
               </UIStateProvider>
             </SpaceProvider>
+            </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>

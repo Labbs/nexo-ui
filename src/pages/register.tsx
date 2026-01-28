@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +13,7 @@ export function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation('auth')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,10 +23,10 @@ export function RegisterPage() {
     try {
       await register(email, username, password)
       navigate('/login', {
-        state: { message: 'Account created successfully. Please sign in.' },
+        state: { message: t('register.success') },
       })
     } catch (err: any) {
-      setError(err.response?.data?.details || 'Failed to create account')
+      setError(err.response?.data?.details || t('register.failed'))
     } finally {
       setIsLoading(false)
     }
@@ -34,8 +36,8 @@ export function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md space-y-8 p-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold">Nexo</h1>
-          <p className="mt-2 text-muted-foreground">Create your account</p>
+          <h1 className="text-4xl font-bold">{t('common:appName')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('register.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -48,14 +50,14 @@ export function RegisterPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="username" className="block text-sm font-medium mb-2">
-                Username
+                {t('register.usernameLabel')}
               </label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="johndoe"
+                placeholder={t('register.usernamePlaceholder')}
                 required
                 autoComplete="username"
               />
@@ -63,14 +65,14 @@ export function RegisterPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
+                {t('register.emailLabel')}
               </label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t('register.emailPlaceholder')}
                 required
                 autoComplete="email"
               />
@@ -78,14 +80,14 @@ export function RegisterPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
+                {t('register.passwordLabel')}
               </label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t('register.passwordPlaceholder')}
                 required
                 autoComplete="new-password"
               />
@@ -93,13 +95,13 @@ export function RegisterPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Create account'}
+            {isLoading ? t('register.submitting') : t('register.submit')}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
+            {t('register.hasAccount')}{' '}
             <Link to="/login" className="text-primary hover:underline">
-              Sign in
+              {t('register.signInLink')}
             </Link>
           </p>
         </form>

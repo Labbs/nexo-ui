@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Mail, Lock, Globe, Moon, Sun, Monitor } from 'lucide-react'
+import { User, Mail, Lock, Globe, Moon, Sun, Monitor, Languages } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,9 @@ import {
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from 'next-themes'
+import { useTranslation } from 'react-i18next'
+import { useLanguage } from '@/i18n/LanguageContext'
+import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type SupportedLanguage } from '@/i18n'
 
 const TIMEZONES = [
   { value: 'UTC', label: 'UTC' },
@@ -28,6 +31,8 @@ const TIMEZONES = [
 export function ProfileSettings() {
   const { user } = useAuth()
   const { theme, setTheme } = useTheme()
+  const { t } = useTranslation('settings')
+  const { language, setLanguage, isChangingLanguage } = useLanguage()
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -61,7 +66,7 @@ export function ProfileSettings() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert('Passwords do not match')
+      alert(t('password.mismatch'))
       return
     }
     setIsChangingPassword(true)
@@ -84,35 +89,35 @@ export function ProfileSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Profile Information
+            {t('profile.title')}
           </CardTitle>
           <CardDescription>
-            Update your personal information.
+            {t('profile.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t('profile.firstName')}</Label>
               <Input
                 id="firstName"
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
-                placeholder="John"
+                placeholder={t('profile.firstNamePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t('profile.lastName')}</Label>
               <Input
                 id="lastName"
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
-                placeholder="Doe"
+                placeholder={t('profile.lastNamePlaceholder')}
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('profile.email')}</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -120,14 +125,14 @@ export function ProfileSettings() {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="john@example.com"
+                placeholder={t('profile.emailPlaceholder')}
                 className="pl-10"
               />
             </div>
           </div>
           <div className="flex justify-end">
             <Button onClick={handleSaveProfile} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? t('profile.saving') : t('profile.saveChanges')}
             </Button>
           </div>
         </CardContent>
@@ -138,15 +143,15 @@ export function ProfileSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5" />
-            Change Password
+            {t('password.title')}
           </CardTitle>
           <CardDescription>
-            Update your password to keep your account secure.
+            {t('password.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
+            <Label htmlFor="currentPassword">{t('password.currentPassword')}</Label>
             <Input
               id="currentPassword"
               type="password"
@@ -156,7 +161,7 @@ export function ProfileSettings() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">{t('password.newPassword')}</Label>
               <Input
                 id="newPassword"
                 type="password"
@@ -165,7 +170,7 @@ export function ProfileSettings() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">{t('password.confirmPassword')}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -179,7 +184,7 @@ export function ProfileSettings() {
               onClick={handleChangePassword}
               disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
             >
-              {isChangingPassword ? 'Changing...' : 'Change Password'}
+              {isChangingPassword ? t('password.submitting') : t('password.submit')}
             </Button>
           </div>
         </CardContent>
@@ -190,18 +195,18 @@ export function ProfileSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Preferences
+            {t('preferences.title')}
           </CardTitle>
           <CardDescription>
-            Customize your experience.
+            {t('preferences.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Timezone</Label>
+            <Label>{t('preferences.timezone')}</Label>
             <Select value={timezone} onValueChange={setTimezone}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select timezone" />
+                <SelectValue placeholder={t('preferences.selectTimezone')} />
               </SelectTrigger>
               <SelectContent>
                 {TIMEZONES.map(tz => (
@@ -214,7 +219,30 @@ export function ProfileSettings() {
           </div>
 
           <div className="space-y-2">
-            <Label>Theme</Label>
+            <Label className="flex items-center gap-2">
+              <Languages className="h-4 w-4" />
+              {t('preferences.language')}
+            </Label>
+            <Select
+              value={language}
+              onValueChange={(value) => setLanguage(value as SupportedLanguage)}
+              disabled={isChangingLanguage}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('preferences.selectLanguage')} />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORTED_LANGUAGES.map(lang => (
+                  <SelectItem key={lang} value={lang}>
+                    {LANGUAGE_LABELS[lang]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('preferences.theme')}</Label>
             <div className="flex gap-2">
               <Button
                 variant={theme === 'light' ? 'default' : 'outline'}
@@ -223,7 +251,7 @@ export function ProfileSettings() {
                 className="flex items-center gap-2"
               >
                 <Sun className="h-4 w-4" />
-                Light
+                {t('common:theme.light')}
               </Button>
               <Button
                 variant={theme === 'dark' ? 'default' : 'outline'}
@@ -232,7 +260,7 @@ export function ProfileSettings() {
                 className="flex items-center gap-2"
               >
                 <Moon className="h-4 w-4" />
-                Dark
+                {t('common:theme.dark')}
               </Button>
               <Button
                 variant={theme === 'system' ? 'default' : 'outline'}
@@ -241,7 +269,7 @@ export function ProfileSettings() {
                 className="flex items-center gap-2"
               >
                 <Monitor className="h-4 w-4" />
-                System
+                {t('common:theme.system')}
               </Button>
             </div>
           </div>

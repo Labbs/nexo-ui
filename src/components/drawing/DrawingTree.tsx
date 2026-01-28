@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDrawings } from '@/hooks/use-drawings'
@@ -9,6 +10,7 @@ export interface DrawingTreeProps {
 }
 
 export function DrawingTree({ spaceId }: DrawingTreeProps) {
+  const { t } = useTranslation('drawing')
   const { data: drawings = [], isLoading } = useDrawings(spaceId)
   const location = useLocation()
 
@@ -43,7 +45,7 @@ export function DrawingTree({ spaceId }: DrawingTreeProps) {
           >
             <Pencil className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
             <Link to={`/space/${spaceId}/drawing/${drawing.id}`} className="flex-1 truncate pl-1">
-              {drawing.name || 'Untitled Drawing'}
+              {drawing.name || t('untitledDrawing')}
             </Link>
           </div>
         )

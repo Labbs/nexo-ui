@@ -10,18 +10,14 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { IconPicker, DocumentIcon, isEmoji, parseIconValue, type IconValue } from '@/components/ui/icon-picker'
 import { useCreateSpace } from '@/hooks/use-spaces'
+import { useTranslation } from 'react-i18next'
 
 interface CreateSpaceModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
-// Simple emoji picker - just common emojis for now
-const EMOJI_OPTIONS = [
-  '🏠', '💼', '📚', '🎨', '🚀', '💡', '🎯', '📝',
-  '🔧', '⚡', '🌟', '🎪', '🏢', '🎓', '🌈', '🔥'
-]
 
 const COLOR_OPTIONS = [
   '#6366f1', // indigo
@@ -36,38 +32,57 @@ const COLOR_OPTIONS = [
 
 export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) {
   const [name, setName] = useState('')
-  const [selectedEmoji, setSelectedEmoji] = useState('🏠')
+  const [selectedIcon, setSelectedIcon] = useState<IconValue>('🏠')
   const [selectedColor, setSelectedColor] = useState('#6366f1')
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState('')
 
   const { createSpace } = useCreateSpace()
   const queryClient = useQueryClient()
+  const { t } = useTranslation('navigation')
+
+  // Extract emoji or icon for API
+  const getIconForApi = (): string => {
+    if (isEmoji(selectedIcon)) {
+      return selectedIcon as string
+    }
+    const parsed = parseIconValue(selectedIcon)
+    return parsed?.name || 'file-text'
+  }
+
+  // Get color for API - use icon color if it's an icon, otherwise use selectedColor
+  const getColorForApi = (): string => {
+    if (!isEmoji(selectedIcon)) {
+      const parsed = parseIconValue(selectedIcon)
+      return parsed?.color || selectedColor
+    }
+    return selectedColor
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
     if (!name.trim()) {
-      setError('Please enter a space name')
+      setError(t('spaces.nameRequired'))
       return
     }
 
     setIsCreating(true)
 
     try {
-      await createSpace(name.trim(), selectedEmoji, selectedColor)
+      await createSpace(name.trim(), getIconForApi(), getColorForApi())
 
       // Refresh spaces list
       await queryClient.invalidateQueries({ queryKey: ['spaces'] })
 
       // Reset form
       setName('')
-      setSelectedEmoji('🏠')
+      setSelectedIcon('🏠')
       setSelectedColor('#6366f1')
       onOpenChange(false)
     } catch (err: any) {
-      setError(err.response?.data?.details || 'Failed to create space')
+      setError(err.response?.data?.details || t('spaces.createError'))
     } finally {
       setIsCreating(false)
     }
@@ -77,9 +92,9 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create new space</DialogTitle>
+          <DialogTitle>{t('spaces.createTitle')}</DialogTitle>
           <DialogDescription>
-            Create a new workspace to organize your documents.
+            {t('spaces.createDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -88,77 +103,74 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
             {/* Name input */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-2">
-                Space name
+                {t('spaces.nameLabel')}
               </label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="My Workspace"
+                placeholder={t('spaces.namePlaceholder')}
                 autoFocus
                 maxLength={100}
               />
             </div>
 
-            {/* Emoji picker */}
+            {/* Icon picker */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Icon
+                {t('spaces.iconLabel')}
               </label>
-              <div className="flex flex-wrap gap-2">
-                {EMOJI_OPTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => setSelectedEmoji(emoji)}
-                    className={`h-10 w-10 rounded-lg border-2 transition-all hover:scale-110 ${
-                      selectedEmoji === emoji
-                        ? 'border-primary'
-                        : 'border-transparent hover:border-muted-foreground/30'
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
+              <IconPicker value={selectedIcon} onChange={setSelectedIcon} defaultTab="emoji">
+                <button
+                  type="button"
+                  className="h-12 w-12 rounded-lg border-2 border-dashed hover:border-primary transition-colors flex items-center justify-center"
+                >
+                  <DocumentIcon value={selectedIcon} size="lg" />
+                </button>
+              </IconPicker>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('spaces.iconHelp')}
+              </p>
             </div>
 
-            {/* Color picker */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Color
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {COLOR_OPTIONS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setSelectedColor(color)}
-                    className={`h-10 w-10 rounded-lg border-2 transition-all hover:scale-110 ${
-                      selectedColor === color
-                        ? 'border-primary ring-2 ring-offset-2'
-                        : 'border-transparent'
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+            {/* Color picker (only for emojis) */}
+            {isEmoji(selectedIcon) && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  {t('spaces.backgroundColorLabel')}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {COLOR_OPTIONS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setSelectedColor(color)}
+                      className={`h-10 w-10 rounded-lg border-2 transition-all hover:scale-110 ${
+                        selectedColor === color
+                          ? 'border-primary ring-2 ring-offset-2'
+                          : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Preview */}
             <div className="pt-2">
               <label className="block text-sm font-medium mb-2">
-                Preview
+                {t('spaces.previewLabel')}
               </label>
               <div className="flex items-center gap-2 px-3 py-2 border rounded-lg bg-muted/20">
                 <div
                   className="h-8 w-8 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: selectedColor, color: 'white' }}
+                  style={{ backgroundColor: isEmoji(selectedIcon) ? selectedColor : 'transparent' }}
                 >
-                  {selectedEmoji}
+                  <DocumentIcon value={selectedIcon} size="md" />
                 </div>
                 <span className="font-medium truncate">
-                  {name || 'My Workspace'}
+                  {name || t('spaces.namePlaceholder')}
                 </span>
               </div>
             </div>
@@ -175,10 +187,10 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
               onClick={() => onOpenChange(false)}
               disabled={isCreating}
             >
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="submit" disabled={isCreating || !name.trim()}>
-              {isCreating ? 'Creating...' : 'Create space'}
+              {isCreating ? t('spaces.creating') : t('spaces.createButton')}
             </Button>
           </DialogFooter>
         </form>

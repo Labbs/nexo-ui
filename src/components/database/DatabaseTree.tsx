@@ -1,7 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Database } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useDatabases } from '@/hooks/use-databases'
+import { cn, parseStoredIcon } from '@/lib/utils'
+import { DocumentIcon } from '@/components/ui/icon-picker'
+import { useDatabases } from '@/hooks/use-database'
 
 export interface DatabaseTreeProps {
   spaceId: string
@@ -9,6 +11,7 @@ export interface DatabaseTreeProps {
 }
 
 export function DatabaseTree({ spaceId }: DatabaseTreeProps) {
+  const { t } = useTranslation('database')
   const { data: databases = [], isLoading } = useDatabases(spaceId)
   const location = useLocation()
 
@@ -42,12 +45,12 @@ export function DatabaseTree({ spaceId }: DatabaseTreeProps) {
             style={{ paddingLeft: 8, paddingRight: 8 }}
           >
             {db.icon ? (
-              <span className="text-[16px] shrink-0">{db.icon}</span>
+              <DocumentIcon value={parseStoredIcon(db.icon)} size="sm" />
             ) : (
               <Database className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
             )}
             <Link to={`/space/${spaceId}/database/${db.id}`} className="flex-1 truncate pl-1">
-              {db.name || 'Untitled Database'}
+              {db.name || t('untitledDatabase')}
             </Link>
           </div>
         )

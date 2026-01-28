@@ -1,4 +1,5 @@
 import { Plus, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -16,26 +17,27 @@ interface FilterBuilderProps {
   onChange: (filter: FilterConfig | undefined) => void
 }
 
-const CONDITIONS = [
-  { value: 'eq', label: 'equals' },
-  { value: 'neq', label: 'not equals' },
-  { value: 'contains', label: 'contains' },
-  { value: 'not_contains', label: 'does not contain' },
-  { value: 'starts_with', label: 'starts with' },
-  { value: 'ends_with', label: 'ends with' },
-  { value: 'gt', label: 'greater than' },
-  { value: 'lt', label: 'less than' },
-  { value: 'gte', label: 'greater or equal' },
-  { value: 'lte', label: 'less or equal' },
-  { value: 'is_empty', label: 'is empty' },
-  { value: 'is_not_empty', label: 'is not empty' },
-]
-
 // Conditions that don't need a value input
 const NO_VALUE_CONDITIONS = ['is_empty', 'is_not_empty']
 
 export function FilterBuilder({ columns, filter, onChange }: FilterBuilderProps) {
+  const { t } = useTranslation('database')
   const rules = filter?.and || []
+
+  const CONDITIONS = [
+    { value: 'eq', label: t('filter.conditions.equals') },
+    { value: 'neq', label: t('filter.conditions.notEquals') },
+    { value: 'contains', label: t('filter.conditions.contains') },
+    { value: 'not_contains', label: t('filter.conditions.doesNotContain') },
+    { value: 'starts_with', label: t('filter.conditions.startsWith') },
+    { value: 'ends_with', label: t('filter.conditions.endsWith') },
+    { value: 'gt', label: t('filter.conditions.greaterThan') },
+    { value: 'lt', label: t('filter.conditions.lessThan') },
+    { value: 'gte', label: t('filter.conditions.greaterOrEqual') },
+    { value: 'lte', label: t('filter.conditions.lessOrEqual') },
+    { value: 'is_empty', label: t('filter.conditions.isEmpty') },
+    { value: 'is_not_empty', label: t('filter.conditions.isNotEmpty') },
+  ]
 
   const addRule = () => {
     const firstColumn = columns[0]
@@ -82,10 +84,10 @@ export function FilterBuilder({ columns, filter, onChange }: FilterBuilderProps)
   if (rules.length === 0) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">No filters applied</p>
+        <p className="text-sm text-muted-foreground">{t('filter.noFilters')}</p>
         <Button variant="outline" size="sm" onClick={addRule} className="w-full">
           <Plus className="h-4 w-4 mr-2" />
-          Add filter
+          {t('filter.addFilter')}
         </Button>
       </div>
     )
@@ -149,7 +151,7 @@ export function FilterBuilder({ columns, filter, onChange }: FilterBuilderProps)
             <Input
               value={String(rule.value || '')}
               onChange={(e) => updateRule(index, { value: e.target.value })}
-              placeholder="Enter value..."
+              placeholder={t('filter.valuePlaceholder')}
               className="w-full h-9"
             />
           )}
@@ -158,7 +160,7 @@ export function FilterBuilder({ columns, filter, onChange }: FilterBuilderProps)
 
       <Button variant="ghost" size="sm" onClick={addRule} className="w-full">
         <Plus className="h-4 w-4 mr-2" />
-        Add filter
+        {t('filter.addFilter')}
       </Button>
     </div>
   )

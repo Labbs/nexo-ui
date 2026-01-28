@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { OpenBlockEditor, OpenBlockContent } from '@/components/editor/openblock-editor'
 import { FieldEditor } from '@/components/database/common/field-editor'
 import { ContentHeader, type BreadcrumbItem } from '@/components/shared/content-header'
 import { Loader2 } from 'lucide-react'
 import type { PropertySchema } from '@/hooks/use-database'
+import type { IconValue } from '@/components/ui/icon-picker'
 
 // Types for document fields (from database schema)
 interface DocumentField {
@@ -15,7 +17,7 @@ interface DocumentEditorProps {
   // Core document data
   documentId?: string // Used as key to force editor remount on document change
   title: string
-  icon: string | null
+  icon: IconValue
   content: OpenBlockContent | null
 
   // Loading states
@@ -24,7 +26,7 @@ interface DocumentEditorProps {
 
   // Callbacks for changes
   onTitleChange: (title: string) => void
-  onIconChange: (icon: string | null) => void
+  onIconChange: (icon: IconValue) => void
   onContentChange: (content: OpenBlockContent) => void
 
   // Optional fields (for database documents)
@@ -81,6 +83,8 @@ export function DocumentEditor({
   comparisonPanel,
   isInitialized = true,
 }: DocumentEditorProps) {
+  const { t } = useTranslation('document')
+
   // Determine if editor should be editable
   const isEditable = !isLocked || temporaryUnlock
 
@@ -105,10 +109,9 @@ export function DocumentEditor({
         title={title}
         onTitleChange={onTitleChange}
         onSettingsClick={onSettingsClick || (() => {})}
-        placeholder="Untitled"
+        placeholder={t('editor.placeholder')}
         breadcrumbs={breadcrumbs}
         icon={icon}
-        defaultIcon="📄"
         onIconChange={onIconChange}
         isFavorited={isFavorited}
         onFavoriteToggle={onFavoriteToggle}

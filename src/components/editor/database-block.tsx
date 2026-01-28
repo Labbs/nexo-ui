@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createReactBlockSpec, useUpdateBlock } from '@labbs/openblock-react'
 import {
   Plus,
@@ -42,9 +43,6 @@ interface PropertySchema {
 }
 import { useCurrentSpace } from '@/contexts/space-context'
 import { PropertyCell } from '@/components/database/common/property-cell'
-import { ListView } from '@/components/database/spreadsheet/views/list-view'
-import { GalleryView } from '@/components/database/spreadsheet/views/gallery-view'
-import { BoardView } from '@/components/database/spreadsheet/views/board-view'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -99,6 +97,7 @@ function InlineDatabaseView({
   blockSettings: BlockSettings
   onSettingsChange: (settings: BlockSettings) => void
 }) {
+  const { t } = useTranslation('database')
   const navigate = useNavigate()
   const { currentSpace } = useCurrentSpace()
   const { data: database, isLoading: isLoadingDb } = useDatabase(databaseId)
@@ -128,8 +127,8 @@ function InlineDatabaseView({
 
   const views = database?.views || []
 
-  // Get active view
-  const activeView = useMemo(() => {
+  // Get active view (used for view tabs display)
+  const _activeView = useMemo(() => {
     if (blockSettings.selectedViewId) {
       return views.find((v) => v.id === blockSettings.selectedViewId)
     }
@@ -138,6 +137,7 @@ function InlineDatabaseView({
     }
     return views[0]
   }, [views, blockSettings.selectedViewId, database?.default_view])
+  void _activeView // Suppress unused variable warning
 
   // Apply row limit if set
   const rows = blockSettings.rowLimit ? allRows.slice(0, blockSettings.rowLimit) : allRows
@@ -195,7 +195,7 @@ function InlineDatabaseView({
       <div className="rounded-lg p-4 bg-destructive/10 text-destructive">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4" />
-          <span className="text-sm">Database not found</span>
+          <span className="text-sm">{t('notFound')}</span>
         </div>
       </div>
     )
@@ -231,7 +231,7 @@ function InlineDatabaseView({
             {/* Open full page */}
             <DropdownMenuItem onClick={openFullPage}>
               <ExternalLink className="h-4 w-4 mr-2" />
-              Open as full page
+              {t('block.openAsFullPage')}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -243,7 +243,7 @@ function InlineDatabaseView({
                 onSettingsChange({ ...blockSettings, showViewTabs: checked })
               }
             >
-              Show view tabs
+              {t('block.showViewTabs')}
             </DropdownMenuCheckboxItem>
 
             {/* Lock toggle */}
@@ -256,12 +256,12 @@ function InlineDatabaseView({
               {blockSettings.isLocked ? (
                 <>
                   <Lock className="h-4 w-4 mr-2" />
-                  Locked
+                  {t('block.locked')}
                 </>
               ) : (
                 <>
                   <Unlock className="h-4 w-4 mr-2" />
-                  Lock database
+                  {t('block.lockDatabase')}
                 </>
               )}
             </DropdownMenuCheckboxItem>
@@ -272,7 +272,7 @@ function InlineDatabaseView({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Columns3 className="h-4 w-4 mr-2" />
-                Row limit
+                {t('block.rowLimit')}
                 {blockSettings.rowLimit && (
                   <span className="ml-auto text-xs text-muted-foreground">
                     {blockSettings.rowLimit}
@@ -284,7 +284,7 @@ function InlineDatabaseView({
                   checked={blockSettings.rowLimit === null}
                   onCheckedChange={() => onSettingsChange({ ...blockSettings, rowLimit: null })}
                 >
-                  Show all
+                  {t('block.showAll')}
                 </DropdownMenuCheckboxItem>
                 {[5, 10, 20, 50].map((limit) => (
                   <DropdownMenuCheckboxItem
@@ -292,7 +292,7 @@ function InlineDatabaseView({
                     checked={blockSettings.rowLimit === limit}
                     onCheckedChange={() => onSettingsChange({ ...blockSettings, rowLimit: limit })}
                   >
-                    {limit} rows
+                    {t('block.rows', { count: limit })}
                   </DropdownMenuCheckboxItem>
                 ))}
               </DropdownMenuSubContent>
@@ -326,36 +326,10 @@ function InlineDatabaseView({
         </div>
       )}
 
-      {/* View content - render based on active view type */}
+      {/* View content - table view for inline database blocks */}
       {isLoadingRows ? (
-        <div className="px-3 py-4 text-center text-muted-foreground">Loading...</div>
-      ) : activeView?.type === 'gallery' ? (
-        <GalleryView
-          rows={rows}
-          columns={schema}
-          onRowClick={() => {}}
-          onCreateRow={canEdit ? handleAddRow : undefined}
-        />
-      ) : activeView?.type === 'list' ? (
-        <ListView
-          rows={rows}
-          columns={schema}
-          onRowClick={() => {}}
-          onCreateRow={canEdit ? handleAddRow : undefined}
-        />
-      ) : activeView?.type === 'board' || activeView?.type === 'kanban' ? (
-        <BoardView
-          rows={rows}
-          columns={schema}
-          groupByColumnId={schema.find((s) => s.type === 'select')?.id}
-          onRowClick={() => {}}
-          onCreateRow={canEdit ? handleAddRow : undefined}
-          onUpdateRow={
-            canEdit ? (rowId, properties) => handleUpdateRow(rowId, properties) : undefined
-          }
-        />
+        <div className="px-3 py-4 text-center text-muted-foreground">{t('common:loading')}</div>
       ) : (
-        /* Default: Table view */
         <>
           <div className="overflow-x-auto focus:outline-none" tabIndex={-1}>
             <table className="w-full text-sm border-collapse">
@@ -379,7 +353,7 @@ function InlineDatabaseView({
                       colSpan={schema.length + 1}
                       className="px-3 py-4 text-center text-muted-foreground"
                     >
-                      No rows yet
+                      {t('block.noRowsYet')}
                     </td>
                   </tr>
                 ) : (
@@ -421,7 +395,7 @@ function InlineDatabaseView({
                                 onClick={() => handleDeleteRow(row.id)}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
+                                {t('common:delete')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -444,7 +418,7 @@ function InlineDatabaseView({
                 onClick={handleAddRow}
               >
                 <Plus className="h-3.5 w-3.5 mr-2" />
-                New row
+                {t('block.newRow')}
               </Button>
             </div>
           )}
@@ -454,9 +428,9 @@ function InlineDatabaseView({
       {/* Row limit indicator */}
       {hasMoreRows && (
         <div className="px-3 py-2 text-center text-sm text-muted-foreground border-t bg-muted/20">
-          {allRows.length - (blockSettings.rowLimit || 0)} more rows hidden
+          {t('block.moreRowsHidden', { count: allRows.length - (blockSettings.rowLimit || 0) })}
           <Button variant="link" size="sm" className="ml-2 h-auto p-0" onClick={openFullPage}>
-            View all
+            {t('block.viewAll')}
           </Button>
         </div>
       )}
@@ -472,6 +446,7 @@ function DatabaseSelector({
   onSelect: (databaseId: string) => void
   onCreate: () => void
 }) {
+  const { t } = useTranslation('database')
   const { currentSpace } = useCurrentSpace()
   const [databases, setDatabases] = useState<{ id: string; name: string; icon: string }[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -509,7 +484,7 @@ function DatabaseSelector({
     <div className="border rounded-lg bg-card shadow-lg my-2 w-[320px]">
       {/* Header */}
       <div className="px-3 py-2 border-b flex items-center justify-between">
-        <span className="text-sm font-medium">Link database</span>
+        <span className="text-sm font-medium">{t('block.linkDatabase')}</span>
       </div>
 
       {/* Search input */}
@@ -518,7 +493,7 @@ function DatabaseSelector({
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search databases..."
+            placeholder={t('block.searchDatabases')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8 h-9 text-sm bg-muted/50"
@@ -536,14 +511,14 @@ function DatabaseSelector({
           <div className="w-6 h-6 rounded bg-muted flex items-center justify-center">
             <Plus className="h-4 w-4 text-muted-foreground" />
           </div>
-          <span className="text-sm">New database</span>
+          <span className="text-sm">{t('block.newDatabase')}</span>
         </button>
       </div>
 
       {/* Suggested databases */}
       {!isLoading && suggestedDatabases.length > 0 && (
         <div className="px-2 pb-2">
-          <div className="text-xs text-muted-foreground px-2 py-1.5">Databases</div>
+          <div className="text-xs text-muted-foreground px-2 py-1.5">{t('block.databases')}</div>
           <div className="space-y-0.5">
             {suggestedDatabases.map((db) => (
               <button
@@ -572,7 +547,7 @@ function DatabaseSelector({
       {/* More results */}
       {!isLoading && filteredDatabases.length > 3 && (
         <div className="px-2 pb-2 border-t pt-2 max-h-48 overflow-y-auto">
-          <div className="text-xs text-muted-foreground px-2 py-1.5">More</div>
+          <div className="text-xs text-muted-foreground px-2 py-1.5">{t('block.more')}</div>
           <div className="space-y-0.5">
             {filteredDatabases.slice(3).map((db) => (
               <button
@@ -593,10 +568,10 @@ function DatabaseSelector({
       {/* No results */}
       {searchQuery && filteredDatabases.length === 0 && !isLoading && (
         <div className="px-4 py-6 text-center">
-          <p className="text-sm text-muted-foreground">No databases found</p>
+          <p className="text-sm text-muted-foreground">{t('block.noDatabasesFound')}</p>
           <Button size="sm" className="mt-2" onClick={onCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Create "{searchQuery}"
+            {t('block.createWithName', { name: searchQuery })}
           </Button>
         </div>
       )}
@@ -605,8 +580,8 @@ function DatabaseSelector({
       {!isLoading && databases.length === 0 && !searchQuery && (
         <div className="px-4 py-4 text-center border-t">
           <FileSpreadsheet className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground mb-2">No databases yet</p>
-          <p className="text-xs text-muted-foreground">Create your first database</p>
+          <p className="text-sm text-muted-foreground mb-2">{t('block.noDatabasesYet')}</p>
+          <p className="text-xs text-muted-foreground">{t('block.createFirstDatabase')}</p>
         </div>
       )}
     </div>
@@ -633,6 +608,7 @@ function DatabaseBlockRender({
   editor: OpenBlockEditor
   isEditable: boolean
 }) {
+  const { t } = useTranslation('database')
   const { databaseId, showViewTabs, isLocked, rowLimit, selectedViewId } = block.props
   const updateBlock = useUpdateBlock(editor, block.id)
 
@@ -693,7 +669,7 @@ function DatabaseBlockRender({
         <div className="rounded-lg p-4 bg-muted/30 my-2 text-muted-foreground">
           <div className="flex items-center gap-2">
             <Database className="h-4 w-4" />
-            <span className="text-sm">Database not configured</span>
+            <span className="text-sm">{t('block.notConfigured')}</span>
           </div>
         </div>
       )

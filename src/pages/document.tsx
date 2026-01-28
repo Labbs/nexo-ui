@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useDebouncedCallback } from 'use-debounce'
 import { formatDistanceToNow } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { useLanguage } from '@/i18n/LanguageContext'
 import { MainLayout } from '@/components/layout/main-layout'
 import { DocumentEditor } from '@/components/document/document-editor'
 import { OpenBlockEditor, OpenBlockContent } from '@/components/editor/openblock-editor'
@@ -14,8 +15,12 @@ import { useFavorites, useAddFavorite, useRemoveFavorite } from '@/hooks/use-fav
 import { useVersion, useRestoreVersion } from '@/hooks/use-versions'
 import { Button } from '@/components/ui/button'
 import { Loader2, X, RotateCcw } from 'lucide-react'
+import type { IconValue } from '@/components/ui/icon-picker'
+import { parseStoredIcon, serializeIcon } from '@/lib/utils'
 
 export function DocumentPage() {
+  const { t } = useTranslation('document')
+  const { dateFnsLocale } = useLanguage()
   const { spaceId, slug } = useParams<{ spaceId: string; slug: string }>()
   const navigate = useNavigate()
 
@@ -27,12 +32,13 @@ export function DocumentPage() {
 
   const [content, setContent] = useState<OpenBlockContent | null>(null)
   const [title, setTitle] = useState('')
-  const [icon, setIcon] = useState<string | null>(null)
+  const [icon, setIcon] = useState<IconValue>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isSettingsSidebarOpen, setIsSettingsSidebarOpen] = useState(false)
   const [isVersionSidebarOpen, setIsVersionSidebarOpen] = useState(false)
   const [initializedDocId, setInitializedDocId] = useState<string | null>(null)
+  const [initializedSlug, setInitializedSlug] = useState<string | null>(null)
   const [temporaryUnlock, setTemporaryUnlock] = useState(false)
   const [isLocked, setIsLocked] = useState(false)
   const [isFullWidth, setIsFullWidth] = useState(false)
@@ -91,6 +97,7 @@ export function DocumentPage() {
   // Reset initialized state when navigating to a different document
   useEffect(() => {
     setInitializedDocId(null)
+    setInitializedSlug(null)
     setContent(null)
     setTitle('')
     setIcon(null)
@@ -107,6 +114,11 @@ export function DocumentPage() {
     const docId = (document as any).id || (document as any).document
     if (!docId) return
 
+    // Verify the document matches the current URL before initializing
+    // This prevents using stale cached data from a previous document
+    const docSlug = (document as any).slug
+    if (docSlug && docSlug !== slug) return
+
     // Only initialize once per document
     if (initializedDocId === docId) return
 
@@ -115,14 +127,16 @@ export function DocumentPage() {
     // Only initialize if we have content OR if content is explicitly empty array
     // This prevents initializing with stale/empty data from list endpoints
     if (docContent !== undefined) {
-      setContent(docContent || null)
+      // Use empty array for empty documents (not null) to signal "ready but empty"
+      setContent(docContent || [])
       setTitle(document.name || '')
-      setIcon(document.config?.icon || null)
+      setIcon(parseStoredIcon(document.config?.icon))
       setIsLocked(document.config?.lock || false)
       setIsFullWidth((document.config as any)?.full_width || false)
       setInitializedDocId(docId)
+      setInitializedSlug(slug || null)
     }
-  }, [document, isLoading, initializedDocId])
+  }, [document, isLoading, initializedDocId, slug])
 
   // Debounced save function for content
   const debouncedSaveContent = useDebouncedCallback(
@@ -145,7 +159,7 @@ export function DocumentPage() {
           },
           onError: () => {
             setIsUpdating(false)
-            setSaveError('Échec de la sauvegarde. Nouvelle tentative au prochain changement.')
+            setSaveError(t('saveFailed'))
           },
         }
       )
@@ -174,7 +188,7 @@ export function DocumentPage() {
           },
           onError: () => {
             setIsUpdating(false)
-            setSaveError('Échec de la sauvegarde. Nouvelle tentative au prochain changement.')
+            setSaveError(t('saveFailed'))
           },
         }
       )
@@ -216,7 +230,7 @@ export function DocumentPage() {
         },
         onError: () => {
           setIsUpdating(false)
-          setSaveError('Échec de la sauvegarde. Nouvelle tentative au prochain changement.')
+          setSaveError(t('saveFailed'))
           // Revert state on error
           if (configUpdates.lock !== undefined) {
             setIsLocked(!configUpdates.lock)
@@ -244,9 +258,9 @@ export function DocumentPage() {
   }
 
   // Handle icon changes
-  const handleIconChange = (newIcon: string | null) => {
+  const handleIconChange = (newIcon: IconValue) => {
     setIcon(newIcon)
-    debouncedSaveConfig({ icon: newIcon || '' })
+    debouncedSaveConfig({ icon: serializeIcon(newIcon) })
   }
 
   // Try to get document ID from various possible locations
@@ -289,15 +303,15 @@ export function DocumentPage() {
     }
     if (parent) {
       crumbs.push({
-        label: parent.name || 'Untitled',
+        label: parent.name || t('untitled'),
         href: `/space/${spaceId}/${parent.slug}`,
       })
     }
     crumbs.push({
-      label: title || 'Untitled',
+      label: title || t('untitled'),
     })
     return crumbs
-  }, [space, parent, spaceId, title])
+  }, [space, parent, spaceId, title, t])
 
   // Version comparison panel
   const comparisonPanel = comparingVersionId ? (
@@ -312,7 +326,7 @@ export function DocumentPage() {
           <div className="text-xs text-muted-foreground">
             {comparingVersion?.created_at && formatDistanceToNow(new Date(comparingVersion.created_at), {
               addSuffix: true,
-              locale: fr,
+              locale: dateFnsLocale,
             })}
             {comparingVersion?.user_name && ` by ${comparingVersion.user_name}`}
           </div>
@@ -323,7 +337,7 @@ export function DocumentPage() {
             size="sm"
             onClick={async () => {
               if (!spaceId || !currentDocId || !comparingVersionId) return
-              if (!window.confirm(`Restore to version ${comparingVersion?.version}? Current changes will be saved as a new version.`)) return
+              if (!window.confirm(t('versionRestore', { version: comparingVersion?.version }))) return
               try {
                 await restoreVersion({ spaceId, documentId: currentDocId, versionId: comparingVersionId })
                 setComparingVersionId(null)
@@ -339,13 +353,13 @@ export function DocumentPage() {
             ) : (
               <RotateCcw className="h-4 w-4" />
             )}
-            Restore
+            {t('restoreButton')}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setComparingVersionId(null)}
-            title="Close comparison"
+            title={t('closeComparison')}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -387,12 +401,12 @@ export function DocumentPage() {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
-          <h1 className="text-2xl font-bold text-destructive">Document not found</h1>
+          <h1 className="text-2xl font-bold text-destructive">{t('notFound')}</h1>
           <p className="text-muted-foreground">
-            The document you're looking for doesn't exist or you don't have access to it.
+            {t('notFoundDescription')}
           </p>
           <Button onClick={() => navigate('/')} variant="outline">
-            Go back home
+            {t('common:goBackHome')}
           </Button>
         </div>
       </MainLayout>
@@ -402,6 +416,7 @@ export function DocumentPage() {
   return (
     <MainLayout>
       <DocumentEditor
+        key={slug}
         documentId={currentDocId}
         title={title}
         icon={icon}
@@ -423,7 +438,7 @@ export function DocumentPage() {
         onHistoryClick={() => setIsVersionSidebarOpen(true)}
         saveError={saveError}
         comparisonPanel={comparisonPanel}
-        isInitialized={!!initializedDocId}
+        isInitialized={!!initializedDocId && initializedSlug === slug}
       />
 
       {/* Settings Sidebar */}

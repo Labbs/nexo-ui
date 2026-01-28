@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Plus, Table2, MoreHorizontal, Pencil, Trash2, Copy, Filter, ArrowUpDown, Columns3, Eye, EyeOff, List, LayoutGrid, Kanban } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Plus, Table2, MoreHorizontal, Pencil, Trash2, Copy, Filter, ArrowUpDown, Columns3, Eye, EyeOff, List, LayoutGrid, Kanban, ArrowRightLeft, Layers } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,6 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -38,17 +42,17 @@ interface ViewTypeOption {
   icon: LucideIcon
 }
 
-const viewTypes: ViewTypeOption[] = [
-  { type: 'table', label: 'Table', icon: Table2 },
-  { type: 'list', label: 'List', icon: List },
-  { type: 'gallery', label: 'Gallery', icon: LayoutGrid },
-  { type: 'board', label: 'Board', icon: Kanban },
-]
+// viewTypes is now inside the component to use t()
 
 // Get icon for view type
 function getViewIcon(type: string): LucideIcon {
-  const viewType = viewTypes.find(v => v.type === type)
-  return viewType?.icon || Table2
+  const viewTypeMap: Record<string, LucideIcon> = {
+    table: Table2,
+    list: List,
+    gallery: LayoutGrid,
+    board: Kanban,
+  }
+  return viewTypeMap[type] || Table2
 }
 
 interface ViewTabsProps {
@@ -61,14 +65,18 @@ interface ViewTabsProps {
   onViewChange: (viewId: string) => void
   onCreateView: (name: string, type?: string) => void
   onRenameView: (viewId: string, name: string) => void
+  onChangeViewType: (viewId: string, type: string) => void
   onDuplicateView: (viewId: string) => void
   onDeleteView: (viewId: string) => void
   onFilterChange: (filter: FilterConfig | undefined) => void
   onSortChange: (sort: SortConfig[]) => void
+  onGroupByChange?: (columnId: string) => void
   onShowColumn: (columnId: string) => void
   onHideColumn: (columnId: string) => void
   onShowAllColumns: () => void
   canDeleteView: boolean
+  externalFilterOpen?: boolean
+  onExternalFilterOpenChange?: (open: boolean) => void
 }
 
 export function ViewTabs({
@@ -81,15 +89,20 @@ export function ViewTabs({
   onViewChange,
   onCreateView,
   onRenameView,
+  onChangeViewType,
   onDuplicateView,
   onDeleteView,
   onFilterChange,
   onSortChange,
+  onGroupByChange,
   onShowColumn,
   onHideColumn,
   onShowAllColumns,
   canDeleteView,
+  externalFilterOpen,
+  onExternalFilterOpenChange,
 }: ViewTabsProps) {
+  const { t } = useTranslation('database')
   const [showRenameDialog, setShowRenameDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [editingViewId, setEditingViewId] = useState<string | null>(null)
@@ -97,6 +110,32 @@ export function ViewTabs({
   const [columnsOpen, setColumnsOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
+  const [groupByOpen, setGroupByOpen] = useState(false)
+
+  const viewTypes: ViewTypeOption[] = [
+    { type: 'table', label: t('views.table'), icon: Table2 },
+    { type: 'list', label: t('views.list'), icon: List },
+    { type: 'gallery', label: t('views.gallery'), icon: LayoutGrid },
+    { type: 'board', label: t('views.board'), icon: Kanban },
+  ]
+
+  // Get groupable columns (select/status) for board view
+  const groupableColumns = useMemo(() => {
+    return allColumns.filter(col => col.id && (col.type === 'select' || col.type === 'status'))
+  }, [allColumns])
+
+  // Get current group by column
+  const currentGroupByColumn = useMemo(() => {
+    if (!activeView?.groupBy) return null
+    return allColumns.find(col => col.id === activeView.groupBy)
+  }, [activeView?.groupBy, allColumns])
+
+  // Sync external filter open state
+  useEffect(() => {
+    if (externalFilterOpen !== undefined) {
+      setFilterOpen(externalFilterOpen)
+    }
+  }, [externalFilterOpen])
   const [addViewOpen, setAddViewOpen] = useState(false)
 
   // Count active filters
@@ -186,11 +225,34 @@ export function ViewTabs({
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem onClick={() => handleRename(view.id, view.name)}>
                     <Pencil className="h-4 w-4 mr-2" />
-                    Rename
+                    {t('views.rename')}
                   </DropdownMenuItem>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <ArrowRightLeft className="h-4 w-4 mr-2" />
+                      {t('views.changeType')}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      {viewTypes.map((viewType) => {
+                        const Icon = viewType.icon
+                        const isCurrentType = view.type === viewType.type
+                        return (
+                          <DropdownMenuItem
+                            key={viewType.type}
+                            onClick={() => onChangeViewType(view.id, viewType.type)}
+                            disabled={isCurrentType}
+                            className={cn(isCurrentType && 'opacity-50')}
+                          >
+                            <Icon className="h-4 w-4 mr-2" />
+                            {viewType.label}
+                          </DropdownMenuItem>
+                        )
+                      })}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                   <DropdownMenuItem onClick={() => onDuplicateView(view.id)}>
                     <Copy className="h-4 w-4 mr-2" />
-                    Duplicate
+                    {t('views.duplicate')}
                   </DropdownMenuItem>
                   {canDeleteView && (
                     <>
@@ -200,7 +262,7 @@ export function ViewTabs({
                         onClick={() => handleDelete(view.id)}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        {t('common:delete')}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -220,7 +282,7 @@ export function ViewTabs({
             </PopoverTrigger>
             <PopoverContent className="w-64 p-2" align="start">
               <div className="text-xs font-medium text-muted-foreground px-2 py-1.5 mb-1">
-                Add a new view
+                {t('views.addNewView')}
               </div>
               <div className="grid grid-cols-2 gap-1">
                 {viewTypes.map((viewType) => {
@@ -247,7 +309,12 @@ export function ViewTabs({
         {/* Filter and Sort on the right */}
         <div className="flex items-center gap-1">
           {/* Filter button */}
-          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+          <Popover open={filterOpen} onOpenChange={(open) => {
+            setFilterOpen(open)
+            if (!open) {
+              onExternalFilterOpenChange?.(false)
+            }
+          }}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
@@ -255,7 +322,7 @@ export function ViewTabs({
                 className="h-7 text-muted-foreground hover:text-foreground"
               >
                 <Filter className="h-4 w-4 mr-1.5" />
-                Filter
+                {t('views.filter')}
                 {filterCount > 0 && (
                   <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
                     {filterCount}
@@ -266,7 +333,7 @@ export function ViewTabs({
             <PopoverContent className="w-96 p-0" align="end">
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-sm">Filters</h4>
+                  <h4 className="font-medium text-sm">{t('views.filters')}</h4>
                   {filterCount > 0 && (
                     <Button
                       variant="ghost"
@@ -274,7 +341,7 @@ export function ViewTabs({
                       className="h-7 text-xs text-muted-foreground"
                       onClick={handleClearFilters}
                     >
-                      Clear all
+                      {t('views.clearAll')}
                     </Button>
                   )}
                 </div>
@@ -296,7 +363,7 @@ export function ViewTabs({
                 className="h-7 text-muted-foreground hover:text-foreground"
               >
                 <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                Sort
+                {t('views.sort')}
                 {sortCount > 0 && (
                   <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
                     {sortCount}
@@ -307,7 +374,7 @@ export function ViewTabs({
             <PopoverContent className="w-80 p-0" align="end">
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-sm">Sort</h4>
+                  <h4 className="font-medium text-sm">{t('views.sort')}</h4>
                   {sortCount > 0 && (
                     <Button
                       variant="ghost"
@@ -315,7 +382,7 @@ export function ViewTabs({
                       className="h-7 text-xs text-muted-foreground"
                       onClick={handleClearSort}
                     >
-                      Clear all
+                      {t('views.clearAll')}
                     </Button>
                   )}
                 </div>
@@ -328,6 +395,55 @@ export function ViewTabs({
             </PopoverContent>
           </Popover>
 
+          {/* Group By button - only for board views */}
+          {activeView?.type === 'board' && groupableColumns.length > 0 && (
+            <Popover open={groupByOpen} onOpenChange={setGroupByOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-muted-foreground hover:text-foreground"
+                >
+                  <Layers className="h-4 w-4 mr-1.5" />
+                  {t('views.group')}
+                  {currentGroupByColumn && (
+                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                      {currentGroupByColumn.name}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-0" align="end">
+                <div className="p-4">
+                  <h4 className="font-medium text-sm mb-3">{t('views.groupBy')}</h4>
+                  <div className="space-y-1">
+                    {groupableColumns.map((col) => {
+                      const isSelected = activeView?.groupBy === col.id
+                      return (
+                        <div
+                          key={col.id}
+                          className={cn(
+                            'flex items-center justify-between py-1.5 px-2 rounded cursor-pointer transition-colors',
+                            isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                          )}
+                          onClick={() => {
+                            if (col.id && onGroupByChange) {
+                              onGroupByChange(col.id)
+                            }
+                            setGroupByOpen(false)
+                          }}
+                        >
+                          <span className="text-sm">{col.name}</span>
+                          <span className="text-xs text-muted-foreground capitalize">{col.type}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+
           {/* Columns button */}
           <Popover open={columnsOpen} onOpenChange={setColumnsOpen}>
             <PopoverTrigger asChild>
@@ -337,10 +453,10 @@ export function ViewTabs({
                 className="h-7 text-muted-foreground hover:text-foreground"
               >
                 <Columns3 className="h-4 w-4 mr-1.5" />
-                Columns
+                {t('views.columns')}
                 {hiddenCount > 0 && (
                   <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                    {hiddenCount} hidden
+                    {t('views.hiddenCount', { count: hiddenCount })}
                   </Badge>
                 )}
               </Button>
@@ -348,7 +464,7 @@ export function ViewTabs({
             <PopoverContent className="w-64 p-0" align="end">
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-sm">Columns</h4>
+                  <h4 className="font-medium text-sm">{t('views.columns')}</h4>
                   {hiddenCount > 0 && (
                     <Button
                       variant="ghost"
@@ -359,7 +475,7 @@ export function ViewTabs({
                         setColumnsOpen(false)
                       }}
                     >
-                      Show all
+                      {t('views.showAll')}
                     </Button>
                   )}
                 </div>
@@ -402,12 +518,12 @@ export function ViewTabs({
       <Dialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Rename view</DialogTitle>
+            <DialogTitle>{t('views.renameView')}</DialogTitle>
           </DialogHeader>
           <Input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="View name"
+            placeholder={t('views.viewName')}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleConfirmRename()
@@ -416,9 +532,9 @@ export function ViewTabs({
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRenameDialog(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
-            <Button onClick={handleConfirmRename}>Save</Button>
+            <Button onClick={handleConfirmRename}>{t('common:save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -427,17 +543,17 @@ export function ViewTabs({
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete view</DialogTitle>
+            <DialogTitle>{t('views.deleteView')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this view? This action cannot be undone.
+              {t('views.deleteViewConfirm')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete}>
-              Delete
+              {t('common:delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

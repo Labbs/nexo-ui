@@ -1,0 +1,70 @@
+{
+  "sidebar": {
+    "selectSpace": "Selecionar um espaço",
+    "spaceSettings": "Definições do espaço",
+    "createNewSpace": "Criar novo espaço",
+    "hideSidebars": "Ocultar barras laterais",
+    "menu": "Menu",
+    "favorites": "Favoritos",
+    "private": "Privado",
+    "addNew": "Adicionar novo...",
+    "newDocument": "Novo documento",
+    "newDatabase": "Nova base de dados",
+    "newDrawing": "Novo desenho",
+    "noPagesYet": "Sem páginas",
+    "createFirstPage": "Cria a tua primeira página",
+    "settings": "Definições",
+    "administration": "Administração",
+    "logOut": "Terminar sessão",
+    "spaces": "Espaços"
+  },
+  "apps": {
+    "switchApp": "Mudar aplicação",
+    "documents": "Documentos",
+    "projects": "Projetos"
+  },
+  "quickActions": {
+    "home": "Início",
+    "search": "Pesquisar",
+    "inbox": "Caixa de entrada"
+  },
+  "commandPalette": {
+    "placeholder": "Pesquisar ou digitar um comando...",
+    "recent": "Recentes",
+    "quickActions": "Ações rápidas",
+    "newDocument": "Novo documento",
+    "newProject": "Novo projeto",
+    "noResults": "Nenhum resultado encontrado"
+  },
+  "spaces": {
+    "selectSpace": "Selecionar um espaço",
+    "spaces": "Espaços",
+    "createNewSpace": "Criar novo espaço",
+    "createTitle": "Criar novo espaço",
+    "createDescription": "Cria um novo espaço de trabalho para organizar os teus documentos.",
+    "nameLabel": "Nome do espaço",
+    "namePlaceholder": "O meu espaço de trabalho",
+    "iconLabel": "Ícone",
+    "iconHelp": "Clica para escolher um ícone ou emoji",
+    "backgroundColorLabel": "Cor de fundo",
+    "previewLabel": "Pré-visualização",
+    "creating": "A criar...",
+    "createButton": "Criar espaço",
+    "nameRequired": "Por favor, introduz um nome para o espaço",
+    "editTitle": "Editar espaço",
+    "editDescription": "Modifica o nome, ícone e cor do espaço selecionado.",
+    "deleteButton": "Eliminar espaço",
+    "deleteConfirm": "Eliminar este espaço? Esta ação é irreversível.",
+    "saved": "Espaço guardado",
+    "saveButton": "Guardar",
+    "savingButton": "A guardar...",
+    "createError": "Falha ao criar o espaço",
+    "updateError": "Falha ao atualizar o espaço",
+    "deleteError": "Falha ao eliminar o espaço"
+  },
+  "home": {
+    "title": "Bem-vindo ao Nexo",
+    "withSpaceDescription": "Seleciona uma página da barra lateral ou cria uma nova.",
+    "withoutSpaceDescription": "Seleciona um espaço da barra lateral para começar."
+  }
+}
