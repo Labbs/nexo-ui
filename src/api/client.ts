@@ -41,8 +41,8 @@ apiClient.interceptors.response.use(
 
 export const healthClient = axios.create({
   baseURL: import.meta.env.DEV 
-    ? 'http://127.0.0.1:8080/api' 
-    : '/api',
+    ? 'http://127.0.0.1:8080/api/health' 
+    : '/api/health',
   headers: {
     'Content-Type': 'application/json',
   },
