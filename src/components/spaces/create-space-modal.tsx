@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { Globe, Lock } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
   const [name, setName] = useState('')
   const [selectedIcon, setSelectedIcon] = useState<IconValue>('🏠')
   const [selectedColor, setSelectedColor] = useState('#6366f1')
+  const [spaceType, setSpaceType] = useState<'public' | 'private'>('public')
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState('')
 
@@ -71,7 +73,7 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
     setIsCreating(true)
 
     try {
-      await createSpace(name.trim(), getIconForApi(), getColorForApi())
+      await createSpace(name.trim(), getIconForApi(), getColorForApi(), spaceType)
 
       // Refresh spaces list
       await queryClient.invalidateQueries({ queryKey: ['spaces'] })
@@ -80,6 +82,7 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
       setName('')
       setSelectedIcon('🏠')
       setSelectedColor('#6366f1')
+      setSpaceType('public')
       onOpenChange(false)
     } catch (err: any) {
       setError(err.response?.data?.details || t('spaces.createError'))
@@ -113,6 +116,49 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
                 autoFocus
                 maxLength={100}
               />
+            </div>
+
+            {/* Visibility selector */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {t('spaces.visibilityLabel')}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSpaceType('public')}
+                  className={`flex flex-col items-start gap-1 rounded-lg border-2 p-3 text-left transition-colors ${
+                    spaceType === 'public'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted hover:border-muted-foreground/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <span className="text-sm font-medium">{t('spaces.publicSpace')}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {t('spaces.publicSpaceDescription')}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSpaceType('private')}
+                  className={`flex flex-col items-start gap-1 rounded-lg border-2 p-3 text-left transition-colors ${
+                    spaceType === 'private'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted hover:border-muted-foreground/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    <span className="text-sm font-medium">{t('spaces.privateSpace')}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {t('spaces.privateSpaceDescription')}
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* Icon picker */}

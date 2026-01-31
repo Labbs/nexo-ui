@@ -225,7 +225,7 @@ export function ViewTabs({
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem onClick={() => handleRename(view.id, view.name)}>
                     <Pencil className="h-4 w-4 mr-2" />
-                    {t('views.rename')}
+                    {t('views.renameView')}
                   </DropdownMenuItem>
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
@@ -252,7 +252,7 @@ export function ViewTabs({
                   </DropdownMenuSub>
                   <DropdownMenuItem onClick={() => onDuplicateView(view.id)}>
                     <Copy className="h-4 w-4 mr-2" />
-                    {t('views.duplicate')}
+                    {t('views.duplicateView')}
                   </DropdownMenuItem>
                   {canDeleteView && (
                     <>

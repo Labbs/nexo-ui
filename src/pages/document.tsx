@@ -10,6 +10,7 @@ import { OpenBlockEditor, OpenBlockContent } from '@/components/editor/openblock
 import { DocumentSettingsSidebar } from '@/components/document/document-settings-sidebar'
 import { VersionHistorySidebar } from '@/components/document/version-history-sidebar'
 import { CreateDatabaseModal } from '@/components/database/common/create-database-modal'
+import { useQueryClient } from '@tanstack/react-query'
 import { useDocument, useUpdateDocument } from '@/hooks/use-documents'
 import { useFavorites, useAddFavorite, useRemoveFavorite } from '@/hooks/use-favorites'
 import { useVersion, useRestoreVersion } from '@/hooks/use-versions'
@@ -24,11 +25,15 @@ export function DocumentPage() {
   const { spaceId, slug } = useParams<{ spaceId: string; slug: string }>()
   const navigate = useNavigate()
 
+  const queryClient = useQueryClient()
   const { data: document, isLoading, error } = useDocument(spaceId, slug)
   const { mutate: updateDocument } = useUpdateDocument()
   const { data: favorites = [] } = useFavorites()
   const { mutate: addFavorite } = useAddFavorite()
   const { mutate: removeFavorite } = useRemoveFavorite()
+
+  // Flag to skip state reset when slug changes due to title edit (same document)
+  const slugChangedFromTitleEdit = useRef(false)
 
   const [content, setContent] = useState<OpenBlockContent | null>(null)
   const [title, setTitle] = useState('')
@@ -95,7 +100,12 @@ export function DocumentPage() {
   }, [])
 
   // Reset initialized state when navigating to a different document
+  // Skip reset when slug changes due to a title edit (same document, new slug)
   useEffect(() => {
+    if (slugChangedFromTitleEdit.current) {
+      slugChangedFromTitleEdit.current = false
+      return
+    }
     setInitializedDocId(null)
     setInitializedSlug(null)
     setContent(null)
@@ -179,12 +189,24 @@ export function DocumentPage() {
         {
           spaceId,
           id: docId,
+          slug,
           name,
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             setIsUpdating(false)
             setSaveError(null)
+            // Navigate to new slug if it changed
+            const newSlug = (data as any)?.slug
+            if (newSlug && newSlug !== slug) {
+              // Pre-populate cache for the new slug so there's no loading flash
+              queryClient.setQueryData(['document', spaceId, newSlug], data)
+              // Update initializedSlug so isInitialized stays true
+              setInitializedSlug(newSlug)
+              // Flag to prevent the state reset effect from clearing editor state
+              slugChangedFromTitleEdit.current = true
+              navigate(`/space/${spaceId}/${newSlug}`, { replace: true })
+            }
           },
           onError: () => {
             setIsUpdating(false)
@@ -416,7 +438,7 @@ export function DocumentPage() {
   return (
     <MainLayout>
       <DocumentEditor
-        key={slug}
+        key={currentDocId}
         documentId={currentDocId}
         title={title}
         icon={icon}

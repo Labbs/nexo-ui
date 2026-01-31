@@ -1,7 +1,7 @@
 import { useCallback, useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Database } from 'lucide-react'
 import { ContentHeader } from '@/components/shared/content-header'
 import { MainLayout } from '@/components/layout/main-layout'
 import {
@@ -19,6 +19,7 @@ import {
 } from '@/hooks/use-database'
 import type { ColumnOptions } from '@/lib/database'
 import type { IconValue } from '@/components/ui/icon-picker'
+import { parseStoredIcon, serializeIcon } from '@/lib/utils'
 import { DatabaseSettingsSidebar } from '../common/database-settings-sidebar'
 import { ViewTabs } from '../common/view-tabs'
 import { DocumentTableView } from './document-table-view'
@@ -448,6 +449,13 @@ export function DocumentDatabaseView() {
           }}
           onSettingsClick={() => setIsSettingsSidebarOpen(true)}
           placeholder={t('untitledDatabase')}
+          icon={parseStoredIcon(database.icon)}
+          onIconChange={(newIcon: IconValue) => {
+            if (!databaseId) return
+            const iconString = serializeIcon(newIcon) || undefined
+            updateDatabase.mutate({ databaseId, icon: iconString })
+          }}
+          defaultIcon={<Database className="h-8 w-8 text-muted-foreground" />}
         />
 
         {/* View tabs with filter/sort */}

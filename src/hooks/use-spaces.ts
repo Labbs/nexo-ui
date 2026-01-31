@@ -20,11 +20,12 @@ export function useCreateSpace() {
   const createSpace = async (
     name: string,
     icon?: string,
-    iconColor?: string
+    iconColor?: string,
+    type?: 'public' | 'private'
   ): Promise<string> => {
     const response = await apiClient.post<components['schemas']['CreateSpaceResponse']>(
       '/space',
-      { name, icon, icon_color: iconColor }
+      { name, icon, icon_color: iconColor, type }
     )
     return (response.data as any).space_id || ''
   }

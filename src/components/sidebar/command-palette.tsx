@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Search, FileText, FolderKanban } from 'lucide-react'
+import { Search, FileText, Database, FolderKanban, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useUIState } from '@/contexts/ui-state-context'
 import { useCurrentSpace } from '@/contexts/space-context'
-import { useDocuments, useCreateDocument } from '@/hooks/use-documents'
+import { useCreateDocument } from '@/hooks/use-documents'
 import { useFavorites } from '@/hooks/use-favorites'
-import { useSpaces } from '@/hooks/use-spaces'
+import { useSearchDocuments, useSearchDatabases } from '@/hooks/use-search'
 import { Kbd } from '@/components/ui/kbd'
 import { parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
@@ -16,19 +16,30 @@ export function CommandPalette() {
   const { isCommandPaletteOpen, setCommandPaletteOpen } = useUIState()
   const navigate = useNavigate()
   const { currentSpace } = useCurrentSpace()
-  const { data: documents = [] } = useDocuments(currentSpace?.id)
-  const { data: favorites = [] } = useFavorites()
-  const { data: spaces = [] } = useSpaces()
   const { mutateAsync: createDocument } = useCreateDocument()
+  const { data: favorites = [] } = useFavorites()
 
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Debounce the search query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 200)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  // Backend search queries
+  const { data: docResults = [], isLoading: isLoadingDocs } = useSearchDocuments(debouncedQuery)
+  const { data: dbResults = [], isLoading: isLoadingDbs } = useSearchDatabases(debouncedQuery)
+  const isSearching = debouncedQuery.length >= 2 && (isLoadingDocs || isLoadingDbs)
 
   // Reset state when opening
   useEffect(() => {
     if (isCommandPaletteOpen) {
       setQuery('')
+      setDebouncedQuery('')
       setSelectedIndex(0)
       setTimeout(() => inputRef.current?.focus(), 50)
     }
@@ -38,26 +49,46 @@ export function CommandPalette() {
   const items = useMemo(() => {
     const result: PaletteItem[] = []
 
-    if (query.trim()) {
-      // Search in documents
-      const q = query.toLowerCase()
-      const matchedDocs = documents.filter((doc: any) =>
-        doc.name?.toLowerCase().includes(q)
-      )
-      matchedDocs.forEach((doc: any) => {
-        result.push({
-          id: `doc-${doc.id}`,
-          type: 'document',
-          title: doc.name || t('common:untitled'),
-          icon: doc.config?.icon,
-          action: () => {
-            if (currentSpace?.id && doc.slug) {
-              navigate(`/space/${currentSpace.id}/${doc.slug}`)
-            }
-            setCommandPaletteOpen(false)
-          },
+    if (debouncedQuery.length >= 2) {
+      // Document results
+      if (docResults.length > 0) {
+        result.push({ id: 'section-docs', type: 'section', title: t('commandPalette.documents', 'Documents') })
+        docResults.forEach((doc: any) => {
+          result.push({
+            id: `doc-${doc.id}`,
+            type: 'document',
+            title: doc.name || t('common:untitled'),
+            subtitle: doc.space_name,
+            icon: doc.icon,
+            action: () => {
+              if (doc.space_id && doc.slug) {
+                navigate(`/space/${doc.space_id}/${doc.slug}`)
+              }
+              setCommandPaletteOpen(false)
+            },
+          })
         })
-      })
+      }
+
+      // Database results
+      if (dbResults.length > 0) {
+        result.push({ id: 'section-dbs', type: 'section', title: t('commandPalette.databases', 'Databases') })
+        dbResults.forEach((db) => {
+          result.push({
+            id: `db-${db.id}`,
+            type: 'database',
+            title: db.name,
+            subtitle: db.space_name,
+            icon: db.icon,
+            action: () => {
+              if (db.space_id) {
+                navigate(`/space/${db.space_id}/database/${db.id}`)
+              }
+              setCommandPaletteOpen(false)
+            },
+          })
+        })
+      }
     } else {
       // Show recent (favorites)
       if (favorites.length > 0) {
@@ -102,7 +133,7 @@ export function CommandPalette() {
     }
 
     return result
-  }, [query, documents, favorites, currentSpace, spaces, navigate, setCommandPaletteOpen, createDocument, t])
+  }, [debouncedQuery, docResults, dbResults, favorites, currentSpace, navigate, setCommandPaletteOpen, createDocument, t])
 
   // Selectable items (exclude sections)
   const selectableItems = items.filter((item) => item.type !== 'section')
@@ -134,7 +165,7 @@ export function CommandPalette() {
   // Reset selected index when items change
   useEffect(() => {
     setSelectedIndex(0)
-  }, [query])
+  }, [debouncedQuery])
 
   if (!isCommandPaletteOpen) return null
 
@@ -153,7 +184,11 @@ export function CommandPalette() {
         <div className="bg-popover border border-border rounded-xl overflow-hidden shadow-2xl">
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-            <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+            {isSearching ? (
+              <Loader2 className="h-4 w-4 text-muted-foreground shrink-0 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+            )}
             <input
               ref={inputRef}
               type="text"
@@ -172,7 +207,7 @@ export function CommandPalette() {
 
           {/* Results */}
           <div className="max-h-80 overflow-y-auto py-2">
-            {query.trim() && selectableItems.length === 0 ? (
+            {debouncedQuery.length >= 2 && !isSearching && selectableItems.length === 0 ? (
               <div className="px-4 py-6 text-sm text-muted-foreground text-center">
                 {t('commandPalette.noResults')}
               </div>
@@ -209,10 +244,22 @@ export function CommandPalette() {
                         <FileText className="h-4 w-4 shrink-0 opacity-60" />
                       )
                     )}
+                    {item.type === 'database' && (
+                      iconValue ? (
+                        <DocumentIcon value={iconValue} size="sm" />
+                      ) : (
+                        <Database className="h-4 w-4 shrink-0 opacity-60" />
+                      )
+                    )}
                     {item.type === 'action' && (
                       <FolderKanban className="h-4 w-4 shrink-0 opacity-60" />
                     )}
-                    <span className="flex-1 text-left truncate">{item.title}</span>
+                    <div className="flex-1 text-left truncate">
+                      <span>{item.title}</span>
+                      {item.subtitle && (
+                        <span className="ml-2 text-xs text-muted-foreground">{item.subtitle}</span>
+                      )}
+                    </div>
                     {item.shortcut && <Kbd>{item.shortcut}</Kbd>}
                   </button>
                 )
@@ -227,8 +274,9 @@ export function CommandPalette() {
 
 interface PaletteItem {
   id: string
-  type: 'document' | 'action' | 'section'
+  type: 'document' | 'database' | 'action' | 'section'
   title: string
+  subtitle?: string
   icon?: string
   shortcut?: string
   action?: (() => void) | (() => Promise<void>)

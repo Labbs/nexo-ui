@@ -139,6 +139,24 @@ export function useUpdateDrawing() {
   })
 }
 
+// Move a drawing (change parent document)
+export function useMoveDrawing() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ drawingId, documentId }: { drawingId: string; documentId?: string }) => {
+      const response = await apiClient.patch<{ id: string; document_id?: string }>(
+        `/drawings/${drawingId}/move`,
+        { document_id: documentId || null }
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: drawingKeys.all })
+    },
+  })
+}
+
 // Delete a drawing
 export function useDeleteDrawing() {
   const queryClient = useQueryClient()

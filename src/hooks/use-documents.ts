@@ -91,6 +91,10 @@ export function useUpdateDocument() {
       }
       // Invalidate documents list
       queryClient.invalidateQueries({ queryKey: ['documents', variables.spaceId] })
+      // Invalidate favorites (they embed document name/icon)
+      if (variables.name !== undefined || variables.config !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      }
     },
   })
 }
@@ -107,6 +111,8 @@ export function useDeleteDocument() {
       queryClient.invalidateQueries({ queryKey: ['documents', variables.spaceId] })
       // Remove the deleted document from cache
       queryClient.removeQueries({ queryKey: ['document', variables.spaceId, variables.identifier] })
+      // Invalidate favorites in case the deleted document was favorited
+      queryClient.invalidateQueries({ queryKey: ['favorites'] })
     },
   })
 }

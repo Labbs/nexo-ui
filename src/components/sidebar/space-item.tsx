@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import {
   ChevronRight,
   Plus,
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SpaceContentDocs } from './space-content-docs'
 import { SpaceContentProjects } from './space-content-projects'
+import { EditSpaceModal } from '@/components/spaces/edit-space-modal'
 import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon, isEmoji } from '@/components/ui/icon-picker'
 
@@ -34,6 +35,7 @@ interface SpaceItemProps {
     icon?: string
     icon_color?: string
     my_role?: string
+    type?: string
   }
 }
 
@@ -70,6 +72,7 @@ export function SpaceItem({ space }: SpaceItemProps) {
   const { activeApp } = useActiveApp()
   const { isSpaceExpanded, toggleSpaceExpanded } = useUIState()
   const { handleCreateDocument, handleCreateDrawing, handleCreateDatabase } = useCreateContent(space.id)
+  const [editModalOpen, setEditModalOpen] = useState(false)
 
   const spaceId = space.id || ''
   const expanded = isSpaceExpanded(spaceId)
@@ -171,7 +174,11 @@ export function SpaceItem({ space }: SpaceItemProps) {
             variant="ghost"
             size="icon"
             className="h-5 w-5"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              setEditModalOpen(true)
+            }}
+            title={t('sidebar.spaceSettings')}
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
@@ -189,6 +196,13 @@ export function SpaceItem({ space }: SpaceItemProps) {
           )}
         </div>
       )}
+
+      {/* Edit space modal */}
+      <EditSpaceModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        space={space}
+      />
     </div>
   )
 }

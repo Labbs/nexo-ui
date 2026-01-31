@@ -7,7 +7,7 @@ import {
   verticalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable'
-import { useDroppable } from '@dnd-kit/core'
+import { useDroppable, useDraggable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
@@ -313,50 +313,26 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
                       )
                     })}
                   </SortableContext>
-                  {childDatabases.map((db) => {
-                    const isDbActive = location.pathname === `/space/${spaceId}/database/${db.id}`
-                    return (
-                      <div
-                        key={db.id}
-                        className={cn(
-                          'flex items-center gap-1 py-1 rounded text-[14px] transition-colors duration-100',
-                          'hover:bg-accent',
-                          isDbActive && 'bg-accent font-medium',
-                          !isDbActive && 'text-foreground/80'
-                        )}
-                        style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }}
-                      >
-                        {db.icon ? (
-                          <DocumentIcon value={parseStoredIcon(db.icon)} size="sm" />
-                        ) : (
-                          <Database className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                        )}
-                        <Link to={`/space/${spaceId}/database/${db.id}`} className="flex-1 truncate pl-1">
-                          {db.name || t('database:untitledDatabase')}
-                        </Link>
-                      </div>
-                    )
-                  })}
-                  {childDrawings.map((drawing) => {
-                    const isDrawingActive = location.pathname === `/space/${spaceId}/drawing/${drawing.id}`
-                    return (
-                      <div
-                        key={drawing.id}
-                        className={cn(
-                          'flex items-center gap-1 py-1 rounded text-[14px] transition-colors duration-100',
-                          'hover:bg-accent',
-                          isDrawingActive && 'bg-accent font-medium',
-                          !isDrawingActive && 'text-foreground/80'
-                        )}
-                        style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }}
-                      >
-                        <Pencil className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                        <Link to={`/space/${spaceId}/drawing/${drawing.id}`} className="flex-1 truncate pl-1">
-                          {drawing.name || t('drawing:untitledDrawing')}
-                        </Link>
-                      </div>
-                    )
-                  })}
+                  {childDatabases.map((db) => (
+                    <DraggableChildDatabase
+                      key={db.id}
+                      db={db}
+                      spaceId={spaceId}
+                      level={level}
+                      parentDocId={docId}
+                      canEdit={canEdit}
+                    />
+                  ))}
+                  {childDrawings.map((drawing) => (
+                    <DraggableChildDrawing
+                      key={drawing.id}
+                      drawing={drawing}
+                      spaceId={spaceId}
+                      level={level}
+                      parentDocId={docId}
+                      canEdit={canEdit}
+                    />
+                  ))}
                 </>
               )
             })()
@@ -368,4 +344,100 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
   )
 }
 
+function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
+  db: any
+  spaceId: string
+  level: number
+  parentDocId: string
+  canEdit?: boolean
+}) {
+  const { t } = useTranslation('database')
+  const location = useLocation()
+  const isDbActive = location.pathname === `/space/${spaceId}/database/${db.id}`
 
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `db-${db.id}`,
+    data: { type: 'database', databaseId: db.id, name: db.name, icon: db.icon, parentDocId },
+    disabled: !canEdit,
+  })
+
+  const style: CSSProperties = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    opacity: isDragging ? 0.5 : undefined,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        'flex items-center gap-1 py-1 rounded text-[14px] transition-colors duration-100',
+        'hover:bg-accent',
+        isDbActive && 'bg-accent font-medium',
+        !isDbActive && 'text-foreground/80'
+      )}
+    >
+      <div style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }} className="flex items-center gap-1 w-full">
+        {db.icon ? (
+          <DocumentIcon value={parseStoredIcon(db.icon)} size="sm" />
+        ) : (
+          <Database className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+        )}
+        <Link to={`/space/${spaceId}/database/${db.id}`} className="flex-1 truncate pl-1">
+          {db.name || t('untitledDatabase')}
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }: {
+  drawing: any
+  spaceId: string
+  level: number
+  parentDocId: string
+  canEdit?: boolean
+}) {
+  const { t } = useTranslation('drawing')
+  const location = useLocation()
+  const isDrawingActive = location.pathname === `/space/${spaceId}/drawing/${drawing.id}`
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `drawing-${drawing.id}`,
+    data: { type: 'drawing', drawingId: drawing.id, name: drawing.name, parentDocId },
+    disabled: !canEdit,
+  })
+
+  const style: CSSProperties = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    opacity: isDragging ? 0.5 : undefined,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        'flex items-center gap-1 py-1 rounded text-[14px] transition-colors duration-100',
+        'hover:bg-accent',
+        isDrawingActive && 'bg-accent font-medium',
+        !isDrawingActive && 'text-foreground/80'
+      )}
+    >
+      <div style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }} className="flex items-center gap-1 w-full">
+        {drawing.icon ? (
+          <DocumentIcon value={parseStoredIcon(drawing.icon)} size="sm" />
+        ) : (
+          <Pencil className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+        )}
+        <Link to={`/space/${spaceId}/drawing/${drawing.id}`} className="flex-1 truncate pl-1">
+          {drawing.name || t('untitledDrawing')}
+        </Link>
+      </div>
+    </div>
+  )
+}

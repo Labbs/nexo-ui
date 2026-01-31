@@ -34,9 +34,10 @@ export interface ContentHeaderProps {
   // Breadcrumbs (document only)
   breadcrumbs?: BreadcrumbItem[]
 
-  // Icon picker (document only)
+  // Icon picker
   icon?: IconValue
   onIconChange?: (icon: IconValue) => void
+  defaultIcon?: React.ReactNode
 
   // Favorites (document only)
   isFavorited?: boolean
@@ -70,6 +71,7 @@ export function ContentHeader({
   breadcrumbs,
   icon,
   onIconChange,
+  defaultIcon,
   isFavorited,
   onFavoriteToggle,
   isLocked = false,
@@ -251,7 +253,7 @@ export function ContentHeader({
                 className="shrink-0 hover:bg-accent rounded p-1 transition-colors"
                 title={t('contentHeader.changeIcon')}
               >
-                <DocumentIcon value={icon} size="xl" />
+                {!icon && defaultIcon ? defaultIcon : <DocumentIcon value={icon} size="xl" />}
               </button>
             </IconPicker>
           )}

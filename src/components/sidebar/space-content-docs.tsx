@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import { FileText } from 'lucide-react'
+import { FileText, Database, Pencil } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -20,6 +20,8 @@ import { DocumentIcon } from '@/components/ui/icon-picker'
 import { parseStoredIcon } from '@/lib/utils'
 import { useReorderDocuments } from '@/hooks/use-reorder-documents'
 import { useMoveDocument } from '@/hooks/use-documents'
+import { useMoveDatabase } from '@/hooks/use-database'
+import { useMoveDrawing } from '@/hooks/use-drawings'
 import { DocumentTree, RootDropZone } from '@/components/document/DocumentTree'
 import { DatabaseTree } from '@/components/database/DatabaseTree'
 import { DrawingTree } from '@/components/drawing/DrawingTree'
@@ -31,9 +33,12 @@ interface SpaceContentDocsProps {
 
 interface ActiveDragItem {
   id: string
+  type: 'document' | 'database' | 'drawing'
   name: string
   icon?: string | null
   parentId?: string
+  databaseId?: string
+  drawingId?: string
 }
 
 // Custom collision detection that prioritizes drop zones
@@ -59,6 +64,8 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
   const queryClient = useQueryClient()
   const { mutate: reorderDocuments } = useReorderDocuments()
   const { mutate: moveDocument } = useMoveDocument()
+  const { mutate: moveDatabase } = useMoveDatabase()
+  const { mutate: moveDrawing } = useMoveDrawing()
   const [activeItem, setActiveItem] = useState<ActiveDragItem | null>(null)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
 
@@ -78,9 +85,27 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
     if (data?.type === 'document') {
       setActiveItem({
         id: event.active.id as string,
+        type: 'document',
         name: data.name,
         icon: data.icon,
         parentId: data.parentId,
+      })
+    } else if (data?.type === 'database') {
+      setActiveItem({
+        id: event.active.id as string,
+        type: 'database',
+        name: data.name,
+        icon: data.icon,
+        databaseId: data.databaseId,
+        parentId: data.parentDocId,
+      })
+    } else if (data?.type === 'drawing') {
+      setActiveItem({
+        id: event.active.id as string,
+        type: 'drawing',
+        name: data.name,
+        drawingId: data.drawingId,
+        parentId: data.parentDocId,
       })
     }
   }
@@ -105,8 +130,17 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
       return
     }
 
+    // For databases/drawings dragged over documents: immediate nest target
+    if ((activeData?.type === 'database' || activeData?.type === 'drawing') && overData?.type === 'document') {
+      const docId = over.id as string
+      clearNestTimeout()
+      lastOverIdRef.current = docId
+      setDropTarget(docId)
+      return
+    }
+
     // For documents: use dwell-time to detect nest intent
-    if (overData?.type === 'document' && over.id !== activeItem?.id) {
+    if (activeData?.type === 'document' && overData?.type === 'document' && over.id !== activeItem?.id) {
       const docId = over.id as string
 
       // Different container = immediate nest target (cross-level move)
@@ -149,12 +183,64 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
     setActiveItem(null)
     setDropTarget(null)
 
-    if (!over || active.id === over.id) return
+    if (!over) return
 
     const activeData = active.data.current
     const overData = over.data.current
 
+    // Handle database drag-end
+    if (activeData?.type === 'database') {
+      const databaseId = activeData.databaseId as string
+      const currentParentDocId = activeData.parentDocId as string | undefined
+
+      // Drop on root drop zone - move database to root
+      if (overData?.isDropZone && overData?.target === 'root') {
+        if (currentParentDocId) {
+          moveDatabase({ databaseId, documentId: undefined })
+        }
+        return
+      }
+
+      // Drop on a document - move database into that document
+      if (currentDropTarget && currentDropTarget !== 'root' && overData?.type === 'document') {
+        const targetDocId = over.id as string
+        if (targetDocId !== currentParentDocId) {
+          moveDatabase({ databaseId, documentId: targetDocId })
+        }
+        return
+      }
+
+      return
+    }
+
+    // Handle drawing drag-end
+    if (activeData?.type === 'drawing') {
+      const drawingId = activeData.drawingId as string
+      const currentParentDocId = activeData.parentDocId as string | undefined
+
+      // Drop on root drop zone - move drawing to root
+      if (overData?.isDropZone && overData?.target === 'root') {
+        if (currentParentDocId) {
+          moveDrawing({ drawingId, documentId: undefined })
+        }
+        return
+      }
+
+      // Drop on a document - move drawing into that document
+      if (currentDropTarget && currentDropTarget !== 'root' && overData?.type === 'document') {
+        const targetDocId = over.id as string
+        if (targetDocId !== currentParentDocId) {
+          moveDrawing({ drawingId, documentId: targetDocId })
+        }
+        return
+      }
+
+      return
+    }
+
+    // Handle document drag-end (existing logic)
     if (activeData?.type !== 'document') return
+    if (active.id === over.id) return
 
     const activeContainer = activeData.sortable?.containerId
     const overContainer = overData?.sortable?.containerId
@@ -215,7 +301,7 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
   }
 
   const iconValue = activeItem?.icon ? parseStoredIcon(activeItem.icon) : null
-  const isDraggingNestedDoc = activeItem && activeItem.parentId
+  const isDraggingNested = activeItem && activeItem.parentId
 
   return (
     <DndContext
@@ -227,8 +313,8 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
       onDragEnd={handleDragEnd}
     >
       <div className="ml-4 pl-3 border-l border-border/50 space-y-0.5">
-        {/* Root drop zone - only show when dragging a nested document */}
-        {isDraggingNestedDoc && (
+        {/* Root drop zone - show when dragging a nested document, database, or drawing with a parent */}
+        {isDraggingNested && (
           <RootDropZone isOver={dropTarget === 'root'} />
         )}
         <DocumentTree spaceId={spaceId} canEdit={canEdit} dropTarget={dropTarget} activeId={activeItem?.id} />
@@ -239,10 +325,24 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
       <DragOverlay>
         {activeItem && (
           <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-background shadow-lg border text-sm max-w-[200px]">
-            {iconValue ? (
-              <DocumentIcon value={iconValue} size="sm" />
+            {activeItem.type === 'database' ? (
+              iconValue ? (
+                <DocumentIcon value={iconValue} size="sm" />
+              ) : (
+                <Database className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )
+            ) : activeItem.type === 'drawing' ? (
+              iconValue ? (
+                <DocumentIcon value={iconValue} size="sm" />
+              ) : (
+                <Pencil className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )
             ) : (
-              <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+              iconValue ? (
+                <DocumentIcon value={iconValue} size="sm" />
+              ) : (
+                <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )
             )}
             <span className="truncate">{activeItem.name}</span>
           </div>

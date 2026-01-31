@@ -219,6 +219,24 @@ export function useUpdateDatabase() {
   })
 }
 
+// Move a database (change parent document)
+export function useMoveDatabase() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ databaseId, documentId }: { databaseId: string; documentId?: string }) => {
+      const response = await apiClient.patch<{ id: string; document_id?: string }>(
+        `/databases/${databaseId}/move`,
+        { document_id: documentId || null }
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: databaseKeys.all })
+    },
+  })
+}
+
 // Delete a database
 export function useDeleteDatabase() {
   const queryClient = useQueryClient()

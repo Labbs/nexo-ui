@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Loader2, ArrowLeft } from 'lucide-react'
+import { Loader2, ArrowLeft, Pencil } from 'lucide-react'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Button } from '@/components/ui/button'
 import { DrawingEditor } from '@/components/drawing/drawing-editor'
@@ -89,6 +89,7 @@ export function DrawingPage() {
           breadcrumbs={breadcrumbs}
           icon={parseStoredIcon(drawing?.icon)}
           onIconChange={handleIconChange}
+          defaultIcon={<Pencil className="h-8 w-8 text-muted-foreground" />}
           updatedAt={drawing?.updated_at}
         />
 
