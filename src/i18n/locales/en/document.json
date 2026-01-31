@@ -1,0 +1,101 @@
+{
+  "untitled": "Untitled",
+  "notFound": "Document not found",
+  "notFoundDescription": "The document you're looking for doesn't exist or you don't have access to it.",
+  "saveFailed": "Save failed. Will retry on next change.",
+  "versionRestore": "Restore to version {{version}}? Current changes will be saved as a new version.",
+  "restoreButton": "Restore",
+  "closeComparison": "Close comparison",
+  "editor": {
+    "placeholder": "Untitled"
+  },
+  "tree": {
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "addNew": "Add new...",
+    "newDocument": "New document",
+    "newDatabase": "New database",
+    "newDrawing": "New drawing",
+    "invalidDocId": "Invalid document ID",
+    "noSubpages": "No subpages",
+    "moveToRoot": "Move to root"
+  },
+  "contentHeader": {
+    "edited": "Edited {{time}}",
+    "saving": "Saving...",
+    "lockTooltip": "Lock document",
+    "unlockTooltip": "Unlock document (temporarily)",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "versionHistory": "Version history",
+    "settings": "Settings",
+    "changeIcon": "Change icon"
+  },
+  "settingsSidebar": {
+    "settings": "Settings",
+    "fullWidth": "Full width",
+    "lockDocument": "Lock document",
+    "icon": "Icon",
+    "changeIcon": "Change icon",
+    "description": "Description",
+    "information": "Information",
+    "edited": "Edited {{time}}",
+    "created": "Created {{time}}",
+    "createdBy": "By {{name}}",
+    "dangerZone": "Danger zone",
+    "deleteContentType": "Delete {{type}}",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?",
+    "contentTypes": {
+      "document": {
+        "title": "Document Settings",
+        "deleteLabel": "Delete this document",
+        "defaultName": "Untitled Document"
+      },
+      "database": {
+        "title": "Database Settings",
+        "deleteLabel": "Delete this database",
+        "defaultName": "Untitled Database"
+      },
+      "drawing": {
+        "title": "Drawing Settings",
+        "deleteLabel": "Delete this drawing",
+        "defaultName": "Untitled Drawing"
+      }
+    }
+  },
+  "permissions": {
+    "title": "Permissions",
+    "loading": "Loading permissions...",
+    "add": "Add",
+    "explicit": "Explicit",
+    "inheritedFromSpace": "Inherited from space",
+    "noPermissions": "No specific permissions. Access is based on space permissions.",
+    "addTitle": "Add Permission",
+    "addDescription": "Add a user or group with specific access to this resource.",
+    "typeLabel": "Type",
+    "userLabel": "User",
+    "selectUserPlaceholder": "Select user...",
+    "groupLabel": "Group",
+    "selectGroupPlaceholder": "Select group...",
+    "roleLabel": "Role",
+    "addButton": "Add Permission",
+    "blockAccess": "Block access"
+  },
+  "iconSelector": {
+    "chooseIcon": "Choose your icon",
+    "remove": "Remove",
+    "emojis": "Emojis",
+    "icons": "Icons"
+  },
+  "moveDocument": {
+    "title": "Move document",
+    "description": "Select a parent (or leave empty to move to root).",
+    "parentLabel": "Parent (optional ID)",
+    "parentPlaceholder": "Parent UUID (optional)",
+    "parentHint": "You can also click a parent below.",
+    "noRootDocuments": "No root documents",
+    "moved": "Document moved",
+    "moveFailed": "Failed to move",
+    "move": "Move"
+  }
+}

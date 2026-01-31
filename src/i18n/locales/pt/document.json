@@ -1,0 +1,101 @@
+{
+  "untitled": "Sem título",
+  "notFound": "Documento não encontrado",
+  "notFoundDescription": "O documento que procuras não existe ou não tens acesso.",
+  "saveFailed": "Falha ao guardar. Será tentado novamente na próxima alteração.",
+  "versionRestore": "Restaurar para a versão {{version}}? As alterações atuais serão guardadas como nova versão.",
+  "restoreButton": "Restaurar",
+  "closeComparison": "Fechar comparação",
+  "editor": {
+    "placeholder": "Sem título"
+  },
+  "tree": {
+    "collapse": "Recolher",
+    "expand": "Expandir",
+    "addNew": "Adicionar novo...",
+    "newDocument": "Novo documento",
+    "newDatabase": "Nova base de dados",
+    "newDrawing": "Novo desenho",
+    "invalidDocId": "ID de documento inválido",
+    "noSubpages": "Sem subpáginas",
+    "moveToRoot": "Mover para a raiz"
+  },
+  "contentHeader": {
+    "edited": "Editado {{time}}",
+    "saving": "A guardar...",
+    "lockTooltip": "Bloquear documento",
+    "unlockTooltip": "Desbloquear documento (temporariamente)",
+    "addToFavorites": "Adicionar aos favoritos",
+    "removeFromFavorites": "Remover dos favoritos",
+    "versionHistory": "Histórico de versões",
+    "settings": "Definições",
+    "changeIcon": "Alterar ícone"
+  },
+  "settingsSidebar": {
+    "settings": "Definições",
+    "fullWidth": "Largura total",
+    "lockDocument": "Bloquear documento",
+    "icon": "Ícone",
+    "changeIcon": "Alterar ícone",
+    "description": "Descrição",
+    "information": "Informações",
+    "edited": "Editado {{time}}",
+    "created": "Criado {{time}}",
+    "createdBy": "Por {{name}}",
+    "dangerZone": "Zona de perigo",
+    "deleteContentType": "Eliminar {{type}}",
+    "deleteConfirm": "Tens a certeza de que queres eliminar \"{{name}}\"?",
+    "contentTypes": {
+      "document": {
+        "title": "Definições do documento",
+        "deleteLabel": "Eliminar este documento",
+        "defaultName": "Documento sem título"
+      },
+      "database": {
+        "title": "Definições da base de dados",
+        "deleteLabel": "Eliminar esta base de dados",
+        "defaultName": "Base de dados sem título"
+      },
+      "drawing": {
+        "title": "Definições do desenho",
+        "deleteLabel": "Eliminar este desenho",
+        "defaultName": "Desenho sem título"
+      }
+    }
+  },
+  "permissions": {
+    "title": "Permissões",
+    "loading": "A carregar permissões...",
+    "add": "Adicionar",
+    "explicit": "Explícitas",
+    "inheritedFromSpace": "Herdadas do espaço",
+    "noPermissions": "Sem permissões específicas. O acesso baseia-se nas permissões do espaço.",
+    "addTitle": "Adicionar permissão",
+    "addDescription": "Adiciona um utilizador ou grupo com acesso específico a este recurso.",
+    "typeLabel": "Tipo",
+    "userLabel": "Utilizador",
+    "selectUserPlaceholder": "Selecionar utilizador...",
+    "groupLabel": "Grupo",
+    "selectGroupPlaceholder": "Selecionar grupo...",
+    "roleLabel": "Função",
+    "addButton": "Adicionar permissão",
+    "blockAccess": "Bloquear acesso"
+  },
+  "iconSelector": {
+    "chooseIcon": "Escolhe o teu ícone",
+    "remove": "Remover",
+    "emojis": "Emojis",
+    "icons": "Ícones"
+  },
+  "moveDocument": {
+    "title": "Mover documento",
+    "description": "Seleciona um pai (ou deixa vazio para mover para a raiz).",
+    "parentLabel": "Pai (ID opcional)",
+    "parentPlaceholder": "UUID do pai (opcional)",
+    "parentHint": "Também podes clicar num pai abaixo.",
+    "noRootDocuments": "Sem documentos raiz",
+    "moved": "Documento movido",
+    "moveFailed": "Falha ao mover",
+    "move": "Mover"
+  }
+}

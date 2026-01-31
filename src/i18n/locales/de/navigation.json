@@ -1,0 +1,70 @@
+{
+  "sidebar": {
+    "selectSpace": "Bereich auswählen",
+    "spaceSettings": "Bereichseinstellungen",
+    "createNewSpace": "Neuen Bereich erstellen",
+    "hideSidebars": "Seitenleisten ausblenden",
+    "menu": "Menü",
+    "favorites": "Favoriten",
+    "private": "Privat",
+    "addNew": "Neu hinzufügen...",
+    "newDocument": "Neues Dokument",
+    "newDatabase": "Neue Datenbank",
+    "newDrawing": "Neue Zeichnung",
+    "noPagesYet": "Noch keine Seiten",
+    "createFirstPage": "Erstelle deine erste Seite",
+    "settings": "Einstellungen",
+    "administration": "Verwaltung",
+    "logOut": "Abmelden",
+    "spaces": "Bereiche"
+  },
+  "apps": {
+    "switchApp": "Anwendung wechseln",
+    "documents": "Dokumente",
+    "projects": "Projekte"
+  },
+  "quickActions": {
+    "home": "Startseite",
+    "search": "Suchen",
+    "inbox": "Posteingang"
+  },
+  "commandPalette": {
+    "placeholder": "Suchen oder Befehl eingeben...",
+    "recent": "Zuletzt verwendet",
+    "quickActions": "Schnellaktionen",
+    "newDocument": "Neues Dokument",
+    "newProject": "Neues Projekt",
+    "noResults": "Keine Ergebnisse gefunden"
+  },
+  "spaces": {
+    "selectSpace": "Bereich auswählen",
+    "spaces": "Bereiche",
+    "createNewSpace": "Neuen Bereich erstellen",
+    "createTitle": "Neuen Bereich erstellen",
+    "createDescription": "Erstelle einen neuen Arbeitsbereich, um deine Dokumente zu organisieren.",
+    "nameLabel": "Bereichsname",
+    "namePlaceholder": "Mein Arbeitsbereich",
+    "iconLabel": "Symbol",
+    "iconHelp": "Klicke, um ein Symbol oder Emoji auszuwählen",
+    "backgroundColorLabel": "Hintergrundfarbe",
+    "previewLabel": "Vorschau",
+    "creating": "Wird erstellt...",
+    "createButton": "Bereich erstellen",
+    "nameRequired": "Bitte gib einen Bereichsnamen ein",
+    "editTitle": "Bereich bearbeiten",
+    "editDescription": "Ändere den Namen, das Symbol und die Farbe des ausgewählten Bereichs.",
+    "deleteButton": "Bereich löschen",
+    "deleteConfirm": "Diesen Bereich löschen? Diese Aktion ist irreversibel.",
+    "saved": "Bereich gespeichert",
+    "saveButton": "Speichern",
+    "savingButton": "Wird gespeichert...",
+    "createError": "Bereich konnte nicht erstellt werden",
+    "updateError": "Bereich konnte nicht aktualisiert werden",
+    "deleteError": "Bereich konnte nicht gelöscht werden"
+  },
+  "home": {
+    "title": "Willkommen bei Nexo",
+    "withSpaceDescription": "Wähle eine Seite aus der Seitenleiste oder erstelle eine neue.",
+    "withoutSpaceDescription": "Wähle einen Bereich aus der Seitenleiste, um loszulegen."
+  }
+}

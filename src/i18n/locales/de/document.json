@@ -1,0 +1,101 @@
+{
+  "untitled": "Unbenannt",
+  "notFound": "Dokument nicht gefunden",
+  "notFoundDescription": "Das gesuchte Dokument existiert nicht oder du hast keinen Zugriff darauf.",
+  "saveFailed": "Speichern fehlgeschlagen. Wird beim nächsten Änderung erneut versucht.",
+  "versionRestore": "Auf Version {{version}} zurücksetzen? Aktuelle Änderungen werden als neue Version gespeichert.",
+  "restoreButton": "Wiederherstellen",
+  "closeComparison": "Vergleich schließen",
+  "editor": {
+    "placeholder": "Unbenannt"
+  },
+  "tree": {
+    "collapse": "Einklappen",
+    "expand": "Ausklappen",
+    "addNew": "Neu hinzufügen...",
+    "newDocument": "Neues Dokument",
+    "newDatabase": "Neue Datenbank",
+    "newDrawing": "Neue Zeichnung",
+    "invalidDocId": "Ungültige Dokument-ID",
+    "noSubpages": "Keine Unterseiten",
+    "moveToRoot": "In die Wurzel verschieben"
+  },
+  "contentHeader": {
+    "edited": "Bearbeitet {{time}}",
+    "saving": "Wird gespeichert...",
+    "lockTooltip": "Dokument sperren",
+    "unlockTooltip": "Dokument entsperren (vorübergehend)",
+    "addToFavorites": "Zu Favoriten hinzufügen",
+    "removeFromFavorites": "Aus Favoriten entfernen",
+    "versionHistory": "Versionsverlauf",
+    "settings": "Einstellungen",
+    "changeIcon": "Symbol ändern"
+  },
+  "settingsSidebar": {
+    "settings": "Einstellungen",
+    "fullWidth": "Volle Breite",
+    "lockDocument": "Dokument sperren",
+    "icon": "Symbol",
+    "changeIcon": "Symbol ändern",
+    "description": "Beschreibung",
+    "information": "Informationen",
+    "edited": "Bearbeitet {{time}}",
+    "created": "Erstellt {{time}}",
+    "createdBy": "Von {{name}}",
+    "dangerZone": "Gefahrenzone",
+    "deleteContentType": "{{type}} löschen",
+    "deleteConfirm": "Bist du sicher, dass du \"{{name}}\" löschen möchtest?",
+    "contentTypes": {
+      "document": {
+        "title": "Dokumenteinstellungen",
+        "deleteLabel": "Dieses Dokument löschen",
+        "defaultName": "Unbenanntes Dokument"
+      },
+      "database": {
+        "title": "Datenbankeinstellungen",
+        "deleteLabel": "Diese Datenbank löschen",
+        "defaultName": "Unbenannte Datenbank"
+      },
+      "drawing": {
+        "title": "Zeichnungseinstellungen",
+        "deleteLabel": "Diese Zeichnung löschen",
+        "defaultName": "Unbenannte Zeichnung"
+      }
+    }
+  },
+  "permissions": {
+    "title": "Berechtigungen",
+    "loading": "Berechtigungen werden geladen...",
+    "add": "Hinzufügen",
+    "explicit": "Explizit",
+    "inheritedFromSpace": "Vom Bereich geerbt",
+    "noPermissions": "Keine spezifischen Berechtigungen. Der Zugriff basiert auf den Bereichsberechtigungen.",
+    "addTitle": "Berechtigung hinzufügen",
+    "addDescription": "Füge einen Benutzer oder eine Gruppe mit spezifischem Zugriff auf diese Ressource hinzu.",
+    "typeLabel": "Typ",
+    "userLabel": "Benutzer",
+    "selectUserPlaceholder": "Benutzer auswählen...",
+    "groupLabel": "Gruppe",
+    "selectGroupPlaceholder": "Gruppe auswählen...",
+    "roleLabel": "Rolle",
+    "addButton": "Berechtigung hinzufügen",
+    "blockAccess": "Zugriff blockieren"
+  },
+  "iconSelector": {
+    "chooseIcon": "Wähle dein Symbol",
+    "remove": "Entfernen",
+    "emojis": "Emojis",
+    "icons": "Symbole"
+  },
+  "moveDocument": {
+    "title": "Dokument verschieben",
+    "description": "Wähle ein übergeordnetes Element (oder lasse es leer, um zur Wurzel zu verschieben).",
+    "parentLabel": "Übergeordnet (optionale ID)",
+    "parentPlaceholder": "Übergeordnete UUID (optional)",
+    "parentHint": "Du kannst auch unten auf ein übergeordnetes Element klicken.",
+    "noRootDocuments": "Keine Stammdokumente",
+    "moved": "Dokument verschoben",
+    "moveFailed": "Verschieben fehlgeschlagen",
+    "move": "Verschieben"
+  }
+}

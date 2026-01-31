@@ -1,0 +1,101 @@
+{
+  "untitled": "Senza titolo",
+  "notFound": "Documento non trovato",
+  "notFoundDescription": "Il documento che cerchi non esiste o non hai accesso.",
+  "saveFailed": "Salvataggio non riuscito. Verrà ritentato alla prossima modifica.",
+  "versionRestore": "Ripristinare alla versione {{version}}? Le modifiche attuali verranno salvate come nuova versione.",
+  "restoreButton": "Ripristina",
+  "closeComparison": "Chiudi confronto",
+  "editor": {
+    "placeholder": "Senza titolo"
+  },
+  "tree": {
+    "collapse": "Comprimi",
+    "expand": "Espandi",
+    "addNew": "Aggiungi nuovo...",
+    "newDocument": "Nuovo documento",
+    "newDatabase": "Nuovo database",
+    "newDrawing": "Nuovo disegno",
+    "invalidDocId": "ID documento non valido",
+    "noSubpages": "Nessuna sottopagina",
+    "moveToRoot": "Sposta alla radice"
+  },
+  "contentHeader": {
+    "edited": "Modificato {{time}}",
+    "saving": "Salvataggio...",
+    "lockTooltip": "Blocca documento",
+    "unlockTooltip": "Sblocca documento (temporaneamente)",
+    "addToFavorites": "Aggiungi ai preferiti",
+    "removeFromFavorites": "Rimuovi dai preferiti",
+    "versionHistory": "Cronologia versioni",
+    "settings": "Impostazioni",
+    "changeIcon": "Cambia icona"
+  },
+  "settingsSidebar": {
+    "settings": "Impostazioni",
+    "fullWidth": "Larghezza completa",
+    "lockDocument": "Blocca documento",
+    "icon": "Icona",
+    "changeIcon": "Cambia icona",
+    "description": "Descrizione",
+    "information": "Informazioni",
+    "edited": "Modificato {{time}}",
+    "created": "Creato {{time}}",
+    "createdBy": "Da {{name}}",
+    "dangerZone": "Zona di pericolo",
+    "deleteContentType": "Elimina {{type}}",
+    "deleteConfirm": "Sei sicuro di voler eliminare \"{{name}}\"?",
+    "contentTypes": {
+      "document": {
+        "title": "Impostazioni documento",
+        "deleteLabel": "Elimina questo documento",
+        "defaultName": "Documento senza titolo"
+      },
+      "database": {
+        "title": "Impostazioni database",
+        "deleteLabel": "Elimina questo database",
+        "defaultName": "Database senza titolo"
+      },
+      "drawing": {
+        "title": "Impostazioni disegno",
+        "deleteLabel": "Elimina questo disegno",
+        "defaultName": "Disegno senza titolo"
+      }
+    }
+  },
+  "permissions": {
+    "title": "Permessi",
+    "loading": "Caricamento permessi...",
+    "add": "Aggiungi",
+    "explicit": "Espliciti",
+    "inheritedFromSpace": "Ereditati dallo spazio",
+    "noPermissions": "Nessun permesso specifico. L'accesso è basato sui permessi dello spazio.",
+    "addTitle": "Aggiungi permesso",
+    "addDescription": "Aggiungi un utente o gruppo con accesso specifico a questa risorsa.",
+    "typeLabel": "Tipo",
+    "userLabel": "Utente",
+    "selectUserPlaceholder": "Seleziona utente...",
+    "groupLabel": "Gruppo",
+    "selectGroupPlaceholder": "Seleziona gruppo...",
+    "roleLabel": "Ruolo",
+    "addButton": "Aggiungi permesso",
+    "blockAccess": "Blocca accesso"
+  },
+  "iconSelector": {
+    "chooseIcon": "Scegli la tua icona",
+    "remove": "Rimuovi",
+    "emojis": "Emoji",
+    "icons": "Icone"
+  },
+  "moveDocument": {
+    "title": "Sposta documento",
+    "description": "Seleziona un genitore (o lascia vuoto per spostare alla radice).",
+    "parentLabel": "Genitore (ID opzionale)",
+    "parentPlaceholder": "UUID genitore (opzionale)",
+    "parentHint": "Puoi anche cliccare su un genitore qui sotto.",
+    "noRootDocuments": "Nessun documento radice",
+    "moved": "Documento spostato",
+    "moveFailed": "Spostamento non riuscito",
+    "move": "Sposta"
+  }
+}
