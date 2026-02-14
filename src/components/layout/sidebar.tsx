@@ -18,7 +18,7 @@ import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
 import { useAuth } from '@/contexts/auth-context'
 import { useCurrentSpace } from '@/contexts/space-context'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useSidebarUI } from '@/contexts/sidebar-ui-context'
 import { useFavorites } from '@/hooks/use-favorites'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useResizable } from '@/hooks/use-resizable'
@@ -56,6 +56,8 @@ export function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps
   const isAdmin = user?.role === 'admin'
 
   const [isEditSpaceOpen, setIsEditSpaceOpen] = useState(false)
+  const navigateToSettings = useCallback(() => navigate('/user/settings'), [navigate])
+  const navigateToAdmin = useCallback(() => navigate('/admin'), [navigate])
 
   return (
     <aside
@@ -86,8 +88,8 @@ export function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps
         user={user}
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}
-        navigateToSettings={() => navigate('/user/settings')}
-        navigateToAdmin={() => navigate('/admin')}
+        navigateToSettings={navigateToSettings}
+        navigateToAdmin={navigateToAdmin}
         isAdmin={isAdmin}
         logout={logout}
         isMobile={!isDesktop}
@@ -129,22 +131,22 @@ function FavoritesSection() {
   const { slug } = useParams<{ slug?: string }>()
   const { currentSpace } = useCurrentSpace()
   const { data: favorites = [], isLoading: isLoadingFavs } = useFavorites()
-  const { favoritesExpanded, setFavoritesExpanded } = useUIState()
+  const { favoritesExpanded, setFavoritesExpanded } = useSidebarUI()
 
   if (!isLoadingFavs && favorites.length === 0) return null
 
-  const handleFavoriteClick = (favorite: Favorite) => {
+  const handleFavoriteClick = useCallback((favorite: Favorite) => {
     const doc = favorite.document
     const docSlug = doc?.slug
     if (currentSpace?.id && docSlug) {
       navigate(`/space/${currentSpace.id}/${docSlug}`)
     }
-  }
+  }, [currentSpace?.id, navigate])
 
-  const isFavoriteActive = (favorite: Favorite) => {
+  const isFavoriteActive = useCallback((favorite: Favorite) => {
     const docSlug = favorite.document?.slug
     return !!(docSlug && slug === docSlug)
-  }
+  }, [slug])
 
   return (
     <div className="px-2 mb-1">

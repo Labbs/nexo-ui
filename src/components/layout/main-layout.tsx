@@ -5,7 +5,7 @@ import { CreateSpaceModal } from '@/components/spaces/create-space-modal'
 import { CommandPalette } from '@/components/sidebar/command-palette'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useSidebarVisibility, SidebarVisibilityProvider } from '@/contexts/sidebar-visibility-context'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useCommandPalette } from '@/contexts/command-palette-context'
 import { useEdgeDetection } from '@/hooks/use-edge-detection'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { cn } from '@/lib/utils'
@@ -20,7 +20,7 @@ function MainLayoutContent({ children }: MainLayoutProps) {
   const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false)
   const { areSidebarsVisible, isTemporarilyVisible, showTemporarily, hideTemporarily } =
     useSidebarVisibility()
-  const { setCommandPaletteOpen } = useUIState()
+  const { setCommandPaletteOpen } = useCommandPalette()
 
   // Global keyboard shortcuts
   useKeyboardShortcuts([

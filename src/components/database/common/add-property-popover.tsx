@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import type { PropertySchema } from '@/hooks/use-databases'
+import type { PropertySchema } from '@/hooks/use-database'
 
 interface AddPropertyPopoverProps {
   open: boolean

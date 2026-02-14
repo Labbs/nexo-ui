@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Plus,
@@ -989,142 +989,26 @@ export function DocumentTableView({
 
         {/* Body */}
         <tbody>
-          {rows.map((row, rowIndex) => {
-            const isSelected = selectedRows.has(row.id)
-            const isHovered = hoveredRow === row.id
-
-            return (
-              <tr
-                key={row.id}
-                className={cn(
-                  'border-b group/row transition-colors',
-                  isSelected && 'bg-primary/5',
-                  isHovered && !isSelected && 'bg-muted/30'
-                )}
-                onMouseEnter={() => setHoveredRow(row.id)}
-                onMouseLeave={() => setHoveredRow(null)}
-              >
-                {/* Row selector with checkbox and menu */}
-                <td className="w-8 p-0 sticky left-0 bg-background z-10">
-                  <div className="h-9 flex items-center justify-center group/selector">
-                    {/* Checkbox - shown when hovered or selected */}
-                    <div className={cn(
-                      "absolute",
-                      (isHovered || isSelected) ? "opacity-100" : "opacity-0 group-hover/selector:opacity-100"
-                    )}>
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => toggleRowSelection(row.id, rowIndex)}
-                        onClick={(e) => toggleRowSelection(row.id, rowIndex, e as unknown as React.MouseEvent)}
-                        className="h-4 w-4"
-                      />
-                    </div>
-                    {/* Menu - shown on hover when checkbox is not visible */}
-                    <div className={cn(
-                      'h-5 w-5 flex items-center justify-center',
-                      isHovered && !isSelected ? 'opacity-100' : 'opacity-0'
-                    )}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="h-5 w-5 flex items-center justify-center rounded hover:bg-muted text-muted-foreground">
-                            <GripVertical className="h-3.5 w-3.5" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-48">
-                          <DropdownMenuItem onClick={() => onOpenDocument(row.id)}>
-                            <FileText className="h-4 w-4 mr-2" />
-                            {t('table.openDocument')}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => onDeleteRow(row.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {t('table.deleteDocument')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </td>
-
-                {/* Property cells */}
-                {schema.map((property, colIndex) => {
-                  const propertyId = property.id || `prop-${colIndex}`
-                  const propertyType = property.type || 'text'
-                  const isEditing =
-                    editingCell?.rowId === row.id &&
-                    editingCell?.propertyId === propertyId
-                  const isTitle = propertyType === 'title'
-                  const width = columnWidths[propertyId] || 200
-                  const isFocused = focusedCell?.rowIndex === rowIndex && focusedCell?.colIndex === colIndex
-                  const wrapText = property.options?.wrapText === true
-
-                  return (
-                    <td
-                      key={propertyId}
-                      className={cn(
-                        'p-0 border-r',
-                        colIndex === 0 && 'sticky left-8 bg-background z-10',
-                        isFocused && 'ring-2 ring-inset ring-primary'
-                      )}
-                      style={{ width: `${width}px`, minWidth: `${width}px` }}
-                      onClick={() => setFocusedCell({ rowIndex, colIndex })}
-                    >
-                      <div className="relative group/cell">
-                        {isTitle ? (
-                          // Title cell - clickable to open document
-                          <div
-                            className={cn(
-                              "px-2 flex items-center gap-2 cursor-pointer hover:bg-muted/50",
-                              wrapText ? "min-h-9 py-2" : "h-9",
-                              isEditing && "bg-muted/50"
-                            )}
-                            onClick={() => {
-                              if (!isEditing) {
-                                onOpenDocument(row.id)
-                              }
-                            }}
-                          >
-                            <DocumentIcon value={row.content?.icon} size="sm" />
-                            <span className={cn("text-sm", wrapText ? "whitespace-normal break-words" : "truncate")}>
-                              {(row.properties[propertyId] as string) || t('common:untitled')}
-                            </span>
-                            {(isHovered || isSelected) && !isEditing && (
-                              <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto shrink-0" />
-                            )}
-                          </div>
-                        ) : (
-                          // Other cells - editable inline
-                          <div className={cn(wrapText && "min-h-9 [&>div]:h-auto [&>div]:min-h-9 [&>div]:py-2 [&>div>*]:whitespace-normal [&>div>*]:break-words")}>
-                            <PropertyCell
-                              property={{ ...property, id: propertyId, type: propertyType, name: property.name || t('common:untitled') }}
-                              value={row.properties[propertyId]}
-                              onChange={(value) =>
-                                handleCellChange(row.id, propertyId, value)
-                              }
-                              isEditing={isEditing}
-                              onStartEdit={() =>
-                                setEditingCell({ rowId: row.id, propertyId: propertyId })
-                              }
-                              onEndEdit={() => setEditingCell(null)}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  )
-                })}
-
-                {/* Empty cell for add column */}
-                <td className="w-10" />
-
-                {/* Filler cell */}
-                <td />
-              </tr>
-            )
-          })}
+          {rows.map((row, rowIndex) => (
+            <MemoTableRow
+              key={row.id}
+              row={row}
+              rowIndex={rowIndex}
+              schema={schema}
+              isSelected={selectedRows.has(row.id)}
+              isHovered={hoveredRow === row.id}
+              editingCell={editingCell}
+              focusedCell={focusedCell}
+              columnWidths={columnWidths}
+              onMouseEnter={setHoveredRow}
+              onToggleRowSelection={toggleRowSelection}
+              onOpenDocument={onOpenDocument}
+              onDeleteRow={onDeleteRow}
+              onCellChange={handleCellChange}
+              onSetEditingCell={setEditingCell}
+              onSetFocusedCell={setFocusedCell}
+            />
+          ))}
 
           {/* Add row button */}
           <tr className="group/addrow">
@@ -1164,3 +1048,169 @@ export function DocumentTableView({
     </div>
   )
 }
+
+// Extracted table row component to avoid recreating closures for every cell on every render
+interface MemoTableRowProps {
+  row: RowData
+  rowIndex: number
+  schema: PropertySchema[]
+  isSelected: boolean
+  isHovered: boolean
+  editingCell: { rowId: string; propertyId: string } | null
+  focusedCell: { rowIndex: number; colIndex: number } | null
+  columnWidths: Record<string, number>
+  onMouseEnter: (rowId: string | null) => void
+  onToggleRowSelection: (rowId: string, rowIndex: number, event?: React.MouseEvent) => void
+  onOpenDocument: (rowId: string) => void
+  onDeleteRow: (rowId: string) => void
+  onCellChange: (rowId: string, propertyId: string, value: unknown) => void
+  onSetEditingCell: (cell: { rowId: string; propertyId: string } | null) => void
+  onSetFocusedCell: (cell: { rowIndex: number; colIndex: number } | null) => void
+}
+
+const MemoTableRow = memo(function MemoTableRow({
+  row,
+  rowIndex,
+  schema,
+  isSelected,
+  isHovered,
+  editingCell,
+  focusedCell,
+  columnWidths,
+  onMouseEnter,
+  onToggleRowSelection,
+  onOpenDocument,
+  onDeleteRow,
+  onCellChange,
+  onSetEditingCell,
+  onSetFocusedCell,
+}: MemoTableRowProps) {
+  const { t } = useTranslation('database')
+
+  const handleMouseEnter = useCallback(() => onMouseEnter(row.id), [onMouseEnter, row.id])
+  const handleMouseLeave = useCallback(() => onMouseEnter(null), [onMouseEnter])
+  const handleEndEdit = useCallback(() => onSetEditingCell(null), [onSetEditingCell])
+
+  return (
+    <tr
+      className={cn(
+        'border-b group/row transition-colors',
+        isSelected && 'bg-primary/5',
+        isHovered && !isSelected && 'bg-muted/30'
+      )}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Row selector with checkbox and menu */}
+      <td className="w-8 p-0 sticky left-0 bg-background z-10">
+        <div className="h-9 flex items-center justify-center group/selector">
+          <div className={cn(
+            "absolute",
+            (isHovered || isSelected) ? "opacity-100" : "opacity-0 group-hover/selector:opacity-100"
+          )}>
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onToggleRowSelection(row.id, rowIndex)}
+              onClick={(e) => onToggleRowSelection(row.id, rowIndex, e as unknown as React.MouseEvent)}
+              className="h-4 w-4"
+            />
+          </div>
+          <div className={cn(
+            'h-5 w-5 flex items-center justify-center',
+            isHovered && !isSelected ? 'opacity-100' : 'opacity-0'
+          )}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-5 w-5 flex items-center justify-center rounded hover:bg-muted text-muted-foreground">
+                  <GripVertical className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem onClick={() => onOpenDocument(row.id)}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  {t('table.openDocument')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDeleteRow(row.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t('table.deleteDocument')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </td>
+
+      {/* Property cells */}
+      {schema.map((property, colIndex) => {
+        const propertyId = property.id || `prop-${colIndex}`
+        const propertyType = property.type || 'text'
+        const isEditing =
+          editingCell?.rowId === row.id &&
+          editingCell?.propertyId === propertyId
+        const isTitle = propertyType === 'title'
+        const width = columnWidths[propertyId] || 200
+        const isFocused = focusedCell?.rowIndex === rowIndex && focusedCell?.colIndex === colIndex
+        const wrapText = property.options?.wrapText === true
+
+        return (
+          <td
+            key={propertyId}
+            className={cn(
+              'p-0 border-r',
+              colIndex === 0 && 'sticky left-8 bg-background z-10',
+              isFocused && 'ring-2 ring-inset ring-primary'
+            )}
+            style={{ width: `${width}px`, minWidth: `${width}px` }}
+            onClick={() => onSetFocusedCell({ rowIndex, colIndex })}
+          >
+            <div className="relative group/cell">
+              {isTitle ? (
+                <div
+                  className={cn(
+                    "px-2 flex items-center gap-2 cursor-pointer hover:bg-muted/50",
+                    wrapText ? "min-h-9 py-2" : "h-9",
+                    isEditing && "bg-muted/50"
+                  )}
+                  onClick={() => {
+                    if (!isEditing) {
+                      onOpenDocument(row.id)
+                    }
+                  }}
+                >
+                  <DocumentIcon value={row.content?.icon} size="sm" />
+                  <span className={cn("text-sm", wrapText ? "whitespace-normal break-words" : "truncate")}>
+                    {(row.properties[propertyId] as string) || t('common:untitled')}
+                  </span>
+                  {(isHovered || isSelected) && !isEditing && (
+                    <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto shrink-0" />
+                  )}
+                </div>
+              ) : (
+                <div className={cn(wrapText && "min-h-9 [&>div]:h-auto [&>div]:min-h-9 [&>div]:py-2 [&>div>*]:whitespace-normal [&>div>*]:break-words")}>
+                  <PropertyCell
+                    property={{ ...property, id: propertyId, type: propertyType, name: property.name || t('common:untitled') }}
+                    value={row.properties[propertyId]}
+                    onChange={(value) => onCellChange(row.id, propertyId, value)}
+                    isEditing={isEditing}
+                    onStartEdit={() => onSetEditingCell({ rowId: row.id, propertyId })}
+                    onEndEdit={handleEndEdit}
+                  />
+                </div>
+              )}
+            </div>
+          </td>
+        )
+      })}
+
+      {/* Empty cell for add column */}
+      <td className="w-10" />
+
+      {/* Filler cell */}
+      <td />
+    </tr>
+  )
+})

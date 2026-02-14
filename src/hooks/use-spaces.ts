@@ -13,6 +13,7 @@ export function useSpaces() {
       return response.data.spaces || []
     },
     enabled: !!token,
+    staleTime: 60_000, // Spaces rarely change, 1 min
   })
 }
 

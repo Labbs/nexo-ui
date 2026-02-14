@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react'
 import type { AppId } from '@/types/apps'
 
 const STORAGE_KEY = 'nexo_active_app'
@@ -21,13 +21,15 @@ export function ActiveAppProvider({ children }: { children: ReactNode }) {
     return 'docs'
   })
 
-  const setActiveApp = (app: AppId) => {
+  const setActiveApp = useCallback((app: AppId) => {
     setActiveAppState(app)
     localStorage.setItem(STORAGE_KEY, app)
-  }
+  }, [])
+
+  const value = useMemo(() => ({ activeApp, setActiveApp }), [activeApp, setActiveApp])
 
   return (
-    <ActiveAppContext.Provider value={{ activeApp, setActiveApp }}>
+    <ActiveAppContext.Provider value={value}>
       {children}
     </ActiveAppContext.Provider>
   )

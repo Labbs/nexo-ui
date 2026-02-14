@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
 import { apiClient } from '@/api/client'
 import type { components } from '@/api/types'
 
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth()
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     const response = await apiClient.post<components['schemas']['LoginResponse']>(
       '/auth/login',
       { email, password }
@@ -56,40 +56,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userResponse = await apiClient.get<User>('/user/profile')
       setUser(userResponse.data)
     }
-  }
+  }, [])
 
-  const register = async (email: string, username: string, password: string) => {
+  const register = useCallback(async (email: string, username: string, password: string) => {
     await apiClient.post('/auth/register', { email, username, password })
-  }
+  }, [])
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     try {
       const response = await apiClient.get<User>('/user/profile')
       setUser(response.data)
     } catch {
       // Silently fail - profile will be refreshed on next page load
     }
-  }
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('auth_token')
     setToken(null)
     setUser(null)
     window.location.href = '/login'
-  }
+  }, [])
+
+  const value = useMemo(() => ({
+    user,
+    token,
+    login,
+    register,
+    logout,
+    refreshProfile,
+    isLoading,
+  }), [user, token, login, register, logout, refreshProfile, isLoading])
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        login,
-        register,
-        logout,
-        refreshProfile,
-        isLoading,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

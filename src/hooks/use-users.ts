@@ -26,5 +26,6 @@ export function useUsers(limit = 100, offset = 0) {
       )
       return response.data
     },
+    staleTime: 2 * 60_000, // User list is nearly static, 2 min
   })
 }

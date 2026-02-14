@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react'
+import { type CSSProperties, memo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Database } from 'lucide-react'
@@ -61,7 +61,9 @@ interface DraggableDatabaseItemProps {
   canEdit?: boolean
 }
 
-function DraggableDatabaseItem({ id, name, icon, isActive, spaceId, canEdit }: DraggableDatabaseItemProps) {
+const ROOT_PADDING: CSSProperties = { paddingLeft: 8, paddingRight: 8 }
+
+const DraggableDatabaseItem = memo(function DraggableDatabaseItem({ id, name, icon, isActive, spaceId, canEdit }: DraggableDatabaseItemProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `db-${id}`,
     data: { type: 'database', databaseId: id, name, icon },
@@ -86,7 +88,7 @@ function DraggableDatabaseItem({ id, name, icon, isActive, spaceId, canEdit }: D
         !isActive && 'text-foreground/80'
       )}
     >
-      <div style={{ paddingLeft: 8, paddingRight: 8 }} className="flex items-center gap-1 w-full">
+      <div style={ROOT_PADDING} className="flex items-center gap-1 w-full">
         {icon ? (
           <DocumentIcon value={parseStoredIcon(icon)} size="sm" />
         ) : (
@@ -98,4 +100,4 @@ function DraggableDatabaseItem({ id, name, icon, isActive, spaceId, canEdit }: D
       </div>
     </div>
   )
-}
+})

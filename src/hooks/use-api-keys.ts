@@ -43,6 +43,7 @@ export function useAvailableScopes() {
       const response = await apiClient.get<{ scopes: ScopeInfo[] }>('/apikeys/scopes')
       return response.data.scopes || []
     },
+    staleTime: Infinity, // Server-defined enum, never changes at runtime
   })
 }
 

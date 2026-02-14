@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, MoreHorizontal, Image } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -101,7 +101,7 @@ interface GalleryCardProps {
   onDeleteRow: (rowId: string) => void
 }
 
-function GalleryCard({
+const GalleryCard = memo(function GalleryCard({
   row,
   titleColumn,
   coverColumn,
@@ -180,7 +180,7 @@ function GalleryCard({
       </div>
     </div>
   )
-}
+})
 
 interface PropertyPreviewProps {
   property: PropertySchema
@@ -195,7 +195,7 @@ function getPropertyOptions(property: PropertySchema): SelectOption[] {
   return []
 }
 
-function PropertyPreview({ property, value }: PropertyPreviewProps) {
+const PropertyPreview = memo(function PropertyPreview({ property, value }: PropertyPreviewProps) {
   const renderValue = () => {
     switch (property.type) {
       case 'checkbox':
@@ -275,4 +275,4 @@ function PropertyPreview({ property, value }: PropertyPreviewProps) {
       {renderValue()}
     </div>
   )
-}
+})

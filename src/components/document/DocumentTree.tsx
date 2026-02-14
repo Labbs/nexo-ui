@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo } from 'react'
+import { type CSSProperties, createContext, memo, useContext, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight, ChevronDown, FileText, Plus, Database, Pencil, CornerLeftUp } from 'lucide-react'
@@ -13,7 +13,7 @@ import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
 import { useDocuments, useCreateDocument } from '@/hooks/use-documents'
 import { useDatabases } from '@/hooks/use-database'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useDocumentExpansion } from '@/contexts/document-expansion-context'
 import { useCreateDatabase } from '@/hooks/use-database'
 import { useDrawings, useCreateDrawing } from '@/hooks/use-drawings'
 import {
@@ -22,6 +22,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
+// Pre-computed lookup maps to avoid N*M filtering in each TreeItem
+interface ChildContentMaps {
+  databasesByDocId: Map<string, any[]>
+  drawingsByDocId: Map<string, any[]>
+}
+
+const ChildContentContext = createContext<ChildContentMaps>({
+  databasesByDocId: new Map(),
+  drawingsByDocId: new Map(),
+})
 
 export interface DocumentTreeProps {
   spaceId: string
@@ -61,6 +72,28 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
   const { t } = useTranslation('document')
   const { data: documents = [], isLoading } = useDocuments(spaceId, parentId)
 
+  // Fetch databases and drawings ONCE at the tree root level, pre-group by document_id
+  const { data: allDatabases = [] } = useDatabases(spaceId)
+  const { data: allDrawings = [] } = useDrawings(spaceId)
+
+  const childContentMaps = useMemo<ChildContentMaps>(() => {
+    const databasesByDocId = new Map<string, any[]>()
+    for (const db of allDatabases) {
+      if (!db.document_id) continue
+      const existing = databasesByDocId.get(db.document_id) || []
+      existing.push(db)
+      databasesByDocId.set(db.document_id, existing)
+    }
+    const drawingsByDocId = new Map<string, any[]>()
+    for (const d of allDrawings) {
+      if (!d.document_id) continue
+      const existing = drawingsByDocId.get(d.document_id) || []
+      existing.push(d)
+      drawingsByDocId.set(d.document_id, existing)
+    }
+    return { databasesByDocId, drawingsByDocId }
+  }, [allDatabases, allDrawings])
+
   const itemIds = useMemo(
     () => documents.map((doc: any) => (doc?.id as string) || (doc?.document as string) || '').filter(Boolean),
     [documents]
@@ -77,6 +110,7 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
   }
   if (!documents || documents.length === 0) return null
   return (
+    <ChildContentContext.Provider value={childContentMaps}>
     <SortableContext items={itemIds} strategy={verticalListSortingStrategy} id={parentId || 'root'}>
       <div className="space-y-0.5">
         {documents.map((doc: any) => {
@@ -86,7 +120,7 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
           const icon = doc?.config?.icon || null
           const isDropTarget = dropTarget === id && activeId !== id
           return (
-            <SortableTreeItem
+            <MemoSortableTreeItem
               key={id || slug}
               spaceId={spaceId}
               docId={id}
@@ -104,6 +138,7 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
         })}
       </div>
     </SortableContext>
+    </ChildContentContext.Provider>
   )
 }
 
@@ -121,7 +156,7 @@ interface TreeItemProps {
   activeId?: string
 }
 
-function SortableTreeItem(props: TreeItemProps) {
+const MemoSortableTreeItem = memo(function SortableTreeItem(props: TreeItemProps) {
   const {
     attributes,
     listeners,
@@ -142,14 +177,14 @@ function SortableTreeItem(props: TreeItemProps) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TreeItem {...props} isDragging={isDragging} />
+      <MemoTreeItem {...props} isDragging={isDragging} />
     </div>
   )
-}
+})
 
-function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, parentId: _parentId, isDropTarget, dropTarget, activeId, isDragging: _isDragging }: TreeItemProps & { isDragging?: boolean }) {
+const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, parentId: _parentId, isDropTarget, dropTarget, activeId, isDragging: _isDragging }: TreeItemProps & { isDragging?: boolean }) {
   const { t } = useTranslation('document')
-  const { isDocumentExpanded, toggleDocumentExpanded } = useUIState()
+  const { isDocumentExpanded, toggleDocumentExpanded } = useDocumentExpansion()
   const expanded = isDocumentExpanded(spaceId, docId)
   const location = useLocation()
   const navigate = useNavigate()
@@ -178,13 +213,15 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
     expanded && isValidUUID && docId ? docId : undefined
   )
 
-  // Fetch databases for this space to filter child databases
-  const { data: allDatabases = [] } = useDatabases(spaceId)
-  const childDatabases = allDatabases.filter((db) => db.document_id === docId)
+  // Use pre-computed maps from parent instead of fetching+filtering per TreeItem
+  const { databasesByDocId, drawingsByDocId } = useContext(ChildContentContext)
+  const childDatabases = databasesByDocId.get(docId) || []
+  const childDrawings = drawingsByDocId.get(docId) || []
 
-  // Fetch drawings for this space to filter child drawings
-  const { data: allDrawings = [] } = useDrawings(spaceId)
-  const childDrawings = allDrawings.filter((d) => d.document_id === docId)
+  const paddingStyle = useMemo<CSSProperties>(
+    () => ({ paddingLeft: 8 + level * 16, paddingRight: 8 }),
+    [level]
+  )
 
   return (
     <div className="group/item">
@@ -196,7 +233,7 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
           !isActive && 'text-foreground/80',
           isDropTarget && 'ring-2 ring-primary ring-inset bg-primary/10'
         )}
-        style={{ paddingLeft: 8 + level * 16, paddingRight: 8 }}
+        style={paddingStyle}
       >
         <button
           className="h-5 w-5 flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground"
@@ -296,7 +333,7 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
                     {validChildren.map((c) => {
                       const isChildDropTarget = dropTarget === c.id && activeId !== c.id
                       return (
-                        <SortableTreeItem
+                        <MemoSortableTreeItem
                           key={c.id}
                           spaceId={spaceId}
                           docId={c.id}
@@ -314,7 +351,7 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
                     })}
                   </SortableContext>
                   {childDatabases.map((db) => (
-                    <DraggableChildDatabase
+                    <MemoDraggableChildDatabase
                       key={db.id}
                       db={db}
                       spaceId={spaceId}
@@ -324,7 +361,7 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
                     />
                   ))}
                   {childDrawings.map((drawing) => (
-                    <DraggableChildDrawing
+                    <MemoDraggableChildDrawing
                       key={drawing.id}
                       drawing={drawing}
                       spaceId={spaceId}
@@ -342,9 +379,9 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
 
     </div>
   )
-}
+})
 
-function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
+const MemoDraggableChildDatabase = memo(function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
   db: any
   spaceId: string
   level: number
@@ -366,6 +403,11 @@ function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
     opacity: isDragging ? 0.5 : undefined,
   }
 
+  const paddingStyle = useMemo<CSSProperties>(
+    () => ({ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }),
+    [level]
+  )
+
   return (
     <div
       ref={setNodeRef}
@@ -379,7 +421,7 @@ function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
         !isDbActive && 'text-foreground/80'
       )}
     >
-      <div style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }} className="flex items-center gap-1 w-full">
+      <div style={paddingStyle} className="flex items-center gap-1 w-full">
         {db.icon ? (
           <DocumentIcon value={parseStoredIcon(db.icon)} size="sm" />
         ) : (
@@ -391,9 +433,9 @@ function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
       </div>
     </div>
   )
-}
+})
 
-function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }: {
+const MemoDraggableChildDrawing = memo(function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }: {
   drawing: any
   spaceId: string
   level: number
@@ -415,6 +457,11 @@ function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }
     opacity: isDragging ? 0.5 : undefined,
   }
 
+  const paddingStyle = useMemo<CSSProperties>(
+    () => ({ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }),
+    [level]
+  )
+
   return (
     <div
       ref={setNodeRef}
@@ -428,7 +475,7 @@ function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }
         !isDrawingActive && 'text-foreground/80'
       )}
     >
-      <div style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }} className="flex items-center gap-1 w-full">
+      <div style={paddingStyle} className="flex items-center gap-1 w-full">
         {drawing.icon ? (
           <DocumentIcon value={parseStoredIcon(drawing.icon)} size="sm" />
         ) : (
@@ -440,4 +487,4 @@ function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }
       </div>
     </div>
   )
-}
+})

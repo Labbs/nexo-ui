@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode, useEffect } from 'react'
 
 interface SidebarVisibilityContextType {
   areSidebarsVisible: boolean
@@ -24,32 +24,32 @@ export function SidebarVisibilityProvider({ children }: { children: ReactNode })
     localStorage.setItem('sidebars_visible', areSidebarsVisible.toString())
   }, [areSidebarsVisible])
 
-  const toggleSidebars = () => {
+  const toggleSidebars = useCallback(() => {
     setAreSidebarsVisible((prev) => !prev)
     setIsTemporarilyVisible(false) // Reset temporary state
-  }
+  }, [])
 
-  const showTemporarily = () => {
-    // Only show temporarily if sidebars are hidden
-    if (!areSidebarsVisible) {
-      setIsTemporarilyVisible(true)
-    }
-  }
+  const showTemporarily = useCallback(() => {
+    setAreSidebarsVisible((current) => {
+      if (!current) setIsTemporarilyVisible(true)
+      return current
+    })
+  }, [])
 
-  const hideTemporarily = () => {
+  const hideTemporarily = useCallback(() => {
     setIsTemporarilyVisible(false)
-  }
+  }, [])
+
+  const value = useMemo(() => ({
+    areSidebarsVisible,
+    isTemporarilyVisible,
+    toggleSidebars,
+    showTemporarily,
+    hideTemporarily,
+  }), [areSidebarsVisible, isTemporarilyVisible, toggleSidebars, showTemporarily, hideTemporarily])
 
   return (
-    <SidebarVisibilityContext.Provider
-      value={{
-        areSidebarsVisible,
-        isTemporarilyVisible,
-        toggleSidebars,
-        showTemporarily,
-        hideTemporarily,
-      }}
-    >
+    <SidebarVisibilityContext.Provider value={value}>
       {children}
     </SidebarVisibilityContext.Provider>
   )

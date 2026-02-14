@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useResizable } from '@/hooks/use-resizable'
 import { useSidebarVisibility } from '@/contexts/sidebar-visibility-context'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useSidebarUI } from '@/contexts/sidebar-ui-context'
 
 // Types for space (matching API response)
 export interface Space {
@@ -69,7 +69,7 @@ export function useSidebar() {
 
   // Local UI state
   const [isEditSpaceOpen, setIsEditSpaceOpen] = useState(false)
-  const { favoritesExpanded, setFavoritesExpanded } = useUIState()
+  const { favoritesExpanded, setFavoritesExpanded } = useSidebarUI()
 
   // Toggle theme
   const toggleTheme = useCallback(() => {

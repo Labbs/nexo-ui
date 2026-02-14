@@ -279,10 +279,10 @@ export function DocumentPage() {
     debouncedSaveName(newTitle)
   }
 
-  // Handle icon changes
+  // Handle icon changes (immediate save, no debounce — icon is a discrete click)
   const handleIconChange = (newIcon: IconValue) => {
     setIcon(newIcon)
-    debouncedSaveConfig({ icon: serializeIcon(newIcon) })
+    saveConfig({ icon: serializeIcon(newIcon) })
   }
 
   // Try to get document ID from various possible locations

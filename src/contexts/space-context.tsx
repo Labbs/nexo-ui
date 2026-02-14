@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react'
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback, useEffect } from 'react'
 import type { components } from '@/api/types'
 import { useSpaces } from '@/hooks/use-spaces'
 
@@ -43,7 +43,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
     }
   }, [currentSpace])
 
-  const setCurrentSpace = (space: Space | null) => {
+  const setCurrentSpace = useCallback((space: Space | null) => {
     if (space) {
       setCurrentSpaceId(space.id || null)
       localStorage.setItem('current_space', JSON.stringify(space))
@@ -51,7 +51,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
       setCurrentSpaceId(null)
       localStorage.removeItem('current_space')
     }
-  }
+  }, [])
 
   // Check if user can edit content in the current space based on their role
   const canEdit = useMemo(() => {
@@ -59,8 +59,12 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
     return EDIT_ROLES.includes(currentSpace.my_role)
   }, [currentSpace?.my_role])
 
+  const value = useMemo(() => ({
+    currentSpace, setCurrentSpace, canEdit
+  }), [currentSpace, setCurrentSpace, canEdit])
+
   return (
-    <SpaceContext.Provider value={{ currentSpace, setCurrentSpace, canEdit }}>
+    <SpaceContext.Provider value={value}>
       {children}
     </SpaceContext.Provider>
   )

@@ -1,19 +1,20 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/auth-context'
 import { apiClient } from '@/api/client'
 import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type SupportedLanguage } from './index'
 
-import { enUS, fr, es, de, it, pt } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import type { Locale } from 'date-fns'
 
-const DATE_FNS_LOCALES: Record<SupportedLanguage, Locale> = {
-  en: enUS,
-  fr: fr,
-  es: es,
-  de: de,
-  it: it,
-  pt: pt,
+// Only load the active locale — others are lazy-loaded on demand
+const localeLoaders: Record<SupportedLanguage, () => Promise<Locale>> = {
+  en: () => Promise.resolve(enUS),
+  fr: () => import('date-fns/locale/fr').then(m => m.fr),
+  es: () => import('date-fns/locale/es').then(m => m.es),
+  de: () => import('date-fns/locale/de').then(m => m.de),
+  it: () => import('date-fns/locale/it').then(m => m.it),
+  pt: () => import('date-fns/locale/pt').then(m => m.pt),
 }
 
 interface LanguageContextType {
@@ -69,10 +70,23 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [language, token, i18n])
 
-  const dateFnsLocale = DATE_FNS_LOCALES[language]
+  // Lazy-load date-fns locale for the active language
+  const [dateFnsLocale, setDateFnsLocale] = useState<Locale>(enUS)
+
+  useEffect(() => {
+    let cancelled = false
+    localeLoaders[language]().then((locale) => {
+      if (!cancelled) setDateFnsLocale(locale)
+    })
+    return () => { cancelled = true }
+  }, [language])
+
+  const value = useMemo(() => ({
+    language, setLanguage, isChangingLanguage, dateFnsLocale
+  }), [language, setLanguage, isChangingLanguage, dateFnsLocale])
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, isChangingLanguage, dateFnsLocale }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   )

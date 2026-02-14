@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, X, ExternalLink, Mail, Phone, Calendar, ChevronDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,7 @@ import {
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
-import type { PropertySchema } from '@/hooks/use-databases'
+import type { PropertySchema } from '@/hooks/use-database'
 import { useUsers } from '@/hooks/use-users'
 import {
   formatNumber,
@@ -440,7 +440,7 @@ function PhoneCell({
   )
 }
 
-export function PropertyCell({
+export const PropertyCell = memo(function PropertyCell({
   property,
   value,
   onChange,
@@ -622,7 +622,7 @@ export function PropertyCell({
         </div>
       )
   }
-}
+})
 
 // Select cell component
 function SelectCell({

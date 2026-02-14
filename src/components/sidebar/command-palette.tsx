@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { Search, FileText, Database, FolderKanban, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useCommandPalette } from '@/contexts/command-palette-context'
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useCreateDocument } from '@/hooks/use-documents'
 import { useFavorites } from '@/hooks/use-favorites'
@@ -13,7 +13,7 @@ import { DocumentIcon } from '@/components/ui/icon-picker'
 
 export function CommandPalette() {
   const { t } = useTranslation('navigation')
-  const { isCommandPaletteOpen, setCommandPaletteOpen } = useUIState()
+  const { isCommandPaletteOpen, setCommandPaletteOpen } = useCommandPalette()
   const navigate = useNavigate()
   const { currentSpace } = useCurrentSpace()
   const { mutateAsync: createDocument } = useCreateDocument()
