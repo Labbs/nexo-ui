@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SidebarItemProps {
@@ -7,7 +8,7 @@ interface SidebarItemProps {
   className?: string
 }
 
-export function SidebarItem({ children, onClick, isActive, className }: SidebarItemProps) {
+export const SidebarItem = memo(function SidebarItem({ children, onClick, isActive, className }: SidebarItemProps) {
   return (
     <button
       onClick={onClick}
@@ -23,4 +24,4 @@ export function SidebarItem({ children, onClick, isActive, className }: SidebarI
       {children}
     </button>
   )
-}
+})

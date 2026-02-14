@@ -128,9 +128,58 @@ export function useUpdateDrawing() {
       )
       return response.data
     },
-    onSuccess: (_, variables) => {
-      // Only invalidate if name or icon changed (which affects the list display)
-      // Don't invalidate on auto-save to avoid re-fetching and re-rendering
+    onMutate: async (variables) => {
+      const { drawingId, name, icon } = variables
+
+      // Only optimistically update for name/icon changes (visible in sidebar)
+      // Auto-save of canvas elements doesn't need optimistic cache updates
+      if (name === undefined && icon === undefined) return
+
+      await queryClient.cancelQueries({ queryKey: drawingKeys.detail(drawingId) })
+      await queryClient.cancelQueries({ queryKey: drawingKeys.all })
+
+      // Snapshot for rollback
+      const previousDetail = queryClient.getQueryData(drawingKeys.detail(drawingId))
+      const previousLists = queryClient.getQueriesData({ queryKey: drawingKeys.all })
+
+      const applyUpdate = (drawing: any) => {
+        if (!drawing) return drawing
+        const updated = { ...drawing }
+        if (name !== undefined) updated.name = name
+        if (icon !== undefined) updated.icon = icon
+        return updated
+      }
+
+      // Optimistically update the detail cache
+      if (previousDetail) {
+        queryClient.setQueryData(drawingKeys.detail(drawingId), applyUpdate(previousDetail))
+      }
+
+      // Optimistically update all list caches that contain this drawing
+      for (const [queryKey, data] of previousLists) {
+        if (!Array.isArray(data)) continue
+        queryClient.setQueryData(queryKey, data.map((d: any) =>
+          d.id === drawingId ? applyUpdate(d) : d
+        ))
+      }
+
+      return { previousDetail, previousLists }
+    },
+    onError: (_err, variables, context) => {
+      if (!context) return
+      const { drawingId } = variables
+
+      if (context.previousDetail) {
+        queryClient.setQueryData(drawingKeys.detail(drawingId), context.previousDetail)
+      }
+      if (context.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data)
+        }
+      }
+    },
+    onSettled: (_, _err, variables) => {
+      // Only refetch if name/icon changed — skip for canvas auto-saves
       if (variables.name !== undefined || variables.icon !== undefined) {
         queryClient.invalidateQueries({ queryKey: drawingKeys.detail(variables.drawingId) })
         queryClient.invalidateQueries({ queryKey: drawingKeys.all })

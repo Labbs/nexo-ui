@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, MoreHorizontal, GripVertical } from 'lucide-react'
 import {
@@ -244,7 +244,7 @@ interface BoardColumnProps {
   onAddToColumn: (groupValue: string) => void
 }
 
-function BoardColumn({
+const BoardColumn = memo(function BoardColumn({
   id,
   title,
   colorConfig,
@@ -312,7 +312,7 @@ function BoardColumn({
       </button>
     </div>
   )
-}
+})
 
 interface BoardCardProps {
   row: RowData
@@ -321,7 +321,7 @@ interface BoardCardProps {
   onDeleteRow: (rowId: string) => void
 }
 
-function BoardCard({
+const BoardCard = memo(function BoardCard({
   row,
   titleColumn,
   onOpenDocument,
@@ -394,4 +394,4 @@ function BoardCard({
       </div>
     </div>
   )
-}
+})

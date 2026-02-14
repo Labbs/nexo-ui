@@ -1,13 +1,13 @@
 import { Home, Search, Inbox } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useCommandPalette } from '@/contexts/command-palette-context'
 import { Kbd } from '@/components/ui/kbd'
 
 export function QuickActions() {
   const { t } = useTranslation('navigation')
   const navigate = useNavigate()
-  const { setCommandPaletteOpen } = useUIState()
+  const { setCommandPaletteOpen } = useCommandPalette()
 
   return (
     <div className="px-2 py-1 space-y-0.5">

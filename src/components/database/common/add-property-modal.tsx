@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import type { PropertySchema } from '@/hooks/use-databases'
+import type { PropertySchema } from '@/hooks/use-database'
 
 interface AddPropertyModalProps {
   open: boolean

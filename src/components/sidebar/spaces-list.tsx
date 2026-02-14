@@ -17,7 +17,7 @@ import {
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { useSpaces } from '@/hooks/use-spaces'
 import { useCurrentSpace } from '@/contexts/space-context'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useSidebarUI } from '@/contexts/sidebar-ui-context'
 import { useSpaceOrder, useUpdateSpaceOrder } from '@/hooks/use-space-order'
 import { SortableSpaceItem } from './space-item'
 import { CreateSpaceModal } from '@/components/spaces/create-space-modal'
@@ -27,7 +27,7 @@ export function SpacesList() {
   const { t } = useTranslation('navigation')
   const { data: spaces = [], isLoading } = useSpaces()
   const { currentSpace } = useCurrentSpace()
-  const { isSpaceExpanded, toggleSpaceExpanded } = useUIState()
+  const { isSpaceExpanded, toggleSpaceExpanded } = useSidebarUI()
   const spaceOrder = useSpaceOrder()
   const { mutate: updateSpaceOrder } = useUpdateSpaceOrder()
   const [showCreateModal, setShowCreateModal] = useState(false)

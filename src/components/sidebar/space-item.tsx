@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { memo, useMemo, useState, type CSSProperties } from 'react'
 import {
   ChevronRight,
   Plus,
@@ -13,7 +13,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useActiveApp } from '@/contexts/active-app-context'
-import { useUIState } from '@/contexts/ui-state-context'
+import { useSidebarUI } from '@/contexts/sidebar-ui-context'
 import { useCreateContent } from '@/hooks/use-create-content'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,7 +42,7 @@ interface SpaceItemProps {
 // Roles that can create/edit content
 const EDIT_ROLES = ['owner', 'admin', 'editor']
 
-export function SortableSpaceItem({ space }: SpaceItemProps) {
+export const SortableSpaceItem = memo(function SortableSpaceItem({ space }: SpaceItemProps) {
   const {
     attributes,
     listeners,
@@ -63,14 +63,14 @@ export function SortableSpaceItem({ space }: SpaceItemProps) {
       <SpaceItem space={space} />
     </div>
   )
-}
+})
 
-export function SpaceItem({ space }: SpaceItemProps) {
+export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
   const { t } = useTranslation('navigation')
   const navigate = useNavigate()
   const { currentSpace, setCurrentSpace } = useCurrentSpace()
   const { activeApp } = useActiveApp()
-  const { isSpaceExpanded, toggleSpaceExpanded } = useUIState()
+  const { isSpaceExpanded, toggleSpaceExpanded } = useSidebarUI()
   const { handleCreateDocument, handleCreateDrawing, handleCreateDatabase } = useCreateContent(space.id)
   const [editModalOpen, setEditModalOpen] = useState(false)
 
@@ -94,6 +94,11 @@ export function SpaceItem({ space }: SpaceItemProps) {
 
   const iconValue = parseStoredIcon(space.icon)
   const showBackground = isEmoji(iconValue) || !iconValue
+
+  const iconStyle = useMemo<CSSProperties>(() => ({
+    backgroundColor: showBackground ? (space.icon_color || '#6366f1') : 'transparent',
+    color: showBackground ? 'white' : undefined,
+  }), [showBackground, space.icon_color])
 
   return (
     <div>
@@ -122,10 +127,7 @@ export function SpaceItem({ space }: SpaceItemProps) {
         {/* Space icon */}
         <div
           className="h-5 w-5 rounded flex items-center justify-center text-xs font-medium shrink-0"
-          style={{
-            backgroundColor: showBackground ? (space.icon_color || '#6366f1') : 'transparent',
-            color: showBackground ? 'white' : undefined,
-          }}
+          style={iconStyle}
         >
           {iconValue ? (
             <DocumentIcon value={iconValue} size="sm" />
@@ -205,4 +207,4 @@ export function SpaceItem({ space }: SpaceItemProps) {
       />
     </div>
   )
-}
+})

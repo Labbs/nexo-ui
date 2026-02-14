@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react'
+import { type CSSProperties, memo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Pencil } from 'lucide-react'
@@ -60,7 +60,9 @@ interface DraggableDrawingItemProps {
   canEdit?: boolean
 }
 
-function DraggableDrawingItem({ id, name, icon, isActive, spaceId, canEdit }: DraggableDrawingItemProps) {
+const ROOT_PADDING: CSSProperties = { paddingLeft: 8, paddingRight: 8 }
+
+const DraggableDrawingItem = memo(function DraggableDrawingItem({ id, name, icon, isActive, spaceId, canEdit }: DraggableDrawingItemProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `drawing-${id}`,
     data: { type: 'drawing', drawingId: id, name },
@@ -85,7 +87,7 @@ function DraggableDrawingItem({ id, name, icon, isActive, spaceId, canEdit }: Dr
         !isActive && 'text-foreground/80'
       )}
     >
-      <div style={{ paddingLeft: 8, paddingRight: 8 }} className="flex items-center gap-1 w-full">
+      <div style={ROOT_PADDING} className="flex items-center gap-1 w-full">
         {icon ? (
           <DocumentIcon value={parseStoredIcon(icon)} size="sm" />
         ) : (
@@ -97,4 +99,4 @@ function DraggableDrawingItem({ id, name, icon, isActive, spaceId, canEdit }: Dr
       </div>
     </div>
   )
-}
+})
