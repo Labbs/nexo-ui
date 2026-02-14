@@ -26,5 +26,9 @@ export function useUsers(limit = 100, offset = 0) {
       )
       return response.data
     },
+<<<<<<< HEAD
+=======
+    staleTime: 2 * 60_000, // User list is nearly static, 2 min
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   })
 }

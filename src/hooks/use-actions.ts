@@ -90,6 +90,10 @@ export function useAvailableTriggers() {
       const response = await apiClient.get<{ triggers: TriggerInfo[] }>('/actions/triggers')
       return response.data.triggers || []
     },
+<<<<<<< HEAD
+=======
+    staleTime: Infinity, // Server-defined enum, never changes at runtime
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   })
 }
 
@@ -100,6 +104,10 @@ export function useAvailableSteps() {
       const response = await apiClient.get<{ steps: StepInfo[] }>('/actions/steps')
       return response.data.steps || []
     },
+<<<<<<< HEAD
+=======
+    staleTime: Infinity, // Server-defined enum, never changes at runtime
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   })
 }
 

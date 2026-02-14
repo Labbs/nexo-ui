@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useMemo } from 'react'
+=======
+import { memo, useMemo } from 'react'
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { useTranslation } from 'react-i18next'
 import { Plus, MoreHorizontal, Image } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -101,7 +105,11 @@ interface GalleryCardProps {
   onDeleteRow: (rowId: string) => void
 }
 
+<<<<<<< HEAD
 function GalleryCard({
+=======
+const GalleryCard = memo(function GalleryCard({
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   row,
   titleColumn,
   coverColumn,
@@ -180,7 +188,11 @@ function GalleryCard({
       </div>
     </div>
   )
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
 interface PropertyPreviewProps {
   property: PropertySchema
@@ -195,7 +207,11 @@ function getPropertyOptions(property: PropertySchema): SelectOption[] {
   return []
 }
 
+<<<<<<< HEAD
 function PropertyPreview({ property, value }: PropertyPreviewProps) {
+=======
+const PropertyPreview = memo(function PropertyPreview({ property, value }: PropertyPreviewProps) {
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const renderValue = () => {
     switch (property.type) {
       case 'checkbox':
@@ -275,4 +291,8 @@ function PropertyPreview({ property, value }: PropertyPreviewProps) {
       {renderValue()}
     </div>
   )
+<<<<<<< HEAD
 }
+=======
+})
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)

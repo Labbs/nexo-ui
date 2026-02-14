@@ -13,6 +13,10 @@ export function useSpaces() {
       return response.data.spaces || []
     },
     enabled: !!token,
+<<<<<<< HEAD
+=======
+    staleTime: 60_000, // Spaces rarely change, 1 min
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   })
 }
 

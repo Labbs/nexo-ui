@@ -1,8 +1,14 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
+<<<<<<< HEAD
 
 // Import translations
+=======
+import resourcesToBackend from 'i18next-resources-to-backend'
+
+// English is bundled statically as the fallback language so the UI is never empty.
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import commonEn from './locales/en/common.json'
 import authEn from './locales/en/auth.json'
 import settingsEn from './locales/en/settings.json'
@@ -12,6 +18,7 @@ import databaseEn from './locales/en/database.json'
 import documentEn from './locales/en/document.json'
 import drawingEn from './locales/en/drawing.json'
 
+<<<<<<< HEAD
 import commonFr from './locales/fr/common.json'
 import authFr from './locales/fr/auth.json'
 import settingsFr from './locales/fr/settings.json'
@@ -57,6 +64,8 @@ import databasePt from './locales/pt/database.json'
 import documentPt from './locales/pt/document.json'
 import drawingPt from './locales/pt/drawing.json'
 
+=======
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 export const SUPPORTED_LANGUAGES = ['en', 'fr', 'es', 'de', 'it', 'pt'] as const
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
@@ -75,6 +84,15 @@ export const LANGUAGE_STORAGE_KEY = 'nexo_language'
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
+<<<<<<< HEAD
+=======
+  // Lazy-load non-English translations via Vite dynamic import (code-split per language+namespace)
+  .use(
+    resourcesToBackend((language: string, namespace: string) =>
+      import(`./locales/${language}/${namespace}.json`)
+    )
+  )
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   .init({
     resources: {
       en: {
@@ -87,6 +105,7 @@ i18n
         document: documentEn,
         drawing: drawingEn,
       },
+<<<<<<< HEAD
       fr: {
         common: commonFr,
         auth: authFr,
@@ -138,6 +157,12 @@ i18n
         drawing: drawingPt,
       },
     },
+=======
+    },
+    // Only load the detected language (+ fallback). Non-English resources come from the backend plugin.
+    partialBundledLanguages: true,
+
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: SUPPORTED_LANGUAGES as unknown as string[],
     defaultNS: 'common',

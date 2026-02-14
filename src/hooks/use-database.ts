@@ -8,6 +8,11 @@ export type DatabaseItem = components['schemas']['DatabaseItem']
 export type RowItem = components['schemas']['RowItem']
 export type GetDatabaseResponse = components['schemas']['GetDatabaseResponse']
 export type ListRowsResponse = components['schemas']['ListRowsResponse']
+<<<<<<< HEAD
+=======
+/** @deprecated Use GetDatabaseResponse instead — kept for backward compat */
+export type DatabaseDetail = GetDatabaseResponse
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
 // View types
 export interface ViewConfig {
@@ -187,6 +192,18 @@ export function useCreateDatabase() {
 }
 
 // Update a database (name, description, icon, schema)
+<<<<<<< HEAD
+=======
+type UpdateDatabaseVariables = {
+  databaseId: string
+  name?: string
+  description?: string
+  icon?: string
+  schema?: PropertySchema[]
+  defaultView?: string
+}
+
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 export function useUpdateDatabase() {
   const queryClient = useQueryClient()
 
@@ -198,6 +215,7 @@ export function useUpdateDatabase() {
       icon,
       schema,
       defaultView,
+<<<<<<< HEAD
     }: {
       databaseId: string
       name?: string
@@ -206,15 +224,74 @@ export function useUpdateDatabase() {
       schema?: PropertySchema[]
       defaultView?: string
     }) => {
+=======
+    }: UpdateDatabaseVariables) => {
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       const response = await apiClient.put<components['schemas']['MessageResponse']>(
         `/databases/${databaseId}`,
         { name, description, icon, schema, default_view: defaultView }
       )
       return response.data
     },
+<<<<<<< HEAD
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.detail(variables.databaseId) })
       queryClient.invalidateQueries({ queryKey: databaseKeys.all })
+=======
+    onMutate: async (variables) => {
+      const { databaseId, name, icon } = variables
+
+      // Only optimistically update for name/icon changes (visible in sidebar)
+      if (name === undefined && icon === undefined) return
+
+      await queryClient.cancelQueries({ queryKey: databaseKeys.detail(databaseId) })
+      await queryClient.cancelQueries({ queryKey: databaseKeys.all })
+
+      // Snapshot for rollback
+      const previousDetail = queryClient.getQueryData(databaseKeys.detail(databaseId))
+      const previousLists = queryClient.getQueriesData({ queryKey: databaseKeys.all })
+
+      const applyUpdate = (db: any) => {
+        if (!db) return db
+        const updated = { ...db }
+        if (name !== undefined) updated.name = name
+        if (icon !== undefined) updated.icon = icon
+        return updated
+      }
+
+      // Optimistically update the detail cache
+      if (previousDetail) {
+        queryClient.setQueryData(databaseKeys.detail(databaseId), applyUpdate(previousDetail))
+      }
+
+      // Optimistically update all list caches that contain this database
+      for (const [queryKey, data] of previousLists) {
+        if (!Array.isArray(data)) continue
+        queryClient.setQueryData(queryKey, data.map((db: any) =>
+          db.id === databaseId ? applyUpdate(db) : db
+        ))
+      }
+
+      return { previousDetail, previousLists }
+    },
+    onError: (_err, variables, context) => {
+      if (!context) return
+      const { databaseId } = variables
+
+      if (context.previousDetail) {
+        queryClient.setQueryData(databaseKeys.detail(databaseId), context.previousDetail)
+      }
+      if (context.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data)
+        }
+      }
+    },
+    onSettled: (_, _err, variables) => {
+      queryClient.invalidateQueries({ queryKey: databaseKeys.detail(variables.databaseId) })
+      // Only invalidate list queries, not rows/permissions/types
+      queryClient.invalidateQueries({ queryKey: ['databases', 'list'] })
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     },
   })
 }
@@ -231,8 +308,14 @@ export function useMoveDatabase() {
       )
       return response.data
     },
+<<<<<<< HEAD
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.all })
+=======
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: databaseKeys.detail(variables.databaseId) })
+      queryClient.invalidateQueries({ queryKey: ['databases', 'list'] })
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     },
   })
 }
@@ -250,8 +333,13 @@ export function useDeleteDatabase() {
       // Remove the deleted database from cache to prevent refetch attempts
       queryClient.removeQueries({ queryKey: databaseKeys.detail(databaseId) })
       queryClient.removeQueries({ queryKey: databaseKeys.rows(databaseId) })
+<<<<<<< HEAD
       // Invalidate the list to refresh it
       queryClient.invalidateQueries({ queryKey: databaseKeys.all })
+=======
+      // Only invalidate list queries
+      queryClient.invalidateQueries({ queryKey: ['databases', 'list'] })
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     },
   })
 }
@@ -308,7 +396,61 @@ export function useUpdateRow() {
       )
       return response.data
     },
+<<<<<<< HEAD
     onSuccess: (_, variables) => {
+=======
+    onMutate: async (variables) => {
+      const { databaseId, rowId, properties, content } = variables
+
+      await queryClient.cancelQueries({ queryKey: databaseKeys.rows(databaseId) })
+      await queryClient.cancelQueries({ queryKey: databaseKeys.row(databaseId, rowId) })
+
+      // Snapshot for rollback
+      const previousRow = queryClient.getQueryData(databaseKeys.row(databaseId, rowId))
+      const previousRows = queryClient.getQueriesData({ queryKey: databaseKeys.rows(databaseId) })
+
+      const applyUpdate = (row: any) => {
+        if (!row) return row
+        const updated = { ...row }
+        if (properties !== undefined) updated.properties = { ...(row.properties || {}), ...properties }
+        if (content !== undefined) updated.content = { ...(row.content || {}), ...content }
+        return updated
+      }
+
+      // Optimistically update the single row cache
+      if (previousRow) {
+        queryClient.setQueryData(databaseKeys.row(databaseId, rowId), applyUpdate(previousRow))
+      }
+
+      // Optimistically update row lists (which contain row items)
+      for (const [queryKey, data] of previousRows) {
+        if (!data || typeof data !== 'object') continue
+        const rowsData = data as any
+        if (Array.isArray(rowsData.rows)) {
+          queryClient.setQueryData(queryKey, {
+            ...rowsData,
+            rows: rowsData.rows.map((r: any) => r.id === rowId ? applyUpdate(r) : r),
+          })
+        }
+      }
+
+      return { previousRow, previousRows }
+    },
+    onError: (_err, variables, context) => {
+      if (!context) return
+      const { databaseId, rowId } = variables
+
+      if (context.previousRow) {
+        queryClient.setQueryData(databaseKeys.row(databaseId, rowId), context.previousRow)
+      }
+      if (context.previousRows) {
+        for (const [queryKey, data] of context.previousRows) {
+          queryClient.setQueryData(queryKey, data)
+        }
+      }
+    },
+    onSettled: (_, _err, variables) => {
+>>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       queryClient.invalidateQueries({ queryKey: databaseKeys.rows(variables.databaseId) })
       queryClient.invalidateQueries({ queryKey: databaseKeys.row(variables.databaseId, variables.rowId) })
     },
