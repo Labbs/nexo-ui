@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { useMemo, useState } from 'react'
-=======
 import { memo, useMemo, useState } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { useTranslation } from 'react-i18next'
 import { Plus, MoreHorizontal, GripVertical } from 'lucide-react'
 import {
@@ -248,11 +244,7 @@ interface BoardColumnProps {
   onAddToColumn: (groupValue: string) => void
 }
 
-<<<<<<< HEAD
-function BoardColumn({
-=======
 const BoardColumn = memo(function BoardColumn({
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   id,
   title,
   colorConfig,
@@ -320,11 +312,7 @@ const BoardColumn = memo(function BoardColumn({
       </button>
     </div>
   )
-<<<<<<< HEAD
-}
-=======
 })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
 interface BoardCardProps {
   row: RowData
@@ -333,11 +321,7 @@ interface BoardCardProps {
   onDeleteRow: (rowId: string) => void
 }
 
-<<<<<<< HEAD
-function BoardCard({
-=======
 const BoardCard = memo(function BoardCard({
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   row,
   titleColumn,
   onOpenDocument,
@@ -410,8 +394,4 @@ const BoardCard = memo(function BoardCard({
       </div>
     </div>
   )
-<<<<<<< HEAD
-}
-=======
 })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)

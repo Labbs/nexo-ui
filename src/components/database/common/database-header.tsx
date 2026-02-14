@@ -43,11 +43,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-<<<<<<< HEAD
-import type { DatabaseDetail } from '@/hooks/use-databases'
-=======
 import type { DatabaseDetail } from '@/hooks/use-database'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
 interface DatabaseHeaderProps {
   database: DatabaseDetail
@@ -77,11 +73,7 @@ export function DatabaseHeader({
   const [showViewSettings, setShowViewSettings] = useState(false)
 
   const handleNameSubmit = () => {
-<<<<<<< HEAD
-    if (editedName.trim() && editedName !== database.name) {
-=======
     if (editedName?.trim() && editedName !== database.name) {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       onUpdateName(editedName.trim())
     }
     setIsEditingName(false)
@@ -351,11 +343,7 @@ export function DatabaseHeader({
                 <Eye className="h-4 w-4 text-muted-foreground" />
                 <span>{t('header.propertyVisibility')}</span>
               </div>
-<<<<<<< HEAD
-              <span className="text-muted-foreground">{database.schema.length}</span>
-=======
               <span className="text-muted-foreground">{database.schema?.length ?? 0}</span>
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
             </button>
 
             {/* Filter */}

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import { lazy, Suspense } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/contexts/theme-provider'
@@ -11,21 +8,6 @@ import { SpaceProvider } from '@/contexts/space-context'
 import { UIStateProvider } from '@/contexts/ui-state-context'
 import { ActiveAppProvider } from '@/contexts/active-app-context'
 import { ProtectedRoute } from '@/components/protected-route'
-<<<<<<< HEAD
-import { LoginPage } from '@/pages/login'
-import { RegisterPage } from '@/pages/register'
-import { HomePage } from '@/pages/home'
-import { DocumentPage } from '@/pages/document'
-import { DatabasePage } from '@/pages/database'
-import { DatabaseDocumentPage } from '@/pages/database-document'
-import { DrawingPage } from '@/pages/drawing'
-import { SettingsPage } from '@/pages/settings'
-import { AdminPage } from '@/pages/admin'
-import { ToasterProvider } from '@/components/ui/toaster'
-
-import '@/i18n'
-
-=======
 import { ToasterProvider } from '@/components/ui/toaster'
 import { Loader2 } from 'lucide-react'
 
@@ -50,17 +32,13 @@ function PageLoader() {
   )
 }
 
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-<<<<<<< HEAD
-=======
       staleTime: 30_000,      // 30s — data considered fresh after fetch
       gcTime: 10 * 60_000,    // 10min — keep unused cache longer
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     },
   },
 })
@@ -76,10 +54,7 @@ function App() {
               <UIStateProvider>
               <ActiveAppProvider>
               <ToasterProvider>
-<<<<<<< HEAD
-=======
               <Suspense fallback={<PageLoader />}>
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
@@ -141,10 +116,7 @@ function App() {
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-<<<<<<< HEAD
-=======
               </Suspense>
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
               </ToasterProvider>
               </ActiveAppProvider>
               </UIStateProvider>

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { useState, type CSSProperties } from 'react'
-=======
 import { memo, useMemo, useState, type CSSProperties } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import {
   ChevronRight,
   Plus,
@@ -17,11 +13,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useActiveApp } from '@/contexts/active-app-context'
-<<<<<<< HEAD
-import { useUIState } from '@/contexts/ui-state-context'
-=======
 import { useSidebarUI } from '@/contexts/sidebar-ui-context'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { useCreateContent } from '@/hooks/use-create-content'
 import { Button } from '@/components/ui/button'
 import {
@@ -50,11 +42,7 @@ interface SpaceItemProps {
 // Roles that can create/edit content
 const EDIT_ROLES = ['owner', 'admin', 'editor']
 
-<<<<<<< HEAD
-export function SortableSpaceItem({ space }: SpaceItemProps) {
-=======
 export const SortableSpaceItem = memo(function SortableSpaceItem({ space }: SpaceItemProps) {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const {
     attributes,
     listeners,
@@ -75,24 +63,14 @@ export const SortableSpaceItem = memo(function SortableSpaceItem({ space }: Spac
       <SpaceItem space={space} />
     </div>
   )
-<<<<<<< HEAD
-}
-
-export function SpaceItem({ space }: SpaceItemProps) {
-=======
 })
 
 export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const { t } = useTranslation('navigation')
   const navigate = useNavigate()
   const { currentSpace, setCurrentSpace } = useCurrentSpace()
   const { activeApp } = useActiveApp()
-<<<<<<< HEAD
-  const { isSpaceExpanded, toggleSpaceExpanded } = useUIState()
-=======
   const { isSpaceExpanded, toggleSpaceExpanded } = useSidebarUI()
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const { handleCreateDocument, handleCreateDrawing, handleCreateDatabase } = useCreateContent(space.id)
   const [editModalOpen, setEditModalOpen] = useState(false)
 
@@ -117,14 +95,11 @@ export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
   const iconValue = parseStoredIcon(space.icon)
   const showBackground = isEmoji(iconValue) || !iconValue
 
-<<<<<<< HEAD
-=======
   const iconStyle = useMemo<CSSProperties>(() => ({
     backgroundColor: showBackground ? (space.icon_color || '#6366f1') : 'transparent',
     color: showBackground ? 'white' : undefined,
   }), [showBackground, space.icon_color])
 
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   return (
     <div>
       {/* Space header row */}
@@ -152,14 +127,7 @@ export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
         {/* Space icon */}
         <div
           className="h-5 w-5 rounded flex items-center justify-center text-xs font-medium shrink-0"
-<<<<<<< HEAD
-          style={{
-            backgroundColor: showBackground ? (space.icon_color || '#6366f1') : 'transparent',
-            color: showBackground ? 'white' : undefined,
-          }}
-=======
           style={iconStyle}
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
         >
           {iconValue ? (
             <DocumentIcon value={iconValue} size="sm" />
@@ -239,8 +207,4 @@ export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
       />
     </div>
   )
-<<<<<<< HEAD
-}
-=======
 })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)

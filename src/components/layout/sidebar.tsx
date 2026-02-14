@@ -18,11 +18,7 @@ import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
 import { useAuth } from '@/contexts/auth-context'
 import { useCurrentSpace } from '@/contexts/space-context'
-<<<<<<< HEAD
-import { useUIState } from '@/contexts/ui-state-context'
-=======
 import { useSidebarUI } from '@/contexts/sidebar-ui-context'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { useFavorites } from '@/hooks/use-favorites'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useResizable } from '@/hooks/use-resizable'
@@ -60,11 +56,8 @@ export function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps
   const isAdmin = user?.role === 'admin'
 
   const [isEditSpaceOpen, setIsEditSpaceOpen] = useState(false)
-<<<<<<< HEAD
-=======
   const navigateToSettings = useCallback(() => navigate('/user/settings'), [navigate])
   const navigateToAdmin = useCallback(() => navigate('/admin'), [navigate])
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
   return (
     <aside
@@ -95,13 +88,8 @@ export function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps
         user={user}
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}
-<<<<<<< HEAD
-        navigateToSettings={() => navigate('/user/settings')}
-        navigateToAdmin={() => navigate('/admin')}
-=======
         navigateToSettings={navigateToSettings}
         navigateToAdmin={navigateToAdmin}
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
         isAdmin={isAdmin}
         logout={logout}
         isMobile={!isDesktop}
@@ -143,39 +131,22 @@ function FavoritesSection() {
   const { slug } = useParams<{ slug?: string }>()
   const { currentSpace } = useCurrentSpace()
   const { data: favorites = [], isLoading: isLoadingFavs } = useFavorites()
-<<<<<<< HEAD
-  const { favoritesExpanded, setFavoritesExpanded } = useUIState()
-
-  if (!isLoadingFavs && favorites.length === 0) return null
-
-  const handleFavoriteClick = (favorite: Favorite) => {
-=======
   const { favoritesExpanded, setFavoritesExpanded } = useSidebarUI()
 
   if (!isLoadingFavs && favorites.length === 0) return null
 
   const handleFavoriteClick = useCallback((favorite: Favorite) => {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     const doc = favorite.document
     const docSlug = doc?.slug
     if (currentSpace?.id && docSlug) {
       navigate(`/space/${currentSpace.id}/${docSlug}`)
     }
-<<<<<<< HEAD
-  }
-
-  const isFavoriteActive = (favorite: Favorite) => {
-    const docSlug = favorite.document?.slug
-    return !!(docSlug && slug === docSlug)
-  }
-=======
   }, [currentSpace?.id, navigate])
 
   const isFavoriteActive = useCallback((favorite: Favorite) => {
     const docSlug = favorite.document?.slug
     return !!(docSlug && slug === docSlug)
   }, [slug])
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
   return (
     <div className="px-2 mb-1">

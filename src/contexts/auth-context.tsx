@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-=======
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { apiClient } from '@/api/client'
 import type { components } from '@/api/types'
 
@@ -46,11 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth()
   }, [])
 
-<<<<<<< HEAD
-  const login = async (email: string, password: string) => {
-=======
   const login = useCallback(async (email: string, password: string) => {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     const response = await apiClient.post<components['schemas']['LoginResponse']>(
       '/auth/login',
       { email, password }
@@ -64,15 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userResponse = await apiClient.get<User>('/user/profile')
       setUser(userResponse.data)
     }
-<<<<<<< HEAD
-  }
-
-  const register = async (email: string, username: string, password: string) => {
-    await apiClient.post('/auth/register', { email, username, password })
-  }
-
-  const refreshProfile = async () => {
-=======
   }, [])
 
   const register = useCallback(async (email: string, username: string, password: string) => {
@@ -80,42 +63,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refreshProfile = useCallback(async () => {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     try {
       const response = await apiClient.get<User>('/user/profile')
       setUser(response.data)
     } catch {
       // Silently fail - profile will be refreshed on next page load
     }
-<<<<<<< HEAD
-  }
-
-  const logout = () => {
-=======
   }, [])
 
   const logout = useCallback(() => {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     localStorage.removeItem('auth_token')
     setToken(null)
     setUser(null)
     window.location.href = '/login'
-<<<<<<< HEAD
-  }
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        login,
-        register,
-        logout,
-        refreshProfile,
-        isLoading,
-      }}
-    >
-=======
   }, [])
 
   const value = useMemo(() => ({
@@ -130,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       {children}
     </AuthContext.Provider>
   )

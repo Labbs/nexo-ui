@@ -43,10 +43,7 @@ export function useAvailableScopes() {
       const response = await apiClient.get<{ scopes: ScopeInfo[] }>('/apikeys/scopes')
       return response.data.scopes || []
     },
-<<<<<<< HEAD
-=======
     staleTime: Infinity, // Server-defined enum, never changes at runtime
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   })
 }
 

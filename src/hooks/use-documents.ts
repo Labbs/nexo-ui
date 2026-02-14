@@ -46,9 +46,6 @@ export function useCreateDocument() {
       // Backend returns flattened document fields
       return response.data as unknown as components['schemas']['Document']
     },
-<<<<<<< HEAD
-    onSuccess: (_, variables) => {
-=======
     onMutate: async (variables) => {
       const { spaceId, parentId } = variables
 
@@ -89,14 +86,11 @@ export function useCreateDocument() {
     },
     onSettled: (_, _err, variables) => {
       // Refetch to replace optimistic entry with real server data
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       queryClient.invalidateQueries({ queryKey: ['documents', variables.spaceId] })
     },
   })
 }
 
-<<<<<<< HEAD
-=======
 type UpdateDocumentVariables = {
   spaceId: string
   id: string
@@ -108,7 +102,6 @@ type UpdateDocumentVariables = {
   metadata?: Record<string, unknown>
 }
 
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 export function useUpdateDocument() {
   const queryClient = useQueryClient()
 
@@ -116,29 +109,12 @@ export function useUpdateDocument() {
     mutationFn: async ({
       spaceId,
       id,
-<<<<<<< HEAD
-      slug: _slug,
-=======
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       content,
       name,
       parentId,
       config,
       metadata,
-<<<<<<< HEAD
-    }: {
-      spaceId: string
-      id: string
-      slug?: string
-      content?: string
-      name?: string
-      parentId?: string
-      config?: components['schemas']['DocumentConfig']
-      metadata?: Record<string, unknown>
-    }) => {
-=======
     }: UpdateDocumentVariables) => {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       const response = await apiClient.put<components['schemas']['UpdateDocumentResponse']>(
         `/document/space/${spaceId}/${id}`,
         { content, name, parent_id: parentId, config, metadata }
@@ -146,18 +122,6 @@ export function useUpdateDocument() {
       // Backend returns flattened document fields
       return response.data as unknown as components['schemas']['Document']
     },
-<<<<<<< HEAD
-    onSuccess: (_data, variables) => {
-      // Invalidate by ID
-      queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.id] })
-      // Also invalidate by slug if provided (used for route-based queries)
-      if (variables.slug) {
-        queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.slug] })
-      }
-      // Invalidate documents list
-      queryClient.invalidateQueries({ queryKey: ['documents', variables.spaceId] })
-      // Invalidate favorites (they embed document name/icon)
-=======
     onMutate: async (variables) => {
       const { spaceId, id, slug, name, config } = variables
 
@@ -251,7 +215,6 @@ export function useUpdateDocument() {
       if (variables.name !== undefined || variables.config !== undefined || variables.parentId !== undefined) {
         queryClient.invalidateQueries({ queryKey: ['documents', variables.spaceId] })
       }
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       if (variables.name !== undefined || variables.config !== undefined) {
         queryClient.invalidateQueries({ queryKey: ['favorites'] })
       }

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { type CSSProperties } from 'react'
-=======
 import { type CSSProperties, memo } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Database } from 'lucide-react'
@@ -65,13 +61,9 @@ interface DraggableDatabaseItemProps {
   canEdit?: boolean
 }
 
-<<<<<<< HEAD
-function DraggableDatabaseItem({ id, name, icon, isActive, spaceId, canEdit }: DraggableDatabaseItemProps) {
-=======
 const ROOT_PADDING: CSSProperties = { paddingLeft: 8, paddingRight: 8 }
 
 const DraggableDatabaseItem = memo(function DraggableDatabaseItem({ id, name, icon, isActive, spaceId, canEdit }: DraggableDatabaseItemProps) {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `db-${id}`,
     data: { type: 'database', databaseId: id, name, icon },
@@ -96,11 +88,7 @@ const DraggableDatabaseItem = memo(function DraggableDatabaseItem({ id, name, ic
         !isActive && 'text-foreground/80'
       )}
     >
-<<<<<<< HEAD
-      <div style={{ paddingLeft: 8, paddingRight: 8 }} className="flex items-center gap-1 w-full">
-=======
       <div style={ROOT_PADDING} className="flex items-center gap-1 w-full">
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
         {icon ? (
           <DocumentIcon value={parseStoredIcon(icon)} size="sm" />
         ) : (
@@ -112,8 +100,4 @@ const DraggableDatabaseItem = memo(function DraggableDatabaseItem({ id, name, ic
       </div>
     </div>
   )
-<<<<<<< HEAD
-}
-=======
 })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)

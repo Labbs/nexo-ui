@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { createContext, useContext, useState, ReactNode } from 'react'
-=======
 import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import type { AppId } from '@/types/apps'
 
 const STORAGE_KEY = 'nexo_active_app'
@@ -25,15 +21,6 @@ export function ActiveAppProvider({ children }: { children: ReactNode }) {
     return 'docs'
   })
 
-<<<<<<< HEAD
-  const setActiveApp = (app: AppId) => {
-    setActiveAppState(app)
-    localStorage.setItem(STORAGE_KEY, app)
-  }
-
-  return (
-    <ActiveAppContext.Provider value={{ activeApp, setActiveApp }}>
-=======
   const setActiveApp = useCallback((app: AppId) => {
     setActiveAppState(app)
     localStorage.setItem(STORAGE_KEY, app)
@@ -43,7 +30,6 @@ export function ActiveAppProvider({ children }: { children: ReactNode }) {
 
   return (
     <ActiveAppContext.Provider value={value}>
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       {children}
     </ActiveAppContext.Provider>
   )

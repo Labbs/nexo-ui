@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { useState, useEffect, useCallback } from 'react'
-=======
 import { useState, useEffect, useCallback, memo } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { useTranslation } from 'react-i18next'
 import { Check, X, ExternalLink, Mail, Phone, Calendar, ChevronDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -18,11 +14,7 @@ import {
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
-<<<<<<< HEAD
-import type { PropertySchema } from '@/hooks/use-databases'
-=======
 import type { PropertySchema } from '@/hooks/use-database'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { useUsers } from '@/hooks/use-users'
 import {
   formatNumber,
@@ -448,11 +440,7 @@ function PhoneCell({
   )
 }
 
-<<<<<<< HEAD
-export function PropertyCell({
-=======
 export const PropertyCell = memo(function PropertyCell({
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   property,
   value,
   onChange,
@@ -634,11 +622,7 @@ export const PropertyCell = memo(function PropertyCell({
         </div>
       )
   }
-<<<<<<< HEAD
-}
-=======
 })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
 // Select cell component
 function SelectCell({

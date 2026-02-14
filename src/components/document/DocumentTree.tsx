@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { type CSSProperties, useMemo } from 'react'
-=======
 import { type CSSProperties, createContext, memo, useContext, useMemo } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight, ChevronDown, FileText, Plus, Database, Pencil, CornerLeftUp } from 'lucide-react'
@@ -17,11 +13,7 @@ import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
 import { useDocuments, useCreateDocument } from '@/hooks/use-documents'
 import { useDatabases } from '@/hooks/use-database'
-<<<<<<< HEAD
-import { useUIState } from '@/contexts/ui-state-context'
-=======
 import { useDocumentExpansion } from '@/contexts/document-expansion-context'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { useCreateDatabase } from '@/hooks/use-database'
 import { useDrawings, useCreateDrawing } from '@/hooks/use-drawings'
 import {
@@ -31,8 +23,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-<<<<<<< HEAD
-=======
 // Pre-computed lookup maps to avoid N*M filtering in each TreeItem
 interface ChildContentMaps {
   databasesByDocId: Map<string, any[]>
@@ -44,7 +34,6 @@ const ChildContentContext = createContext<ChildContentMaps>({
   drawingsByDocId: new Map(),
 })
 
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 export interface DocumentTreeProps {
   spaceId: string
   parentId?: string
@@ -83,8 +72,6 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
   const { t } = useTranslation('document')
   const { data: documents = [], isLoading } = useDocuments(spaceId, parentId)
 
-<<<<<<< HEAD
-=======
   // Fetch databases and drawings ONCE at the tree root level, pre-group by document_id
   const { data: allDatabases = [] } = useDatabases(spaceId)
   const { data: allDrawings = [] } = useDrawings(spaceId)
@@ -107,7 +94,6 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
     return { databasesByDocId, drawingsByDocId }
   }, [allDatabases, allDrawings])
 
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const itemIds = useMemo(
     () => documents.map((doc: any) => (doc?.id as string) || (doc?.document as string) || '').filter(Boolean),
     [documents]
@@ -124,10 +110,7 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
   }
   if (!documents || documents.length === 0) return null
   return (
-<<<<<<< HEAD
-=======
     <ChildContentContext.Provider value={childContentMaps}>
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
     <SortableContext items={itemIds} strategy={verticalListSortingStrategy} id={parentId || 'root'}>
       <div className="space-y-0.5">
         {documents.map((doc: any) => {
@@ -137,11 +120,7 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
           const icon = doc?.config?.icon || null
           const isDropTarget = dropTarget === id && activeId !== id
           return (
-<<<<<<< HEAD
-            <SortableTreeItem
-=======
             <MemoSortableTreeItem
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
               key={id || slug}
               spaceId={spaceId}
               docId={id}
@@ -159,10 +138,7 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
         })}
       </div>
     </SortableContext>
-<<<<<<< HEAD
-=======
     </ChildContentContext.Provider>
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   )
 }
 
@@ -180,11 +156,7 @@ interface TreeItemProps {
   activeId?: string
 }
 
-<<<<<<< HEAD
-function SortableTreeItem(props: TreeItemProps) {
-=======
 const MemoSortableTreeItem = memo(function SortableTreeItem(props: TreeItemProps) {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const {
     attributes,
     listeners,
@@ -205,16 +177,6 @@ const MemoSortableTreeItem = memo(function SortableTreeItem(props: TreeItemProps
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-<<<<<<< HEAD
-      <TreeItem {...props} isDragging={isDragging} />
-    </div>
-  )
-}
-
-function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, parentId: _parentId, isDropTarget, dropTarget, activeId, isDragging: _isDragging }: TreeItemProps & { isDragging?: boolean }) {
-  const { t } = useTranslation('document')
-  const { isDocumentExpanded, toggleDocumentExpanded } = useUIState()
-=======
       <MemoTreeItem {...props} isDragging={isDragging} />
     </div>
   )
@@ -223,7 +185,6 @@ function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, par
 const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, level, canEdit = true, parentId: _parentId, isDropTarget, dropTarget, activeId, isDragging: _isDragging }: TreeItemProps & { isDragging?: boolean }) {
   const { t } = useTranslation('document')
   const { isDocumentExpanded, toggleDocumentExpanded } = useDocumentExpansion()
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   const expanded = isDocumentExpanded(spaceId, docId)
   const location = useLocation()
   const navigate = useNavigate()
@@ -252,15 +213,6 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
     expanded && isValidUUID && docId ? docId : undefined
   )
 
-<<<<<<< HEAD
-  // Fetch databases for this space to filter child databases
-  const { data: allDatabases = [] } = useDatabases(spaceId)
-  const childDatabases = allDatabases.filter((db) => db.document_id === docId)
-
-  // Fetch drawings for this space to filter child drawings
-  const { data: allDrawings = [] } = useDrawings(spaceId)
-  const childDrawings = allDrawings.filter((d) => d.document_id === docId)
-=======
   // Use pre-computed maps from parent instead of fetching+filtering per TreeItem
   const { databasesByDocId, drawingsByDocId } = useContext(ChildContentContext)
   const childDatabases = databasesByDocId.get(docId) || []
@@ -270,7 +222,6 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
     () => ({ paddingLeft: 8 + level * 16, paddingRight: 8 }),
     [level]
   )
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 
   return (
     <div className="group/item">
@@ -282,11 +233,7 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
           !isActive && 'text-foreground/80',
           isDropTarget && 'ring-2 ring-primary ring-inset bg-primary/10'
         )}
-<<<<<<< HEAD
-        style={{ paddingLeft: 8 + level * 16, paddingRight: 8 }}
-=======
         style={paddingStyle}
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       >
         <button
           className="h-5 w-5 flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground"
@@ -386,11 +333,7 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
                     {validChildren.map((c) => {
                       const isChildDropTarget = dropTarget === c.id && activeId !== c.id
                       return (
-<<<<<<< HEAD
-                        <SortableTreeItem
-=======
                         <MemoSortableTreeItem
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
                           key={c.id}
                           spaceId={spaceId}
                           docId={c.id}
@@ -408,11 +351,7 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
                     })}
                   </SortableContext>
                   {childDatabases.map((db) => (
-<<<<<<< HEAD
-                    <DraggableChildDatabase
-=======
                     <MemoDraggableChildDatabase
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
                       key={db.id}
                       db={db}
                       spaceId={spaceId}
@@ -422,11 +361,7 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
                     />
                   ))}
                   {childDrawings.map((drawing) => (
-<<<<<<< HEAD
-                    <DraggableChildDrawing
-=======
                     <MemoDraggableChildDrawing
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
                       key={drawing.id}
                       drawing={drawing}
                       spaceId={spaceId}
@@ -444,15 +379,9 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
 
     </div>
   )
-<<<<<<< HEAD
-}
-
-function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
-=======
 })
 
 const MemoDraggableChildDatabase = memo(function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   db: any
   spaceId: string
   level: number
@@ -474,14 +403,11 @@ const MemoDraggableChildDatabase = memo(function DraggableChildDatabase({ db, sp
     opacity: isDragging ? 0.5 : undefined,
   }
 
-<<<<<<< HEAD
-=======
   const paddingStyle = useMemo<CSSProperties>(
     () => ({ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }),
     [level]
   )
 
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   return (
     <div
       ref={setNodeRef}
@@ -495,11 +421,7 @@ const MemoDraggableChildDatabase = memo(function DraggableChildDatabase({ db, sp
         !isDbActive && 'text-foreground/80'
       )}
     >
-<<<<<<< HEAD
-      <div style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }} className="flex items-center gap-1 w-full">
-=======
       <div style={paddingStyle} className="flex items-center gap-1 w-full">
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
         {db.icon ? (
           <DocumentIcon value={parseStoredIcon(db.icon)} size="sm" />
         ) : (
@@ -511,15 +433,9 @@ const MemoDraggableChildDatabase = memo(function DraggableChildDatabase({ db, sp
       </div>
     </div>
   )
-<<<<<<< HEAD
-}
-
-function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }: {
-=======
 })
 
 const MemoDraggableChildDrawing = memo(function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }: {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   drawing: any
   spaceId: string
   level: number
@@ -541,14 +457,11 @@ const MemoDraggableChildDrawing = memo(function DraggableChildDrawing({ drawing,
     opacity: isDragging ? 0.5 : undefined,
   }
 
-<<<<<<< HEAD
-=======
   const paddingStyle = useMemo<CSSProperties>(
     () => ({ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }),
     [level]
   )
 
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   return (
     <div
       ref={setNodeRef}
@@ -562,11 +475,7 @@ const MemoDraggableChildDrawing = memo(function DraggableChildDrawing({ drawing,
         !isDrawingActive && 'text-foreground/80'
       )}
     >
-<<<<<<< HEAD
-      <div style={{ paddingLeft: 8 + (level + 1) * 16, paddingRight: 8 }} className="flex items-center gap-1 w-full">
-=======
       <div style={paddingStyle} className="flex items-center gap-1 w-full">
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
         {drawing.icon ? (
           <DocumentIcon value={parseStoredIcon(drawing.icon)} size="sm" />
         ) : (
@@ -578,8 +487,4 @@ const MemoDraggableChildDrawing = memo(function DraggableChildDrawing({ drawing,
       </div>
     </div>
   )
-<<<<<<< HEAD
-}
-=======
 })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)

@@ -63,10 +63,7 @@ export function useVersion(spaceId?: string, documentId?: string, versionId?: st
       return response.data
     },
     enabled: !!spaceId && !!documentId && !!versionId,
-<<<<<<< HEAD
-=======
     staleTime: Infinity, // Versions are immutable once created
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   })
 }
 
@@ -111,13 +108,8 @@ export function useRestoreVersion() {
       await apiClient.post(`/document/space/${spaceId}/${documentId}/versions/${versionId}/restore`)
     },
     onSuccess: (_, variables) => {
-<<<<<<< HEAD
-      // Invalidate both the document and versions
-      queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId] })
-=======
       // Invalidate only the specific document, not all documents in the space
       queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.documentId] })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       queryClient.invalidateQueries({ queryKey: ['versions', variables.spaceId, variables.documentId] })
     },
   })

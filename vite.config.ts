@@ -31,12 +31,9 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           editor: ['@labbs/openblock-core', '@labbs/openblock-react'],
-<<<<<<< HEAD
-=======
           excalidraw: ['@excalidraw/excalidraw'],
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover', '@radix-ui/react-select', '@radix-ui/react-tooltip'],
           dnd: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
         },
       },
     },

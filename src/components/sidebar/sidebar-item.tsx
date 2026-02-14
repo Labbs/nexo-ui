@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import { memo } from 'react'
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
 import { cn } from '@/lib/utils'
 
 interface SidebarItemProps {
@@ -11,11 +8,7 @@ interface SidebarItemProps {
   className?: string
 }
 
-<<<<<<< HEAD
-export function SidebarItem({ children, onClick, isActive, className }: SidebarItemProps) {
-=======
 export const SidebarItem = memo(function SidebarItem({ children, onClick, isActive, className }: SidebarItemProps) {
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   return (
     <button
       onClick={onClick}
@@ -31,8 +24,4 @@ export const SidebarItem = memo(function SidebarItem({ children, onClick, isActi
       {children}
     </button>
   )
-<<<<<<< HEAD
-}
-=======
 })
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)

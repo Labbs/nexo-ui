@@ -128,11 +128,6 @@ export function useUpdateDrawing() {
       )
       return response.data
     },
-<<<<<<< HEAD
-    onSuccess: (_, variables) => {
-      // Only invalidate if name or icon changed (which affects the list display)
-      // Don't invalidate on auto-save to avoid re-fetching and re-rendering
-=======
     onMutate: async (variables) => {
       const { drawingId, name, icon } = variables
 
@@ -185,7 +180,6 @@ export function useUpdateDrawing() {
     },
     onSettled: (_, _err, variables) => {
       // Only refetch if name/icon changed — skip for canvas auto-saves
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
       if (variables.name !== undefined || variables.icon !== undefined) {
         queryClient.invalidateQueries({ queryKey: drawingKeys.detail(variables.drawingId) })
         queryClient.invalidateQueries({ queryKey: drawingKeys.all })

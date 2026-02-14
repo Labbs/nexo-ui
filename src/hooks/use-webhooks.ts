@@ -77,10 +77,7 @@ export function useAvailableEvents() {
       const response = await apiClient.get<{ events: EventInfo[] }>('/webhooks/events')
       return response.data.events || []
     },
-<<<<<<< HEAD
-=======
     staleTime: Infinity, // Server-defined enum, never changes at runtime
->>>>>>> d4609d4 (feat: add hooks for managing spaces, users, versions, and webhooks)
   })
 }
 
