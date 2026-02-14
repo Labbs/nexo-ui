@@ -5,6 +5,7 @@ import type { AppState, BinaryFiles, ExcalidrawImperativeAPI } from '@excalidraw
 import { useDebouncedCallback } from 'use-debounce'
 import { useUpdateDrawing, type Drawing } from '@/hooks/use-drawings'
 import { useTheme } from 'next-themes'
+import { useToast } from '@/components/ui/toaster'
 
 interface DrawingEditorProps {
   drawing: Drawing
@@ -12,8 +13,9 @@ interface DrawingEditorProps {
 
 export function DrawingEditor({ drawing }: DrawingEditorProps) {
   const [, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null)
-  const { mutate: updateDrawing } = useUpdateDrawing()
+  const { mutateAsync: updateDrawing } = useUpdateDrawing()
   const { theme } = useTheme()
+  const { show: showToast } = useToast()
   const isReadyToSaveRef = useRef(false)
 
   // Store drawing id in ref to avoid stale closure
@@ -57,19 +59,28 @@ export function DrawingEditor({ drawing }: DrawingEditorProps) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { collaborators: _, ...cleanedAppState } = appState as unknown as Record<string, unknown>
 
-      // Update last saved state
-      lastSavedElementsRef.current = JSON.stringify(elements)
+      const elementsJson = JSON.stringify(elements)
 
-      // Save to backend
-      updateDrawing({
-        drawingId: drawingIdRef.current,
-        elements: elements as unknown[],
-        appState: cleanedAppState,
-        files: files as Record<string, unknown>,
-        thumbnail,
-      })
+      // Save to backend - only update lastSavedElementsRef on success
+      try {
+        await updateDrawing({
+          drawingId: drawingIdRef.current,
+          elements: elements as unknown[],
+          appState: cleanedAppState,
+          files: files as Record<string, unknown>,
+          thumbnail,
+        })
+        lastSavedElementsRef.current = elementsJson
+      } catch (e) {
+        console.error('Failed to save drawing:', e)
+        showToast({
+          title: 'Failed to save drawing',
+          description: 'Your changes could not be saved. They will be retried on next change.',
+          variant: 'destructive',
+        })
+      }
     },
-    [updateDrawing]
+    [updateDrawing, showToast]
   )
 
   // Debounced save - only triggers after 300ms of inactivity
@@ -94,10 +105,15 @@ export function DrawingEditor({ drawing }: DrawingEditorProps) {
     [debouncedSave]
   )
 
-  // Cleanup on unmount
+  // Flush pending saves on unmount and browser close
   useEffect(() => {
+    const handleBeforeUnload = () => {
+      debouncedSave.flush()
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
     return () => {
-      debouncedSave.cancel()
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      debouncedSave.flush()
     }
   }, [debouncedSave])
 
