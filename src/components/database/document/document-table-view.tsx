@@ -303,7 +303,7 @@ export function DocumentTableView({
           }
           break
 
-        case 'Enter':
+        case 'Enter': {
           e.preventDefault()
           // Start editing the focused cell
           const row = rows[rowIndex]
@@ -313,9 +313,10 @@ export function DocumentTableView({
             setEditingCell({ rowId: row.id, propertyId })
           }
           break
+        }
 
         case 'Delete':
-        case 'Backspace':
+        case 'Backspace': {
           // Clear the cell content
           if (!editingCell) {
             e.preventDefault()
@@ -327,6 +328,7 @@ export function DocumentTableView({
             }
           }
           break
+        }
       }
     }
 
