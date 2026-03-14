@@ -60,7 +60,6 @@ function EditorStyles() {
       }
 
       .openblock-editor-wrapper .ProseMirror {
-        padding: 1.5rem 2rem;
         min-height: 100%;
         max-width: 720px;
         margin: 0 auto;
@@ -235,7 +234,6 @@ function EditorStyles() {
 
       .openblock-editor-wrapper .openblock-editor {
         min-height: 400px;
-        padding: 1rem;
       }
 
       /* Force text visibility */
