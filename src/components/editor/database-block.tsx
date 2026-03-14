@@ -32,6 +32,7 @@ import {
   useUpdateRow,
   useDeleteRow,
 } from '@/hooks/use-database'
+import type { RowItem } from '@/hooks/use-database'
 import type { RowData } from '@/lib/database/columnTypes'
 
 // Local PropertySchema type matching what views expect
@@ -109,16 +110,16 @@ function InlineDatabaseView({
 
   // Cast API data to internal types (filter out incomplete records)
   const allRows: RowData[] = (rowsData?.rows || [])
-    .filter((r): r is typeof r & { id: string; properties: Record<string, unknown> } =>
+    .filter((r: RowItem): r is RowItem & { id: string; properties: Record<string, unknown> } =>
       !!r.id && !!r.properties
     )
-    .map(r => ({ id: r.id, properties: r.properties as Record<string, unknown> }))
+    .map((r: RowItem & { id: string; properties: Record<string, unknown> }) => ({ id: r.id, properties: r.properties as Record<string, unknown> }))
 
   const schema: PropertySchema[] = (database?.schema || [])
-    .filter((s): s is typeof s & { id: string; name: string; type: string } =>
+    .filter((s: { id?: string; name?: string; type?: string; options?: Record<string, unknown> }): s is { id: string; name: string; type: string; options?: Record<string, unknown> } =>
       !!s.id && !!s.name && !!s.type
     )
-    .map(s => ({
+    .map((s: { id: string; name: string; type: string; options?: Record<string, unknown> }) => ({
       id: s.id,
       name: s.name,
       type: s.type,
@@ -130,10 +131,10 @@ function InlineDatabaseView({
   // Get active view (used for view tabs display)
   const _activeView = useMemo(() => {
     if (blockSettings.selectedViewId) {
-      return views.find((v) => v.id === blockSettings.selectedViewId)
+      return views.find((v: { id?: string; name?: string; type?: string }) => v.id === blockSettings.selectedViewId)
     }
     if (database?.default_view) {
-      return views.find((v) => v.id === database.default_view)
+      return views.find((v: { id?: string; name?: string; type?: string }) => v.id === database.default_view)
     }
     return views[0]
   }, [views, blockSettings.selectedViewId, database?.default_view])
@@ -304,7 +305,7 @@ function InlineDatabaseView({
       {/* View tabs */}
       {blockSettings.showViewTabs && database.views && database.views.length > 0 && (
         <div className="px-3 py-1 border-b flex items-center gap-1 overflow-x-auto">
-          {database.views.map((view) => {
+          {database.views.map((view: { id?: string; name?: string; type?: string }) => {
             const isSelected =
               blockSettings.selectedViewId === view.id ||
               (!blockSettings.selectedViewId && view.id === database.default_view)

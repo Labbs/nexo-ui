@@ -16,6 +16,7 @@ import {
   useDeleteView,
   type PropertySchema,
   type ViewConfig,
+  type RowItem,
 } from '@/hooks/use-database'
 import type { ColumnOptions } from '@/lib/database'
 import type { IconValue } from '@/components/ui/icon-picker'
@@ -115,7 +116,7 @@ export function DocumentDatabaseView() {
   // Filter visible columns based on view's hidden columns
   const visibleSchema: PropertySchema[] = useMemo(() => {
     if (!database?.schema) return []
-    return database.schema.filter(col => col.id && !hiddenColumnIds.has(col.id))
+    return database.schema.filter((col: PropertySchema) => col.id && !hiddenColumnIds.has(col.id))
   }, [database?.schema, hiddenColumnIds])
 
   // Convert rows from API format
@@ -123,16 +124,16 @@ export function DocumentDatabaseView() {
     if (!rowsData?.rows) return []
 
     // Find system date columns in schema to inject values by column ID
-    const systemDateColumns = (database?.schema || []).filter(col =>
+    const systemDateColumns = (database?.schema || []).filter((col: PropertySchema) =>
       ['created_time', 'updated_time', 'created_at', 'updated_at', 'last_edited_time'].includes(col.type || '')
     )
 
     // Find system user columns (created_by, last_edited_by)
-    const systemUserColumns = (database?.schema || []).filter(col =>
+    const systemUserColumns = (database?.schema || []).filter((col: PropertySchema) =>
       ['created_by', 'last_edited_by'].includes(col.type || '')
     )
 
-    return rowsData.rows.map(row => {
+    return rowsData.rows.map((row: RowItem) => {
       // Get row-level fields that might be used as column values
       const rowWithMeta = row as {
         id?: string
@@ -152,7 +153,7 @@ export function DocumentDatabaseView() {
       }
 
       // Inject values for system date columns using their actual column IDs
-      systemDateColumns.forEach(col => {
+      systemDateColumns.forEach((col: PropertySchema) => {
         if (!col.id) return
         const colType = col.type || ''
 
@@ -164,7 +165,7 @@ export function DocumentDatabaseView() {
       })
 
       // Inject values for system user columns using their actual column IDs
-      systemUserColumns.forEach(col => {
+      systemUserColumns.forEach((col: PropertySchema) => {
         if (!col.id) return
         const colType = col.type || ''
 
@@ -236,7 +237,7 @@ export function DocumentDatabaseView() {
 
     if (insertColumnPosition) {
       // Insert at specific position
-      const index = database.schema.findIndex(col => col.id === insertColumnPosition.columnId)
+      const index = database.schema.findIndex((col: PropertySchema) => col.id === insertColumnPosition.columnId)
       if (index !== -1) {
         const insertIndex = insertColumnPosition.position === 'left' ? index : index + 1
         newSchema = [
@@ -310,7 +311,7 @@ export function DocumentDatabaseView() {
   const handleRenameColumn = useCallback((columnId: string, name: string) => {
     if (!databaseId || !database?.schema) return
 
-    const newSchema = database.schema.map(col =>
+    const newSchema = database.schema.map((col: PropertySchema) =>
       col.id === columnId ? { ...col, name } : col
     )
     updateDatabase.mutate({
@@ -323,7 +324,7 @@ export function DocumentDatabaseView() {
   const handleDeleteColumn = useCallback((columnId: string) => {
     if (!databaseId || !database?.schema) return
 
-    const newSchema = database.schema.filter(col => col.id !== columnId)
+    const newSchema = database.schema.filter((col: PropertySchema) => col.id !== columnId)
     updateDatabase.mutate({
       databaseId,
       schema: newSchema,
@@ -345,7 +346,7 @@ export function DocumentDatabaseView() {
   const handleUpdateColumnOptions = useCallback((columnId: string, options: { id: string; name: string; color: string }[]) => {
     if (!databaseId || !database?.schema) return
 
-    const newSchema = database.schema.map(col =>
+    const newSchema = database.schema.map((col: PropertySchema) =>
       col.id === columnId
         ? { ...col, options: { ...col.options, options } }
         : col
@@ -360,7 +361,7 @@ export function DocumentDatabaseView() {
   const handleToggleWrapText = useCallback((columnId: string, wrapText: boolean) => {
     if (!databaseId || !database?.schema) return
 
-    const newSchema = database.schema.map(col =>
+    const newSchema = database.schema.map((col: PropertySchema) =>
       col.id === columnId
         ? { ...col, options: { ...col.options, wrapText } }
         : col
@@ -375,7 +376,7 @@ export function DocumentDatabaseView() {
   const handleUpdateColumnFormat = useCallback((columnId: string, options: Partial<ColumnOptions>) => {
     if (!databaseId || !database?.schema) return
 
-    const newSchema = database.schema.map(col =>
+    const newSchema = database.schema.map((col: PropertySchema) =>
       col.id === columnId
         ? { ...col, options: { ...col.options, ...options } }
         : col
@@ -390,10 +391,10 @@ export function DocumentDatabaseView() {
   const handleDuplicateColumn = useCallback((columnId: string) => {
     if (!databaseId || !database?.schema) return
 
-    const columnToDuplicate = database.schema.find(col => col.id === columnId)
+    const columnToDuplicate = database.schema.find((col: PropertySchema) => col.id === columnId)
     if (!columnToDuplicate) return
 
-    const columnIndex = database.schema.findIndex(col => col.id === columnId)
+    const columnIndex = database.schema.findIndex((col: PropertySchema) => col.id === columnId)
     const newColumn: PropertySchema = {
       ...columnToDuplicate,
       id: `col-${Date.now()}`,
@@ -635,7 +636,7 @@ export function DocumentDatabaseView() {
           databaseId={databaseId}
           rowId={editingRowId}
           spaceId={spaceId}
-          initialRowData={rowsData?.rows?.find(r => r.id === editingRowId)}
+          initialRowData={rowsData?.rows?.find((r: RowItem) => r.id === editingRowId)}
         />
       )}
     </MainLayout>

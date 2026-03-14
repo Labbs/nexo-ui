@@ -65,7 +65,7 @@ export function useSidebar() {
   })
 
   // Filter root documents (no parent)
-  const rootDocuments = documents.filter((doc) => !(doc as Document).parent_id)
+  const rootDocuments = documents.filter((doc: Document) => !(doc as Document).parent_id)
 
   // Local UI state
   const [isEditSpaceOpen, setIsEditSpaceOpen] = useState(false)

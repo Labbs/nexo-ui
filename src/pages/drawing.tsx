@@ -9,6 +9,9 @@ import { DrawingSettingsSidebar } from '@/components/drawing/drawing-settings-si
 import { ContentHeader, type BreadcrumbItem } from '@/components/shared/content-header'
 import { useDrawing, useUpdateDrawing } from '@/hooks/use-drawings'
 import { useSpaces } from '@/hooks/use-spaces'
+import type { components } from '@/api/types'
+
+type Space = components['schemas']['Space']
 import type { IconValue } from '@/components/ui/icon-picker'
 import { parseStoredIcon, serializeIcon } from '@/lib/utils'
 
@@ -24,7 +27,7 @@ export function DrawingPage() {
 
   // Get current space
   const space = useMemo(() => {
-    return spaces.find((s) => s.id === spaceId)
+    return spaces.find((s: Space) => s.id === spaceId)
   }, [spaces, spaceId])
 
   // Build breadcrumbs

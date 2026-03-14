@@ -16,6 +16,9 @@ import {
 } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { useSpaces } from '@/hooks/use-spaces'
+import type { components } from '@/api/types'
+
+type Space = components['schemas']['Space']
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useSidebarUI } from '@/contexts/sidebar-ui-context'
 import { useSpaceOrder, useUpdateSpaceOrder } from '@/hooks/use-space-order'
@@ -35,7 +38,7 @@ export function SpacesList() {
   // Auto-expand current space (or first space) on initial load
   useEffect(() => {
     if (spaces.length === 0) return
-    const hasAnyExpanded = spaces.some((s) => isSpaceExpanded(s.id ?? ''))
+    const hasAnyExpanded = spaces.some((s: Space) => isSpaceExpanded(s.id ?? ''))
     if (hasAnyExpanded) return
     const targetId = currentSpace?.id ?? spaces[0]?.id
     if (targetId) toggleSpaceExpanded(targetId)
@@ -59,7 +62,7 @@ export function SpacesList() {
   }, [spaces, spaceOrder])
 
   const spaceIds = useMemo(
-    () => sortedSpaces.map((s) => s.id ?? '').filter(Boolean),
+    () => sortedSpaces.map((s: Space) => s.id ?? '').filter(Boolean),
     [sortedSpaces]
   )
 
@@ -111,7 +114,7 @@ export function SpacesList() {
         >
           <SortableContext items={spaceIds} strategy={verticalListSortingStrategy}>
             <div className="space-y-0.5">
-              {sortedSpaces.map((space) => (
+              {sortedSpaces.map((space: Space) => (
                 <SortableSpaceItem key={space.id} space={space} />
               ))}
             </div>

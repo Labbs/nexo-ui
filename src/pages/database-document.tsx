@@ -69,13 +69,13 @@ export function DatabaseDocumentPage() {
   // Find title column
   const titleColumn = useMemo(() => {
     if (!database?.schema) return null
-    return database.schema.find(col => col.type === 'title') || database.schema[0]
+    return database.schema.find((col: PropertySchema) => col.type === 'title') || database.schema[0]
   }, [database?.schema])
 
   // Get non-title columns for fields
   const fieldColumns = useMemo(() => {
     if (!database?.schema) return []
-    return database.schema.filter(col => col.type !== 'title')
+    return database.schema.filter((col: PropertySchema) => col.type !== 'title')
   }, [database?.schema])
 
   // Get current title value

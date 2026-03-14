@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useSpaces } from './use-spaces'
+import type { components } from '@/api/types'
+
+type Space = components['schemas']['Space']
 
 /**
  * Auto-select space hook
@@ -25,12 +28,12 @@ export function useAutoSelectSpace() {
     if (spaces.length === 0) return
 
     // If current space is already set and valid, keep it
-    if (currentSpace && spaces.some(space => space.id === currentSpace.id)) {
+    if (currentSpace && spaces.some((space: Space) => space.id === currentSpace.id)) {
       return
     }
 
     // Try to find the "private" space
-    const privateSpace = spaces.find(space => space.type === 'private')
+    const privateSpace = spaces.find((space: Space) => space.type === 'private')
     if (privateSpace) {
       setCurrentSpace(privateSpace)
       return
