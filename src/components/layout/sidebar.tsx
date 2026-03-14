@@ -133,8 +133,6 @@ function FavoritesSection() {
   const { data: favorites = [], isLoading: isLoadingFavs } = useFavorites()
   const { favoritesExpanded, setFavoritesExpanded } = useSidebarUI()
 
-  if (!isLoadingFavs && favorites.length === 0) return null
-
   const handleFavoriteClick = useCallback((favorite: Favorite) => {
     const doc = favorite.document
     const docSlug = doc?.slug
@@ -147,6 +145,8 @@ function FavoritesSection() {
     const docSlug = favorite.document?.slug
     return !!(docSlug && slug === docSlug)
   }, [slug])
+
+  if (!isLoadingFavs && favorites.length === 0) return null
 
   return (
     <div className="px-2 mb-1">

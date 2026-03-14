@@ -11,6 +11,9 @@ importers:
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@dnd-kit/modifiers':
+        specifier: ^9.0.0
+        version: 9.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@dnd-kit/sortable':
         specifier: ^10.0.0
         version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -24,11 +27,11 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1(lodash@4.17.21)(marked@4.3.0)(react-dom@18.3.1(react@18.3.1))(react-responsive-carousel@3.2.23)(react@18.3.1)(styled-components@5.3.11(@babel/core@7.28.6)(react-dom@18.3.1(react@18.3.1))(react-is@16.13.1)(react@18.3.1))
       '@labbs/openblock-core':
-        specifier: v1.0.0
-        version: 1.0.0
+        specifier: v1.0.1
+        version: 1.0.1
       '@labbs/openblock-react':
-        specifier: v1.0.0
-        version: 1.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: v1.0.1
+        version: 1.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -92,6 +95,9 @@ importers:
       i18next-browser-languagedetector:
         specifier: ^8.2.0
         version: 8.2.0
+      i18next-resources-to-backend:
+        specifier: ^1.2.1
+        version: 1.2.1
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@18.3.1)
@@ -291,6 +297,12 @@ packages:
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
+
+  '@dnd-kit/modifiers@9.0.0':
+    resolution: {integrity: sha512-ybiLc66qRGuZoC20wdSSG6pDXFikui/dCNGthxv4Ndy8ylErY0N3KVxY2bgo7AWwIbxDmXDg3ylAFmnrjcbVvw==}
+    peerDependencies:
+      '@dnd-kit/core': ^6.3.0
+      react: '>=16.8.0'
 
   '@dnd-kit/sortable@10.0.0':
     resolution: {integrity: sha512-+xqhmIIzvAYMGfBYYnbKuNicfSsk4RksY2XdmJhT+HAC01nix6fHCztU68jooFiMUB01Ky3F0FyOvhG/BZrWkg==}
@@ -575,11 +587,11 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@labbs/openblock-core@1.0.0':
-    resolution: {integrity: sha512-LFJHL6qXyDmHr9oG/6enG75MuAP5Rtq3qYBMbP8xhLSgxRiAQ3zDTDmuK5xDBc9TFakUTsXUhV8oDSZMldrcrg==, tarball: https://npm.pkg.github.com/download/@labbs/openblock-core/1.0.0/eebba038d755dc607ed0cac0fad8417f0df7144b}
+  '@labbs/openblock-core@1.0.1':
+    resolution: {integrity: sha512-NrhyQzHCJYbnYFcCOsPqAlBJbB/r9BxonlQlcibLOfL4uaepU3NvPE9mTmXes5VgmEgFD/5Ro1gzvjSMx3ArYw==, tarball: https://npm.pkg.github.com/download/@labbs/openblock-core/1.0.1/2e370f9a430452c3e10e3b36e09445817ecb4fa8}
 
-  '@labbs/openblock-react@1.0.0':
-    resolution: {integrity: sha512-ljqnqiWHM9Ubilg902xB0sWUuU4wuqJ7pZRVdasirr91xmXnH4cOKgXYiUhH425MQS0TRmbw0ofRg+5dMdiGfw==, tarball: https://npm.pkg.github.com/download/@labbs/openblock-react/1.0.0/9a9a4928f09010080b240c508ab783063459d974}
+  '@labbs/openblock-react@1.0.1':
+    resolution: {integrity: sha512-V6wsiktebus1itnLEOHPUvwPUkIxeROaZlEUmtIo1W0na6tG3oXOWAApnNCSIeTWy5HD1Pjn0yA/WNJw5Z5tOQ==, tarball: https://npm.pkg.github.com/download/@labbs/openblock-react/1.0.1/9cb9a3bf8480daa261f300e4b85f498014d862d0}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
@@ -1813,6 +1825,9 @@ packages:
   i18next-browser-languagedetector@8.2.0:
     resolution: {integrity: sha512-P+3zEKLnOF0qmiesW383vsLdtQVyKtCNA9cjSoKCppTKPQVfKd2W8hbVo5ZhNJKDqeM7BOcvNoKJOjpHh4Js9g==}
 
+  i18next-resources-to-backend@1.2.1:
+    resolution: {integrity: sha512-okHbVA+HZ7n1/76MsfhPqDou0fptl2dAlhRDu2ideXloRRduzHsqDOznJBef+R3DFZnbvWoBW+KxJ7fnFjd6Yw==}
+
   i18next@25.8.0:
     resolution: {integrity: sha512-urrg4HMFFMQZ2bbKRK7IZ8/CTE7D8H4JRlAwqA2ZwDRFfdd0K/4cdbNNLgfn9mo+I/h9wJu61qJzH7jCFAhUZQ==}
     peerDependencies:
@@ -2672,6 +2687,13 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       tslib: 2.8.1
 
+  '@dnd-kit/modifiers@9.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@dnd-kit/core': 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@dnd-kit/utilities': 3.2.2(react@18.3.1)
+      react: 18.3.1
+      tslib: 2.8.1
+
   '@dnd-kit/sortable@10.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@dnd-kit/core': 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2892,7 +2914,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@labbs/openblock-core@1.0.0':
+  '@labbs/openblock-core@1.0.1':
     dependencies:
       prosemirror-commands: 1.7.1
       prosemirror-dropcursor: 1.8.2
@@ -2907,9 +2929,9 @@ snapshots:
       prosemirror-view: 1.41.5
       uuid: 11.1.0
 
-  '@labbs/openblock-react@1.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@labbs/openblock-react@1.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@labbs/openblock-core': 1.0.0
+      '@labbs/openblock-core': 1.0.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
@@ -4170,6 +4192,10 @@ snapshots:
       - supports-color
 
   i18next-browser-languagedetector@8.2.0:
+    dependencies:
+      '@babel/runtime': 7.28.6
+
+  i18next-resources-to-backend@1.2.1:
     dependencies:
       '@babel/runtime': 7.28.6
 

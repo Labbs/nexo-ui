@@ -369,7 +369,7 @@ function OpenBlockEditorInner({
       <OpenBlockView editor={editor} className="openblock-view" />
       {editable && (
         <>
-          <SlashMenu editor={editor} additionalItems={customSlashMenuItems} />
+          <SlashMenu editor={editor} customItems={customSlashMenuItems} />
           <BubbleMenu editor={editor} />
           <TableHandles editor={editor} />
         </>

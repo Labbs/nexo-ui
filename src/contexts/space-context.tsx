@@ -33,7 +33,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
   // Get the current space from the fresh spaces data (includes my_role)
   const currentSpace = useMemo(() => {
     if (!currentSpaceId || spaces.length === 0) return null
-    return spaces.find(s => s.id === currentSpaceId) || null
+    return spaces.find((s: Space) => s.id === currentSpaceId) || null
   }, [currentSpaceId, spaces])
 
   // Sync localStorage when currentSpace changes

@@ -9,6 +9,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { useSpaces } from '@/hooks/use-spaces'
+import type { components } from '@/api/types'
+
+type Space = components['schemas']['Space']
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useTranslation } from 'react-i18next'
 
@@ -57,7 +60,7 @@ export function SpaceSwitcher() {
       <DropdownMenuContent className="w-64" align="start">
         <DropdownMenuLabel>{t('spaces.spaces')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {spaces.map((space) => (
+        {spaces.map((space: Space) => (
           <DropdownMenuItem
             key={space.id}
             onClick={() => setCurrentSpace(space)}

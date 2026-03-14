@@ -5,7 +5,7 @@ import { Database } from 'lucide-react'
 import { useDraggable } from '@dnd-kit/core'
 import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
-import { useDatabases } from '@/hooks/use-database'
+import { useDatabases, type DatabaseItem } from '@/hooks/use-database'
 
 export interface DatabaseTreeProps {
   spaceId: string
@@ -18,7 +18,7 @@ export function DatabaseTree({ spaceId, canEdit }: DatabaseTreeProps) {
   const location = useLocation()
 
   // Only show databases that are NOT attached to a document (root level databases)
-  const rootDatabases = databases.filter((db) => !db.document_id)
+  const rootDatabases = databases.filter((db: DatabaseItem) => !db.document_id)
 
   if (isLoading) {
     return (
@@ -33,7 +33,7 @@ export function DatabaseTree({ spaceId, canEdit }: DatabaseTreeProps) {
 
   return (
     <div className="space-y-0.5">
-      {rootDatabases.map((db) => {
+      {rootDatabases.map((db: DatabaseItem) => {
         if (!db.id) return null
         const isActive = location.pathname === `/space/${spaceId}/database/${db.id}`
         return (

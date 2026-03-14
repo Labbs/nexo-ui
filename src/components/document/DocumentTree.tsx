@@ -321,8 +321,8 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
                 name: (child?.name as string) || t('common:untitled'),
                 icon: child?.config?.icon || null,
               }))
-              const validChildren = normalized.filter((c) => !!c.id && c.id !== docId)
-              const childIds = validChildren.map((c) => c.id)
+              const validChildren = normalized.filter((c: { id: string; slug: string; name: string; icon: string | null }) => !!c.id && c.id !== docId)
+              const childIds = validChildren.map((c: { id: string; slug: string; name: string; icon: string | null }) => c.id)
               const hasContent = validChildren.length > 0 || childDatabases.length > 0 || childDrawings.length > 0
               if (!hasContent) {
                 return <div className="text-xs text-muted-foreground px-2 py-1">{t('tree.noSubpages')}</div>
@@ -330,7 +330,7 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
               return (
                 <>
                   <SortableContext items={childIds} strategy={verticalListSortingStrategy} id={docId}>
-                    {validChildren.map((c) => {
+                    {validChildren.map((c: { id: string; slug: string; name: string; icon: string | null }) => {
                       const isChildDropTarget = dropTarget === c.id && activeId !== c.id
                       return (
                         <MemoSortableTreeItem
