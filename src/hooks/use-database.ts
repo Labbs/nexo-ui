@@ -1,17 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
-import type { components } from '@/api/types'
+import { databaseList, databaseGet, databaseCreate, databaseUpdate, databaseMove, databaseDelete, databaseTypes } from '@/api/generated/databases/databases'
+import { databaseRowList, databaseRowGet, databaseRowCreate, databaseRowUpdate, databaseRowDelete } from '@/api/generated/database-rows/database-rows'
+import { databaseViewCreate, databaseViewUpdate, databaseViewDelete } from '@/api/generated/database-views/database-views'
+import type {
+  PropertySchema,
+  DatabaseItem,
+  RowItem,
+  GetDatabaseResponse,
+  ListRowsResponse,
+  GetRowResponse,
+  CreateViewRequestType,
+} from '@/api/generated/model'
 
-// Types
-export type PropertySchema = components['schemas']['PropertySchema']
-export type DatabaseItem = components['schemas']['DatabaseItem']
-export type RowItem = components['schemas']['RowItem']
-export type GetDatabaseResponse = components['schemas']['GetDatabaseResponse']
-export type ListRowsResponse = components['schemas']['ListRowsResponse']
+// Re-export model types
+export type { PropertySchema, DatabaseItem, RowItem, GetDatabaseResponse, ListRowsResponse, GetRowResponse }
+
 /** @deprecated Use GetDatabaseResponse instead — kept for backward compat */
 export type DatabaseDetail = GetDatabaseResponse
 
-// View types
+// View types (not in OpenAPI spec — kept as local types)
 export interface ViewConfig {
   id: string
   name: string
@@ -39,6 +46,9 @@ export interface FilterConfig {
   or?: FilterRule[]
 }
 
+// Database type (keeping 'spreadsheet' for backward compatibility)
+export type DatabaseType = 'document' | 'spreadsheet'
+
 // Query keys factory
 export const databaseKeys = {
   all: ['databases'] as const,
@@ -55,10 +65,8 @@ export function useDatabases(spaceId?: string) {
     queryKey: databaseKeys.list(spaceId || ''),
     queryFn: async () => {
       if (!spaceId) return []
-      const response = await apiClient.get<components['schemas']['ListDatabasesResponse']>(
-        `/databases?space_id=${spaceId}`
-      )
-      return response.data.databases || []
+      const response = await databaseList({ space_id: spaceId })
+      return response.databases || []
     },
     enabled: !!spaceId,
   })
@@ -70,10 +78,8 @@ export function useDatabase(databaseId?: string) {
     queryKey: databaseKeys.detail(databaseId || ''),
     queryFn: async () => {
       if (!databaseId) return null
-      const response = await apiClient.get<GetDatabaseResponse>(
-        `/databases/${databaseId}`
-      )
-      return response.data
+      const response = await databaseGet(databaseId)
+      return response
     },
     enabled: !!databaseId,
   })
@@ -85,10 +91,8 @@ export function useDatabaseRows(databaseId?: string, limit = 100, offset = 0) {
     queryKey: [...databaseKeys.rows(databaseId || ''), limit, offset],
     queryFn: async () => {
       if (!databaseId) return { rows: [], total_count: 0 }
-      const response = await apiClient.get<ListRowsResponse>(
-        `/databases/${databaseId}/rows?limit=${limit}&offset=${offset}`
-      )
-      return response.data
+      const response = await databaseRowList(databaseId, { limit, offset })
+      return response
     },
     enabled: !!databaseId,
   })
@@ -107,44 +111,29 @@ export function useDatabaseRowsWithView(
       : [...databaseKeys.rows(databaseId || ''), limit, offset],
     queryFn: async () => {
       if (!databaseId) return { rows: [], total_count: 0 }
-      const url = viewId
-        ? `/databases/${databaseId}/rows?view_id=${viewId}&limit=${limit}&offset=${offset}`
-        : `/databases/${databaseId}/rows?limit=${limit}&offset=${offset}`
-      const response = await apiClient.get<ListRowsResponse>(url)
-      return response.data
+      const response = await databaseRowList(databaseId, {
+        view_id: viewId,
+        limit,
+        offset,
+      })
+      return response
     },
     enabled: !!databaseId,
   })
 }
 
 // Get a single row with content
-export interface GetRowResponse {
-  id: string
-  database_id: string
-  properties: Record<string, unknown>
-  content?: Record<string, unknown>
-  show_in_sidebar: boolean
-  created_by: string
-  created_at: string
-  updated_at: string
-}
-
 export function useRow(databaseId?: string, rowId?: string) {
   return useQuery({
     queryKey: databaseKeys.row(databaseId || '', rowId || ''),
     queryFn: async () => {
       if (!databaseId || !rowId) return null
-      const response = await apiClient.get<GetRowResponse>(
-        `/databases/${databaseId}/rows/${rowId}`
-      )
-      return response.data
+      const response = await databaseRowGet(databaseId, rowId)
+      return response
     },
     enabled: !!databaseId && !!rowId,
   })
 }
-
-// Database type (keeping 'spreadsheet' for backward compatibility)
-export type DatabaseType = 'document' | 'spreadsheet'
 
 // Create a new database
 export function useCreateDatabase() {
@@ -168,19 +157,16 @@ export function useCreateDatabase() {
       documentId?: string
       type?: DatabaseType
     }) => {
-      const response = await apiClient.post<components['schemas']['CreateDatabaseResponse']>(
-        '/databases',
-        {
-          space_id: spaceId,
-          name,
-          description,
-          icon,
-          schema,
-          document_id: documentId,
-          type: type || 'document',
-        }
-      )
-      return response.data
+      const response = await databaseCreate({
+        space_id: spaceId,
+        name,
+        description,
+        icon,
+        schema,
+        document_id: documentId,
+        type: type || 'document',
+      })
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.list(variables.spaceId) })
@@ -210,11 +196,14 @@ export function useUpdateDatabase() {
       schema,
       defaultView,
     }: UpdateDatabaseVariables) => {
-      const response = await apiClient.put<components['schemas']['MessageResponse']>(
-        `/databases/${databaseId}`,
-        { name, description, icon, schema, default_view: defaultView }
-      )
-      return response.data
+      const response = await databaseUpdate(databaseId, {
+        name,
+        description,
+        icon,
+        schema,
+        default_view: defaultView,
+      })
+      return response
     },
     onMutate: async (variables) => {
       const { databaseId, name, icon } = variables
@@ -229,7 +218,7 @@ export function useUpdateDatabase() {
       const previousDetail = queryClient.getQueryData(databaseKeys.detail(databaseId))
       const previousLists = queryClient.getQueriesData({ queryKey: databaseKeys.all })
 
-      const applyUpdate = (db: any) => {
+      const applyUpdate = (db: Record<string, unknown>) => {
         if (!db) return db
         const updated = { ...db }
         if (name !== undefined) updated.name = name
@@ -239,13 +228,13 @@ export function useUpdateDatabase() {
 
       // Optimistically update the detail cache
       if (previousDetail) {
-        queryClient.setQueryData(databaseKeys.detail(databaseId), applyUpdate(previousDetail))
+        queryClient.setQueryData(databaseKeys.detail(databaseId), applyUpdate(previousDetail as Record<string, unknown>))
       }
 
       // Optimistically update all list caches that contain this database
       for (const [queryKey, data] of previousLists) {
         if (!Array.isArray(data)) continue
-        queryClient.setQueryData(queryKey, data.map((db: any) =>
+        queryClient.setQueryData(queryKey, data.map((db: Record<string, unknown>) =>
           db.id === databaseId ? applyUpdate(db) : db
         ))
       }
@@ -279,11 +268,8 @@ export function useMoveDatabase() {
 
   return useMutation({
     mutationFn: async ({ databaseId, documentId }: { databaseId: string; documentId?: string }) => {
-      const response = await apiClient.patch<{ id: string; document_id?: string }>(
-        `/databases/${databaseId}/move`,
-        { document_id: documentId || null }
-      )
-      return response.data
+      const response = await databaseMove(databaseId, { document_id: documentId || undefined })
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.detail(variables.databaseId) })
@@ -298,7 +284,7 @@ export function useDeleteDatabase() {
 
   return useMutation({
     mutationFn: async ({ databaseId }: { databaseId: string }) => {
-      await apiClient.delete(`/databases/${databaseId}`)
+      await databaseDelete(databaseId)
       return { databaseId }
     },
     onSuccess: (_, { databaseId }) => {
@@ -327,11 +313,12 @@ export function useCreateRow() {
       content?: Record<string, unknown>
       showInSidebar?: boolean
     }) => {
-      const response = await apiClient.post<components['schemas']['CreateRowResponse']>(
-        `/databases/${databaseId}/rows`,
-        { properties, content, show_in_sidebar: showInSidebar }
-      )
-      return response.data
+      const response = await databaseRowCreate(databaseId, {
+        properties,
+        content,
+        show_in_sidebar: showInSidebar,
+      })
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.rows(variables.databaseId) })
@@ -357,11 +344,12 @@ export function useUpdateRow() {
       content?: Record<string, unknown>
       showInSidebar?: boolean
     }) => {
-      const response = await apiClient.put<components['schemas']['MessageResponse']>(
-        `/databases/${databaseId}/rows/${rowId}`,
-        { properties, content, show_in_sidebar: showInSidebar }
-      )
-      return response.data
+      const response = await databaseRowUpdate(databaseId, rowId, {
+        properties,
+        content,
+        show_in_sidebar: showInSidebar,
+      })
+      return response
     },
     onMutate: async (variables) => {
       const { databaseId, rowId, properties, content } = variables
@@ -373,27 +361,27 @@ export function useUpdateRow() {
       const previousRow = queryClient.getQueryData(databaseKeys.row(databaseId, rowId))
       const previousRows = queryClient.getQueriesData({ queryKey: databaseKeys.rows(databaseId) })
 
-      const applyUpdate = (row: any) => {
+      const applyUpdate = (row: Record<string, unknown>) => {
         if (!row) return row
         const updated = { ...row }
-        if (properties !== undefined) updated.properties = { ...(row.properties || {}), ...properties }
-        if (content !== undefined) updated.content = { ...(row.content || {}), ...content }
+        if (properties !== undefined) updated.properties = { ...((row.properties as Record<string, unknown>) || {}), ...properties }
+        if (content !== undefined) updated.content = { ...((row.content as Record<string, unknown>) || {}), ...content }
         return updated
       }
 
       // Optimistically update the single row cache
       if (previousRow) {
-        queryClient.setQueryData(databaseKeys.row(databaseId, rowId), applyUpdate(previousRow))
+        queryClient.setQueryData(databaseKeys.row(databaseId, rowId), applyUpdate(previousRow as Record<string, unknown>))
       }
 
       // Optimistically update row lists (which contain row items)
       for (const [queryKey, data] of previousRows) {
         if (!data || typeof data !== 'object') continue
-        const rowsData = data as any
+        const rowsData = data as Record<string, unknown>
         if (Array.isArray(rowsData.rows)) {
           queryClient.setQueryData(queryKey, {
             ...rowsData,
-            rows: rowsData.rows.map((r: any) => r.id === rowId ? applyUpdate(r) : r),
+            rows: (rowsData.rows as Record<string, unknown>[]).map((r) => r.id === rowId ? applyUpdate(r) : r),
           })
         }
       }
@@ -426,7 +414,7 @@ export function useDeleteRow() {
 
   return useMutation({
     mutationFn: async ({ databaseId, rowId }: { databaseId: string; rowId: string }) => {
-      await apiClient.delete(`/databases/${databaseId}/rows/${rowId}`)
+      await databaseRowDelete(databaseId, rowId)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.rows(variables.databaseId) })
@@ -440,7 +428,9 @@ export function useBulkDeleteRows() {
 
   return useMutation({
     mutationFn: async ({ databaseId, rowIds }: { databaseId: string; rowIds: string[] }) => {
-      await apiClient.delete(`/databases/${databaseId}/rows`, { data: { row_ids: rowIds } })
+      // The generated bulk delete doesn't accept a body with row_ids,
+      // so we fall back to deleting rows individually
+      await Promise.all(rowIds.map(rowId => databaseRowDelete(databaseId, rowId)))
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.rows(variables.databaseId) })
@@ -453,10 +443,8 @@ export function useAvailablePropertyTypes() {
   return useQuery({
     queryKey: ['database-types'],
     queryFn: async () => {
-      const response = await apiClient.get<components['schemas']['AvailableTypesResponse']>(
-        '/databases/types'
-      )
-      return response.data.types || []
+      const response = await databaseTypes()
+      return response.types || []
     },
     staleTime: Infinity, // Types don't change
   })
@@ -482,11 +470,14 @@ export function useCreateView() {
       sort?: SortConfig[]
       columns?: string[]
     }) => {
-      const response = await apiClient.post<ViewConfig>(
-        `/databases/${databaseId}/views`,
-        { name, type, filter, sort, columns }
-      )
-      return response.data
+      const response = await databaseViewCreate(databaseId, {
+        name,
+        type: type as CreateViewRequestType,
+        filter,
+        sort,
+        columns,
+      })
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.detail(variables.databaseId) })
@@ -546,11 +537,8 @@ export function useUpdateView() {
         payload.sort = sort
       }
 
-      const response = await apiClient.put<components['schemas']['MessageResponse']>(
-        `/databases/${databaseId}/views/${viewId}`,
-        payload
-      )
-      return response.data
+      const response = await databaseViewUpdate(databaseId, viewId, payload as import('@/api/generated/model').UpdateViewRequest)
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.detail(variables.databaseId) })
@@ -568,7 +556,7 @@ export function useDeleteView() {
 
   return useMutation({
     mutationFn: async ({ databaseId, viewId }: { databaseId: string; viewId: string }) => {
-      await apiClient.delete(`/databases/${databaseId}/views/${viewId}`)
+      await databaseViewDelete(databaseId, viewId)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: databaseKeys.detail(variables.databaseId) })

@@ -9,6 +9,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useDroppable, useDraggable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
+import type { Document, DatabaseItem, DrawingItem } from '@/api/generated/model'
 import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
 import { useDocuments, useCreateDocument } from '@/hooks/use-documents'
@@ -25,8 +26,8 @@ import {
 
 // Pre-computed lookup maps to avoid N*M filtering in each TreeItem
 interface ChildContentMaps {
-  databasesByDocId: Map<string, any[]>
-  drawingsByDocId: Map<string, any[]>
+  databasesByDocId: Map<string, DatabaseItem[]>
+  drawingsByDocId: Map<string, DrawingItem[]>
 }
 
 const ChildContentContext = createContext<ChildContentMaps>({
@@ -77,14 +78,14 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
   const { data: allDrawings = [] } = useDrawings(spaceId)
 
   const childContentMaps = useMemo<ChildContentMaps>(() => {
-    const databasesByDocId = new Map<string, any[]>()
+    const databasesByDocId = new Map<string, DatabaseItem[]>()
     for (const db of allDatabases) {
       if (!db.document_id) continue
       const existing = databasesByDocId.get(db.document_id) || []
       existing.push(db)
       databasesByDocId.set(db.document_id, existing)
     }
-    const drawingsByDocId = new Map<string, any[]>()
+    const drawingsByDocId = new Map<string, DrawingItem[]>()
     for (const d of allDrawings) {
       if (!d.document_id) continue
       const existing = drawingsByDocId.get(d.document_id) || []
@@ -95,7 +96,7 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
   }, [allDatabases, allDrawings])
 
   const itemIds = useMemo(
-    () => documents.map((doc: any) => (doc?.id as string) || (doc?.document as string) || '').filter(Boolean),
+    () => documents.map((doc: Document) => doc?.id || '').filter(Boolean),
     [documents]
   )
 
@@ -113,10 +114,10 @@ export function DocumentTree({ spaceId, parentId, level = 0, canEdit = true, dro
     <ChildContentContext.Provider value={childContentMaps}>
     <SortableContext items={itemIds} strategy={verticalListSortingStrategy} id={parentId || 'root'}>
       <div className="space-y-0.5">
-        {documents.map((doc: any) => {
-          const id = (doc?.id as string) || (doc?.document as string)
-          const slug = (doc?.slug as string) || ''
-          const name = (doc?.name as string) || t('common:untitled')
+        {documents.map((doc: Document) => {
+          const id = doc?.id || ''
+          const slug = doc?.slug || ''
+          const name = doc?.name || t('common:untitled')
           const icon = doc?.config?.icon || null
           const isDropTarget = dropTarget === id && activeId !== id
           return (
@@ -266,7 +267,7 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
                 onClick={async (e) => {
                   e.stopPropagation()
                   const doc = await createDocument({ spaceId, parentId: docId })
-                  const newSlug = (doc as any)?.slug
+                  const newSlug = doc?.slug
                   if (newSlug) navigate(`/space/${spaceId}/${newSlug}`)
                 }}
               >
@@ -315,10 +316,10 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
             </>
           ) : (
             (() => {
-              const normalized = children.map((child: any) => ({
-                id: (child?.id as string) || (child?.document as string) || '',
-                slug: (child?.slug as string) || '',
-                name: (child?.name as string) || t('common:untitled'),
+              const normalized = children.map((child: Document) => ({
+                id: child?.id || '',
+                slug: child?.slug || '',
+                name: child?.name || t('common:untitled'),
                 icon: child?.config?.icon || null,
               }))
               const validChildren = normalized.filter((c: { id: string; slug: string; name: string; icon: string | null }) => !!c.id && c.id !== docId)
@@ -382,7 +383,7 @@ const MemoTreeItem = memo(function TreeItem({ spaceId, docId, slug, name, icon, 
 })
 
 const MemoDraggableChildDatabase = memo(function DraggableChildDatabase({ db, spaceId, level, parentDocId, canEdit }: {
-  db: any
+  db: DatabaseItem
   spaceId: string
   level: number
   parentDocId: string
@@ -436,7 +437,7 @@ const MemoDraggableChildDatabase = memo(function DraggableChildDatabase({ db, sp
 })
 
 const MemoDraggableChildDrawing = memo(function DraggableChildDrawing({ drawing, spaceId, level, parentDocId, canEdit }: {
-  drawing: any
+  drawing: DrawingItem
   spaceId: string
   level: number
   parentDocId: string

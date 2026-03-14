@@ -326,13 +326,16 @@ function OpenBlockEditorInner({
 
     // Try different ways to set editable based on the library's API
     // OpenBlock/BlockNote may expose setEditable directly or via underlying TipTap editor
-    if (typeof (editor as any).setEditable === 'function') {
-      (editor as any).setEditable(editable)
-    } else if ((editor as any)._tiptapEditor && typeof (editor as any)._tiptapEditor.setEditable === 'function') {
-      (editor as any)._tiptapEditor.setEditable(editable)
-    } else if ((editor as any).view?.dispatch) {
+    const ed = editor as unknown as Record<string, unknown>
+    const tiptap = ed._tiptapEditor as Record<string, unknown> | undefined
+    const view = ed.view as { dispatch?: unknown; setProps?: (props: Record<string, unknown>) => void } | undefined
+    if (typeof ed.setEditable === 'function') {
+      (ed.setEditable as (v: boolean) => void)(editable)
+    } else if (tiptap && typeof tiptap.setEditable === 'function') {
+      (tiptap.setEditable as (v: boolean) => void)(editable)
+    } else if (view?.dispatch) {
       // ProseMirror direct approach - update the editable state via transaction
-      (editor as any).view.setProps({ editable: () => editable })
+      view.setProps?.({ editable: () => editable })
     }
   }, [editor, editable])
 

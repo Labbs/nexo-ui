@@ -38,7 +38,7 @@ export function DrawingTree({ spaceId, canEdit }: DrawingTreeProps) {
         return (
           <DraggableDrawingItem
             key={drawing.id}
-            id={drawing.id}
+            id={drawing.id ?? ''}
             name={drawing.name || t('untitledDrawing')}
             icon={drawing.icon}
             isActive={isActive}

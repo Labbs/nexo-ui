@@ -20,6 +20,7 @@ import { DocumentIcon } from '@/components/ui/icon-picker'
 import { parseStoredIcon } from '@/lib/utils'
 import { useReorderDocuments } from '@/hooks/use-reorder-documents'
 import { useMoveDocument } from '@/hooks/use-documents'
+import type { Document } from '@/api/generated/model'
 import { useMoveDatabase } from '@/hooks/use-database'
 import { useMoveDrawing } from '@/hooks/use-drawings'
 import { DocumentTree, RootDropZone } from '@/components/document/DocumentTree'
@@ -288,9 +289,9 @@ export function SpaceContentDocs({ spaceId, canEdit }: SpaceContentDocsProps) {
 
       queryClient.setQueryData(
         ['documents', spaceId, currentParentId],
-        (old: any[] | undefined) => {
+        (old: Document[] | undefined) => {
           if (!old) return old
-          const itemMap = new Map(old.map((d: any) => [(d.id || d.document) as string, d]))
+          const itemMap = new Map(old.map((d) => [(d.id || (d as Record<string, unknown>).document) as string, d]))
           return newOrder.map(id => itemMap.get(id)).filter(Boolean)
         }
       )

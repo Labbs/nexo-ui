@@ -22,8 +22,9 @@ export function LoginPage() {
     try {
       await login(email, password)
       navigate('/')
-    } catch (err: any) {
-      setError(err.response?.data?.details || t('login.failed'))
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { details?: string } } }
+      setError(axiosErr.response?.data?.details || t('login.failed'))
     } finally {
       setIsLoading(false)
     }

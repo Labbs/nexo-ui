@@ -1,17 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
+import { userListUsers } from '@/api/generated/user/user'
+import type { UserListItem } from '@/api/generated/model'
 
-// Simplified user type for person picker
-export interface UserListItem {
-  id: string
-  username: string
-  avatar_url?: string
-}
-
-interface ListUsersResponse {
-  users: UserListItem[]
-  total_count: number
-}
+// Re-export type for backward compatibility
+export type { UserListItem }
 
 /**
  * Hook to fetch list of users (simplified - just id, username, avatar)
@@ -20,12 +12,7 @@ interface ListUsersResponse {
 export function useUsers(limit = 100, offset = 0) {
   return useQuery({
     queryKey: ['users', 'list', limit, offset],
-    queryFn: async () => {
-      const response = await apiClient.get<ListUsersResponse>(
-        `/user/list?limit=${limit}&offset=${offset}`
-      )
-      return response.data
-    },
+    queryFn: () => userListUsers({ limit, offset }),
     staleTime: 2 * 60_000, // User list is nearly static, 2 min
   })
 }

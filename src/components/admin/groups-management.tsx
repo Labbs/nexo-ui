@@ -143,9 +143,9 @@ export function GroupsManagement() {
   }
 
   // Get users not already in the selected group
-  const availableUsers = usersData?.users.filter(
-    user => !selectedGroup?.members?.some(m => m.id === user.id)
-  ) || []
+  const availableUsers = (usersData?.users ?? []).filter(
+    (user) => !selectedGroup?.members?.some(m => m.id === user.id)
+  )
 
   if (isLoading) {
     return <div className="p-4">{t('groups.loading')}</div>

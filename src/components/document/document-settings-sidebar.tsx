@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { ContentSettingsSidebar } from '@/components/shared/content-settings-sidebar'
-import type { components } from '@/api/types'
+import type { DocumentConfig } from '@/api/generated/model'
 import type { IconValue } from '@/components/ui/icon-picker'
 import { parseStoredIcon } from '@/lib/utils'
+import type { Permission, SpacePermission } from '@/components/permissions/permission-manager'
 import { useDeleteDocument } from '@/hooks/use-documents'
 import {
   useDocumentPermissions,
@@ -22,7 +23,7 @@ interface DocumentSettingsSidebarProps {
   document: {
     id?: string
     space_id?: string
-    config?: components['schemas']['DocumentConfig']
+    config?: DocumentConfig
     name?: string
     updated_at?: string
     created_at?: string
@@ -52,8 +53,8 @@ export function DocumentSettingsSidebar({
   const { user } = useAuth()
 
   // Get document ID (can be in 'id' or 'document' field)
-  const documentId = document?.id || (document as any)?.document
-  const documentSpaceId = (document as any)?.space_id || spaceId
+  const documentId = document?.id
+  const documentSpaceId = document?.space_id || spaceId
 
   // Permissions
   const { data: permissions = [], isLoading: permissionsLoading } = useDocumentPermissions(
@@ -72,8 +73,8 @@ export function DocumentSettingsSidebar({
   const canManagePermissions = isSpaceAdmin || isDocumentOwnerOrEditor
 
   const handleDelete = async () => {
-    const docId = document?.id || (document as any)?.document
-    const docSpaceId = (document as any)?.space_id || spaceId
+    const docId = document?.id
+    const docSpaceId = document?.space_id || spaceId
     if (!docId || !docSpaceId) {
       console.error('Missing document ID or space ID', { docId, docSpaceId, document })
       return
@@ -122,13 +123,13 @@ export function DocumentSettingsSidebar({
       onClose={onClose}
       name={document?.name}
       icon={parseStoredIcon(document?.config?.icon)}
-      createdAt={(document as any)?.created_at}
-      updatedAt={(document as any)?.updated_at}
+      createdAt={document?.created_at}
+      updatedAt={document?.updated_at}
       onIconChange={onIconChange}
       isIconUpdating={isUpdating}
       customSettings={customSettings}
-      permissions={permissions}
-      spacePermissions={spacePermissionsData?.permissions}
+      permissions={permissions as unknown as Permission[]}
+      spacePermissions={spacePermissionsData?.permissions as unknown as SpacePermission[] | undefined}
       canManagePermissions={canManagePermissions}
       permissionsLoading={permissionsLoading}
       supportGroups={false}

@@ -879,15 +879,15 @@ function PersonCell({
     : (value ? [value as string] : [])
 
   // Find selected users
-  const selectedUsers = availableUsers.filter(u => selectedIds.includes(u.id))
+  const selectedUsers = availableUsers.filter(u => selectedIds.includes(u.id ?? ''))
 
   // Sort users: selected first, then alphabetically
   const sortedUsers = [...availableUsers].sort((a, b) => {
-    const aSelected = selectedIds.includes(a.id)
-    const bSelected = selectedIds.includes(b.id)
+    const aSelected = selectedIds.includes(a.id ?? '')
+    const bSelected = selectedIds.includes(b.id ?? '')
     if (aSelected && !bSelected) return -1
     if (!aSelected && bSelected) return 1
-    return a.username.localeCompare(b.username)
+    return (a.username ?? '').localeCompare(b.username ?? '')
   })
 
   const toggleUser = (userId: string) => {
@@ -927,7 +927,7 @@ function PersonCell({
                 >
                   <Avatar className="h-5 w-5">
                     <AvatarFallback className="text-[10px]">
-                      {getInitials(user.username)}
+                      {getInitials(user.username ?? '')}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-xs">{user.username}</span>
@@ -951,7 +951,7 @@ function PersonCell({
         ) : (
           <div className="space-y-0.5 max-h-64 overflow-y-auto">
             {sortedUsers.map((user) => {
-              const isSelected = selectedIds.includes(user.id)
+              const isSelected = selectedIds.includes(user.id ?? '')
               return (
                 <div
                   key={user.id}
@@ -959,14 +959,14 @@ function PersonCell({
                     'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-accent transition-colors cursor-pointer',
                     isSelected && 'bg-accent'
                   )}
-                  onClick={() => toggleUser(user.id)}
+                  onClick={() => toggleUser(user.id ?? '')}
                   role="option"
                   aria-selected={isSelected}
                 >
-                  <Checkbox checked={isSelected} onCheckedChange={() => toggleUser(user.id)} />
+                  <Checkbox checked={isSelected} onCheckedChange={() => toggleUser(user.id ?? '')} />
                   <Avatar className="h-6 w-6">
                     <AvatarFallback className="text-xs">
-                      {getInitials(user.username)}
+                      {getInitials(user.username ?? '')}
                     </AvatarFallback>
                   </Avatar>
                   <span className="truncate">{user.username}</span>

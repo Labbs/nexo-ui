@@ -1,8 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
 import { apiClient } from '@/api/client'
-import type { components } from '@/api/types'
+import type { ProfileResponse, LoginResponse } from '@/api/generated/model'
 
-type User = components['schemas']['ProfileResponse']
+type User = ProfileResponse
 
 interface AuthContextType {
   user: User | null
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    const response = await apiClient.post<components['schemas']['LoginResponse']>(
+    const response = await apiClient.post<LoginResponse>(
       '/auth/login',
       { email, password }
     )

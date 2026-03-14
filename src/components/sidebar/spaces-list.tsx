@@ -16,9 +16,7 @@ import {
 } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { useSpaces } from '@/hooks/use-spaces'
-import type { components } from '@/api/types'
-
-type Space = components['schemas']['Space']
+import type { Space } from '@/api/generated/model'
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useSidebarUI } from '@/contexts/sidebar-ui-context'
 import { useSpaceOrder, useUpdateSpaceOrder } from '@/hooks/use-space-order'

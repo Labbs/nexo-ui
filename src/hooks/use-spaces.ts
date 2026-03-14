@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
-import type { components } from '@/api/types'
 import { useAuth } from '@/contexts/auth-context'
+import { userGetMySpaces } from '@/api/generated/user/user'
+import { spaceCreateSpace, spaceUpdateSpace, spaceDeleteSpace } from '@/api/generated/space/space'
+import type { CreateSpaceRequestType } from '@/api/generated/model'
 
 export function useSpaces() {
   const { token } = useAuth()
@@ -9,8 +10,8 @@ export function useSpaces() {
   return useQuery({
     queryKey: ['spaces'],
     queryFn: async () => {
-      const response = await apiClient.get<components['schemas']['GetMySpacesResponse']>('/user/my-spaces')
-      return response.data.spaces || []
+      const response = await userGetMySpaces()
+      return response.spaces || []
     },
     enabled: !!token,
     staleTime: 60_000, // Spaces rarely change, 1 min
@@ -24,11 +25,13 @@ export function useCreateSpace() {
     iconColor?: string,
     type?: 'public' | 'private'
   ): Promise<string> => {
-    const response = await apiClient.post<components['schemas']['CreateSpaceResponse']>(
-      '/space',
-      { name, icon, icon_color: iconColor, type }
-    )
-    return (response.data as any).space_id || ''
+    const response = await spaceCreateSpace({
+      name,
+      icon,
+      icon_color: iconColor,
+      type: type as CreateSpaceRequestType | undefined,
+    })
+    return response.space_id || ''
   }
 
   return { createSpace }
@@ -49,11 +52,12 @@ export function useUpdateSpace() {
       icon?: string
       iconColor?: string
     }) => {
-      const response = await apiClient.put<{ space?: components['schemas']['Space'] }>(
-        `/space/${spaceId}`,
-        { name, icon, icon_color: iconColor }
-      )
-      return response.data.space
+      const response = await spaceUpdateSpace(spaceId, {
+        name,
+        icon,
+        icon_color: iconColor,
+      })
+      return response.space
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['spaces'] })
@@ -66,7 +70,7 @@ export function useDeleteSpace() {
 
   return useMutation({
     mutationFn: async ({ spaceId }: { spaceId: string }) => {
-      await apiClient.delete(`/space/${spaceId}`)
+      await spaceDeleteSpace(spaceId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['spaces'] })

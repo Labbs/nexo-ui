@@ -86,9 +86,9 @@ export function EditSpaceModal({ open, onOpenChange, space: spaceProp }: EditSpa
   const isAdmin = space?.my_role === 'owner' || space?.my_role === 'admin'
 
   // Filter out users already in the space
-  const availableUsers = usersData?.users.filter(
+  const availableUsers = (usersData?.users ?? []).filter(
     (u) => !permissions.some((p) => p.user_id === u.id)
-  ) || []
+  )
 
   // Extract icon value for API
   const getIconForApi = (): string => {
@@ -134,13 +134,14 @@ export function EditSpaceModal({ open, onOpenChange, space: spaceProp }: EditSpa
       await queryClient.invalidateQueries({ queryKey: ['spaces'] })
       // Update currentSpace if editing the current one
       if (currentSpace?.id === space.id) {
-        setCurrentSpace({ ...(currentSpace as any), ...(updated as any) })
+        setCurrentSpace({ ...currentSpace, ...updated })
       }
       setSuccess(t('spaces.saved'))
       setTimeout(() => setSuccess(''), 1500)
       onOpenChange(false)
-    } catch (err: any) {
-      setError(err?.response?.data?.details || t('spaces.updateError'))
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { details?: string } } }
+      setError(axiosErr?.response?.data?.details || t('spaces.updateError'))
     }
   }
 
@@ -155,8 +156,9 @@ export function EditSpaceModal({ open, onOpenChange, space: spaceProp }: EditSpa
         setCurrentSpace(null)
       }
       onOpenChange(false)
-    } catch (err: any) {
-      setError(err?.response?.data?.details || t('spaces.deleteError'))
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { details?: string } } }
+      setError(axiosErr?.response?.data?.details || t('spaces.deleteError'))
     }
   }
 
@@ -385,7 +387,7 @@ export function EditSpaceModal({ open, onOpenChange, space: spaceProp }: EditSpa
                 </SelectTrigger>
                 <SelectContent>
                   {availableUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>
+                    <SelectItem key={u.id} value={u.id ?? ''}>
                       {u.username}
                     </SelectItem>
                   ))}

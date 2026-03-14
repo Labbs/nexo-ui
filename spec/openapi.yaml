@@ -44,20 +44,149 @@ components:
                     type: string
             type: object
         AddFavoriteRequest:
-            properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    format: uuid
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - DocumentId
-                - SpaceId
+            properties: {}
             type: object
         AddFavoriteResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AddGroupMemberRequest:
+            properties:
+                user_id:
+                    type: string
+            required:
+                - user_id
+            type: object
+        AddGroupMemberResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AdminAddSpaceGroupPermissionRequest:
+            properties:
+                group_id:
+                    type: string
+                role:
+                    enum:
+                        - viewer
+                        - editor
+                        - admin
+                    type: string
+            required:
+                - group_id
+                - role
+            type: object
+        AdminAddSpaceGroupPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AdminAddSpaceUserPermissionRequest:
+            properties:
+                role:
+                    enum:
+                        - viewer
+                        - editor
+                        - admin
+                    type: string
+                user_id:
+                    type: string
+            required:
+                - user_id
+                - role
+            type: object
+        AdminAddSpaceUserPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AdminCreateSpaceRequest:
+            properties:
+                icon:
+                    type: string
+                icon_color:
+                    type: string
+                name:
+                    maxLength: 100
+                    minLength: 1
+                    type: string
+                owner_id:
+                    type: string
+                type:
+                    enum:
+                        - public
+                        - private
+                        - restricted
+                    type: string
+            required:
+                - name
+                - type
+            type: object
+        AdminCreateSpaceResponse:
+            properties:
+                id:
+                    type: string
+                message:
+                    type: string
+            type: object
+        AdminDeleteSpaceRequest:
+            properties: {}
+            type: object
+        AdminDeleteSpaceResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AdminListSpacePermissionsRequest:
+            properties: {}
+            type: object
+        AdminListSpacePermissionsResponse:
+            properties:
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/SpacePermissionItem'
+                    type: array
+            type: object
+        AdminRemoveSpaceGroupPermissionRequest:
+            properties: {}
+            type: object
+        AdminRemoveSpaceGroupPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AdminRemoveSpaceUserPermissionRequest:
+            properties: {}
+            type: object
+        AdminRemoveSpaceUserPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        AdminUpdateSpaceRequest:
+            properties:
+                icon:
+                    type: string
+                icon_color:
+                    type: string
+                name:
+                    maxLength: 100
+                    minLength: 1
+                    type: string
+                owner_id:
+                    type: string
+                type:
+                    enum:
+                        - public
+                        - private
+                        - restricted
+                    type: string
+            required:
+                - name
+                - type
+            type: object
+        AdminUpdateSpaceResponse:
             properties:
                 message:
                     type: string
@@ -107,6 +236,10 @@ components:
             items:
                 $ref: '#/components/schemas/DatabaseItem'
             type: array
+        Array_DatabasePermissionItem:
+            items:
+                $ref: '#/components/schemas/DatabasePermissionItem'
+            type: array
         Array_DeliveryItem:
             items:
                 $ref: '#/components/schemas/DeliveryItem'
@@ -119,6 +252,14 @@ components:
             items:
                 $ref: '#/components/schemas/DocumentPermission'
             type: array
+        Array_DrawingItem:
+            items:
+                $ref: '#/components/schemas/DrawingItem'
+            type: array
+        Array_DrawingPermission:
+            items:
+                $ref: '#/components/schemas/DrawingPermission'
+            type: array
         Array_EventInfo:
             items:
                 $ref: '#/components/schemas/EventInfo'
@@ -127,13 +268,25 @@ components:
             items:
                 $ref: '#/components/schemas/Favorite'
             type: array
+        Array_GroupItem:
+            items:
+                $ref: '#/components/schemas/GroupItem'
+            type: array
         Array_InlineContent:
             items:
                 $ref: '#/components/schemas/InlineContent'
             type: array
+        Array_MemberItem:
+            items:
+                $ref: '#/components/schemas/MemberItem'
+            type: array
         Array_PropertySchema:
             items:
                 $ref: '#/components/schemas/PropertySchema'
+            type: array
+        Array_ReorderItem:
+            items:
+                $ref: '#/components/schemas/ReorderItem'
             type: array
         Array_RowItem:
             items:
@@ -147,6 +300,10 @@ components:
             items:
                 $ref: '#/components/schemas/ScopeInfo'
             type: array
+        Array_SearchDatabaseResultItem:
+            items:
+                $ref: '#/components/schemas/SearchDatabaseResultItem'
+            type: array
         Array_SearchResultItem:
             items:
                 $ref: '#/components/schemas/SearchResultItem'
@@ -159,9 +316,17 @@ components:
             items:
                 $ref: '#/components/schemas/Space'
             type: array
+        Array_SpaceItem:
+            items:
+                $ref: '#/components/schemas/SpaceItem'
+            type: array
         Array_SpacePermission:
             items:
                 $ref: '#/components/schemas/SpacePermission'
+            type: array
+        Array_SpacePermissionItem:
+            items:
+                $ref: '#/components/schemas/SpacePermissionItem'
             type: array
         Array_StepInfo:
             items:
@@ -178,6 +343,10 @@ components:
         Array_TypeInfo:
             items:
                 $ref: '#/components/schemas/TypeInfo'
+            type: array
+        Array_UserListItem:
+            items:
+                $ref: '#/components/schemas/UserListItem'
             type: array
         Array_VersionItem:
             items:
@@ -250,9 +419,6 @@ components:
             type: object
         BulkDeleteRowsRequest:
             properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
                 row_ids:
                     items:
                         type: string
@@ -367,12 +533,6 @@ components:
             type: object
         CreateCommentRequestWithParams:
             properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    type: string
                 block_id:
                     type: string
                 content:
@@ -401,6 +561,8 @@ components:
                     type: array
                 space_id:
                     type: string
+                type:
+                    type: string
             type: object
         CreateDatabaseResponse:
             properties:
@@ -420,28 +582,87 @@ components:
                     items:
                         $ref: '#/components/schemas/PropertySchema'
                     type: array
+                type:
+                    type: string
             type: object
         CreateDocumentRequest:
             properties:
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
                 parent_id:
                     type: string
-            required:
-                - SpaceId
             type: object
         CreateDocumentResponse:
             properties:
                 Document:
                     $ref: '#/components/schemas/Document'
             type: object
+        CreateDrawingRequest:
+            properties:
+                app_state:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                document_id:
+                    type: string
+                elements:
+                    items:
+                        description: Any value (interface{})
+                    type: array
+                files:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                icon:
+                    type: string
+                name:
+                    type: string
+                space_id:
+                    type: string
+                thumbnail:
+                    type: string
+            type: object
+        CreateDrawingResponse:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                id:
+                    type: string
+                name:
+                    type: string
+            type: object
+        CreateGroupRequest:
+            properties:
+                description:
+                    maxLength: 500
+                    type: string
+                name:
+                    maxLength: 100
+                    minLength: 1
+                    type: string
+                role:
+                    enum:
+                        - user
+                        - admin
+                        - guest
+                    type: string
+            required:
+                - name
+                - role
+            type: object
+        CreateGroupResponse:
+            properties:
+                id:
+                    type: string
+                message:
+                    type: string
+            type: object
         CreateRowRequest:
             properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
                 content:
                     additionalProperties: true
                     example:
@@ -456,6 +677,8 @@ components:
                         number_key: 42
                         string_key: string_value
                     type: object
+                show_in_sidebar:
+                    type: boolean
             type: object
         CreateRowResponse:
             properties:
@@ -481,6 +704,11 @@ components:
                     maxLength: 100
                     minLength: 3
                     type: string
+                type:
+                    enum:
+                        - public
+                        - private
+                    type: string
             required:
                 - name
             type: object
@@ -491,24 +719,70 @@ components:
             type: object
         CreateVersionRequest:
             properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
                 description:
                     type: string
-            required:
-                - SpaceId
-                - DocumentId
             type: object
         CreateVersionResponse:
             properties:
                 version:
                     type: integer
                 version_id:
+                    type: string
+            type: object
+        CreateViewRequest:
+            properties:
+                columns:
+                    items:
+                        type: string
+                    type: array
+                filter:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                name:
+                    type: string
+                sort:
+                    items:
+                        $ref: '#/components/schemas/SortConfig'
+                    type: array
+                type:
+                    enum:
+                        - table
+                        - board
+                        - calendar
+                        - gallery
+                        - list
+                        - timeline
+                    type: string
+            required:
+                - name
+                - type
+            type: object
+        CreateViewResponse:
+            properties:
+                columns:
+                    items:
+                        type: string
+                    type: array
+                filter:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                id:
+                    type: string
+                name:
+                    type: string
+                sort:
+                    items:
+                        $ref: '#/components/schemas/SortConfig'
+                    type: array
+                type:
                     type: string
             type: object
         CreateWebhookRequest:
@@ -559,51 +833,48 @@ components:
                     type: string
                 row_count:
                     type: integer
+                type:
+                    type: string
                 updated_at:
                     $ref: '#/components/schemas/Time'
             type: object
-        DeleteActionRequest:
+        DatabasePermissionItem:
             properties:
-                ActionId:
-                    description: 'Path parameter: action_id'
+                group_id:
                     type: string
+                group_name:
+                    type: string
+                id:
+                    type: string
+                role:
+                    type: string
+                user_id:
+                    type: string
+                username:
+                    type: string
+            type: object
+        DeleteActionRequest:
+            properties: {}
             type: object
         DeleteApiKeyRequest:
-            properties:
-                ApiKeyId:
-                    description: 'Path parameter: api_key_id'
-                    type: string
+            properties: {}
             type: object
         DeleteCommentRequest:
+            properties: {}
+            type: object
+        DeleteDatabasePermissionRequest:
+            properties: {}
+            type: object
+        DeleteDatabasePermissionResponse:
             properties:
-                CommentId:
-                    description: 'Path parameter: comment_id'
-                    type: string
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    type: string
+                success:
+                    type: boolean
             type: object
         DeleteDatabaseRequest:
-            properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
+            properties: {}
             type: object
         DeleteDocumentRequest:
-            properties:
-                Identifier:
-                    description: 'Path parameter: identifier'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - Identifier
+            properties: {}
             type: object
         DeleteDocumentResponse:
             properties:
@@ -611,46 +882,37 @@ components:
                     type: string
             type: object
         DeleteDocumentUserPermissionRequest:
-            properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    format: uuid
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-                UserId:
-                    description: 'Path parameter: user_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - DocumentId
-                - UserId
+            properties: {}
             type: object
         DeleteDocumentUserPermissionResponse:
             properties:
                 message:
                     type: string
             type: object
-        DeleteRowRequest:
+        DeleteDrawingRequest:
+            properties: {}
+            type: object
+        DeleteDrawingUserPermissionRequest:
+            properties: {}
+            type: object
+        DeleteDrawingUserPermissionResponse:
             properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
-                RowId:
-                    description: 'Path parameter: row_id'
+                message:
                     type: string
             type: object
-        DeleteSpaceRequest:
+        DeleteGroupRequest:
+            properties: {}
+            type: object
+        DeleteGroupResponse:
             properties:
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
+                message:
                     type: string
-            required:
-                - SpaceId
+            type: object
+        DeleteRowRequest:
+            properties: {}
+            type: object
+        DeleteSpaceRequest:
+            properties: {}
             type: object
         DeleteSpaceResponse:
             properties:
@@ -658,29 +920,26 @@ components:
                     type: string
             type: object
         DeleteSpaceUserPermissionRequest:
-            properties:
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-                UserId:
-                    description: 'Path parameter: user_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - UserId
+            properties: {}
             type: object
         DeleteSpaceUserPermissionResponse:
             properties:
                 message:
                     type: string
             type: object
-        DeleteWebhookRequest:
+        DeleteUserRequest:
+            properties: {}
+            type: object
+        DeleteUserResponse:
             properties:
-                WebhookId:
-                    description: 'Path parameter: webhook_id'
+                message:
                     type: string
+            type: object
+        DeleteViewRequest:
+            properties: {}
+            type: object
+        DeleteWebhookRequest:
+            properties: {}
             type: object
         DeliveryItem:
             properties:
@@ -750,6 +1009,38 @@ components:
                     type: string
                 user_id:
                     type: string
+                username:
+                    type: string
+            type: object
+        DrawingItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                created_by:
+                    type: string
+                document_id:
+                    type: string
+                icon:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                thumbnail:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        DrawingPermission:
+            properties:
+                id:
+                    type: string
+                role:
+                    type: string
+                user_id:
+                    type: string
+                username:
+                    type: string
             type: object
         EmptyRequest:
             properties: {}
@@ -782,10 +1073,7 @@ components:
                     type: string
             type: object
         GetActionRequest:
-            properties:
-                ActionId:
-                    description: 'Path parameter: action_id'
-                    type: string
+            properties: {}
             type: object
         GetActionResponse:
             properties:
@@ -832,13 +1120,7 @@ components:
                     $ref: '#/components/schemas/Time'
             type: object
         GetCommentsRequest:
-            properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    type: string
+            properties: {}
             type: object
         GetCommentsResponse:
             properties:
@@ -848,10 +1130,7 @@ components:
                     type: array
             type: object
         GetDatabaseRequest:
-            properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
+            properties: {}
             type: object
         GetDatabaseResponse:
             properties:
@@ -877,6 +1156,8 @@ components:
                     type: array
                 space_id:
                     type: string
+                type:
+                    type: string
                 updated_at:
                     $ref: '#/components/schemas/Time'
                 views:
@@ -885,13 +1166,7 @@ components:
                     type: array
             type: object
         GetDeliveriesRequest:
-            properties:
-                Limit:
-                    description: 'Query parameter: limit'
-                    type: integer
-                WebhookId:
-                    description: 'Path parameter: webhook_id'
-                    type: string
+            properties: {}
             type: object
         GetDeliveriesResponse:
             properties:
@@ -901,17 +1176,7 @@ components:
                     type: array
             type: object
         GetDocumentRequest:
-            properties:
-                Identifier:
-                    description: 'Path parameter: identifier'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - Identifier
+            properties: {}
             type: object
         GetDocumentResponse:
             properties:
@@ -950,23 +1215,65 @@ components:
                     $ref: '#/components/schemas/Time'
             type: object
         GetDocumentsFromSpaceRequest:
-            properties:
-                ParentId:
-                    description: 'Query parameter: parent_id'
-                    format: uuid
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
+            properties: {}
             type: object
         GetDocumentsFromSpaceResponse:
             properties:
                 documents:
                     items:
                         $ref: '#/components/schemas/Document'
+                    type: array
+            type: object
+        GetDrawingRequest:
+            properties: {}
+            type: object
+        GetDrawingResponse:
+            properties:
+                app_state:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                created_by:
+                    type: string
+                document_id:
+                    type: string
+                elements:
+                    items:
+                        description: Any value (interface{})
+                    type: array
+                files:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                icon:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                space_id:
+                    type: string
+                thumbnail:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        GetGroupMembersRequest:
+            properties: {}
+            type: object
+        GetGroupMembersResponse:
+            properties:
+                members:
+                    items:
+                        $ref: '#/components/schemas/MemberItem'
                     type: array
             type: object
         GetMyFavoritesResponse:
@@ -984,26 +1291,10 @@ components:
                     type: array
             type: object
         GetPublicDocumentRequest:
-            properties:
-                Identifier:
-                    description: 'Path parameter: identifier'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - Identifier
+            properties: {}
             type: object
         GetRowRequest:
-            properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
-                RowId:
-                    description: 'Path parameter: row_id'
-                    type: string
+            properties: {}
             type: object
         GetRowResponse:
             properties:
@@ -1041,13 +1332,7 @@ components:
                     $ref: '#/components/schemas/UserInfo'
             type: object
         GetRunsRequest:
-            properties:
-                ActionId:
-                    description: 'Path parameter: action_id'
-                    type: string
-                Limit:
-                    description: 'Query parameter: limit'
-                    type: integer
+            properties: {}
             type: object
         GetRunsResponse:
             properties:
@@ -1057,13 +1342,7 @@ components:
                     type: array
             type: object
         GetTrashRequest:
-            properties:
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
+            properties: {}
             type: object
         GetTrashResponse:
             properties:
@@ -1073,22 +1352,7 @@ components:
                     type: array
             type: object
         GetVersionRequest:
-            properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-                VersionId:
-                    description: 'Path parameter: version_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - DocumentId
-                - VersionId
+            properties: {}
             type: object
         GetVersionResponse:
             properties:
@@ -1116,10 +1380,7 @@ components:
                     type: integer
             type: object
         GetWebhookRequest:
-            properties:
-                WebhookId:
-                    description: 'Path parameter: webhook_id'
-                    type: string
+            properties: {}
             type: object
         GetWebhookResponse:
             properties:
@@ -1154,6 +1415,31 @@ components:
                 url:
                     type: string
             type: object
+        GroupItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                description:
+                    type: string
+                id:
+                    type: string
+                member_count:
+                    type: integer
+                members:
+                    items:
+                        $ref: '#/components/schemas/MemberItem'
+                    type: array
+                name:
+                    type: string
+                owner_id:
+                    type: string
+                owner_name:
+                    type: string
+                role:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
         HealthResponse:
             properties:
                 service:
@@ -1176,12 +1462,58 @@ components:
                 type:
                     type: string
             type: object
+        InviteUserRequest:
+            properties:
+                email:
+                    format: email
+                    type: string
+                role:
+                    enum:
+                        - user
+                        - admin
+                        - guest
+                    type: string
+            required:
+                - email
+                - role
+            type: object
+        InviteUserResponse:
+            properties:
+                message:
+                    type: string
+                user_id:
+                    type: string
+            type: object
         ListActionsResponse:
             properties:
                 actions:
                     items:
                         $ref: '#/components/schemas/ActionItem'
                     type: array
+            type: object
+        ListAllApiKeysRequest:
+            properties: {}
+            type: object
+        ListAllApiKeysResponse:
+            properties:
+                api_keys:
+                    items:
+                        $ref: '#/components/schemas/ApiKeyItem'
+                    type: array
+                total_count:
+                    type: integer
+            type: object
+        ListAllSpacesRequest:
+            properties: {}
+            type: object
+        ListAllSpacesResponse:
+            properties:
+                spaces:
+                    items:
+                        $ref: '#/components/schemas/SpaceItem'
+                    type: array
+                total_count:
+                    type: integer
             type: object
         ListApiKeysResponse:
             properties:
@@ -1190,11 +1522,18 @@ components:
                         $ref: '#/components/schemas/ApiKeyItem'
                     type: array
             type: object
-        ListDatabasesRequest:
+        ListDatabasePermissionsRequest:
+            properties: {}
+            type: object
+        ListDatabasePermissionsResponse:
             properties:
-                SpaceId:
-                    description: 'Query parameter: space_id'
-                    type: string
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/DatabasePermissionItem'
+                    type: array
+            type: object
+        ListDatabasesRequest:
+            properties: {}
             type: object
         ListDatabasesResponse:
             properties:
@@ -1204,18 +1543,7 @@ components:
                     type: array
             type: object
         ListDocumentPermissionsRequest:
-            properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    format: uuid
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - DocumentId
+            properties: {}
             type: object
         ListDocumentPermissionsResponse:
             properties:
@@ -1224,17 +1552,40 @@ components:
                         $ref: '#/components/schemas/DocumentPermission'
                     type: array
             type: object
-        ListRowsRequest:
+        ListDrawingPermissionsRequest:
+            properties: {}
+            type: object
+        ListDrawingPermissionsResponse:
             properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
-                Limit:
-                    description: 'Query parameter: limit'
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/DrawingPermission'
+                    type: array
+            type: object
+        ListDrawingsRequest:
+            properties: {}
+            type: object
+        ListDrawingsResponse:
+            properties:
+                drawings:
+                    items:
+                        $ref: '#/components/schemas/DrawingItem'
+                    type: array
+            type: object
+        ListGroupsRequest:
+            properties: {}
+            type: object
+        ListGroupsResponse:
+            properties:
+                groups:
+                    items:
+                        $ref: '#/components/schemas/GroupItem'
+                    type: array
+                total_count:
                     type: integer
-                Offset:
-                    description: 'Query parameter: offset'
-                    type: integer
+            type: object
+        ListRowsRequest:
+            properties: {}
             type: object
         ListRowsResponse:
             properties:
@@ -1246,13 +1597,7 @@ components:
                     type: integer
             type: object
         ListSpacePermissionsRequest:
-            properties:
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
+            properties: {}
             type: object
         ListSpacePermissionsResponse:
             properties:
@@ -1261,24 +1606,20 @@ components:
                         $ref: '#/components/schemas/SpacePermission'
                     type: array
             type: object
-        ListVersionsRequest:
+        ListUsersRequest:
+            properties: {}
+            type: object
+        ListUsersResponse:
             properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                Limit:
-                    description: 'Query parameter: limit'
+                total_count:
                     type: integer
-                Offset:
-                    description: 'Query parameter: offset'
-                    type: integer
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - DocumentId
+                users:
+                    items:
+                        $ref: '#/components/schemas/UserListItem'
+                    type: array
+            type: object
+        ListVersionsRequest:
+            properties: {}
             type: object
         ListVersionsResponse:
             properties:
@@ -1317,26 +1658,39 @@ components:
                 message:
                     type: string
             type: object
+        MemberItem:
+            properties:
+                avatar_url:
+                    type: string
+                email:
+                    type: string
+                id:
+                    type: string
+                username:
+                    type: string
+            type: object
         MessageResponse:
             properties:
                 message:
                     type: string
             type: object
+        MoveDatabaseRequest:
+            properties:
+                document_id:
+                    type: string
+            type: object
+        MoveDatabaseResponse:
+            properties:
+                document_id:
+                    type: string
+                id:
+                    type: string
+            type: object
         MoveDocumentRequest:
             properties:
-                Id:
-                    description: 'Path parameter: id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
                 parent_id:
                     format: uuid
                     type: string
-            required:
-                - SpaceId
-                - Id
             type: object
         MoveDocumentResponse:
             properties:
@@ -1347,6 +1701,18 @@ components:
                 space_id:
                     type: string
             type: object
+        MoveDrawingRequest:
+            properties:
+                document_id:
+                    type: string
+            type: object
+        MoveDrawingResponse:
+            properties:
+                document_id:
+                    type: string
+                id:
+                    type: string
+            type: object
         ProfileResponse:
             properties:
                 avatar:
@@ -1355,18 +1721,16 @@ components:
                     type: string
                 id:
                     type: string
+                preferences:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
                 role:
                     type: string
                 username:
-                    type: string
-            type: object
-        UserInfo:
-            properties:
-                id:
-                    type: string
-                username:
-                    type: string
-                avatar_url:
                     type: string
             type: object
         PropertySchema:
@@ -1405,46 +1769,52 @@ components:
                     type: string
             type: object
         RemoveFavoriteRequest:
-            properties:
-                FavoriteId:
-                    description: 'Path parameter: favorite_id'
-                    format: uuid
-                    type: string
-            required:
-                - FavoriteId
+            properties: {}
             type: object
         RemoveFavoriteResponse:
             properties:
                 message:
                     type: string
             type: object
+        RemoveGroupMemberRequest:
+            properties: {}
+            type: object
+        RemoveGroupMemberResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        ReorderDocumentsRequest:
+            properties:
+                items:
+                    items:
+                        $ref: '#/components/schemas/ReorderItem'
+                    type: array
+            required:
+                - items
+            type: object
+        ReorderDocumentsResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        ReorderItem:
+            properties:
+                id:
+                    type: string
+                position:
+                    minimum: 0
+                    type: integer
+            required:
+                - id
+            type: object
         ResolveCommentRequestWithParams:
             properties:
-                CommentId:
-                    description: 'Path parameter: comment_id'
-                    type: string
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    type: string
                 resolved:
                     type: boolean
             type: object
         RestoreDocumentRequest:
-            properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    format: uuid
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - DocumentId
+            properties: {}
             type: object
         RestoreDocumentResponse:
             properties:
@@ -1452,25 +1822,25 @@ components:
                     type: string
             type: object
         RestoreVersionRequest:
+            properties: {}
+            type: object
+        RevokeApiKeyRequest:
+            properties: {}
+            type: object
+        RevokeApiKeyResponse:
             properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
+                message:
                     type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
-                VersionId:
-                    description: 'Path parameter: version_id'
-                    format: uuid
-                    type: string
-            required:
-                - SpaceId
-                - DocumentId
-                - VersionId
             type: object
         RowItem:
             properties:
+                content:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
                 created_at:
                     $ref: '#/components/schemas/Time'
                 created_by:
@@ -1515,17 +1885,37 @@ components:
                 scope:
                     type: string
             type: object
-        SearchRequest:
+        SearchDatabaseResultItem:
             properties:
-                Limit:
-                    description: 'Query parameter: limit'
-                    type: integer
-                Query:
-                    description: 'Query parameter: q'
+                description:
                     type: string
-                SpaceId:
-                    description: 'Query parameter: space_id'
+                icon:
                     type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                space_id:
+                    type: string
+                space_name:
+                    type: string
+                type:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
+        SearchDatabasesRequest:
+            properties: {}
+            type: object
+        SearchDatabasesResponse:
+            properties:
+                results:
+                    items:
+                        $ref: '#/components/schemas/SearchDatabaseResultItem'
+                    type: array
+            type: object
+        SearchRequest:
+            properties: {}
             type: object
         SearchResponse:
             properties:
@@ -1553,19 +1943,8 @@ components:
             type: object
         SetPublicRequest:
             properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    format: uuid
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
                 public:
                     type: boolean
-            required:
-                - SpaceId
-                - DocumentId
             type: object
         SetPublicResponse:
             properties:
@@ -1602,11 +1981,57 @@ components:
                 updated_at:
                     $ref: '#/components/schemas/Time'
             type: object
+        SpaceItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                description:
+                    type: string
+                icon:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                owner_id:
+                    type: string
+                owner_name:
+                    type: string
+                type:
+                    type: string
+                updated_at:
+                    $ref: '#/components/schemas/Time'
+            type: object
         SpacePermission:
             properties:
+                group_id:
+                    type: string
+                group_name:
+                    type: string
+                id:
+                    type: string
                 role:
                     type: string
                 user_id:
+                    type: string
+                username:
+                    type: string
+            type: object
+        SpacePermissionItem:
+            properties:
+                created_at:
+                    $ref: '#/components/schemas/Time'
+                group_id:
+                    type: string
+                group_name:
+                    type: string
+                id:
+                    type: string
+                role:
+                    type: string
+                user_id:
+                    type: string
+                username:
                     type: string
             type: object
         StepInfo:
@@ -1650,9 +2075,6 @@ components:
             type: object
         UpdateActionRequest:
             properties:
-                ActionId:
-                    description: 'Path parameter: action_id'
-                    type: string
                 active:
                     type: boolean
                 description:
@@ -1675,9 +2097,6 @@ components:
             type: object
         UpdateApiKeyRequest:
             properties:
-                ApiKeyId:
-                    description: 'Path parameter: api_key_id'
-                    type: string
                 name:
                     type: string
                 scopes:
@@ -1687,23 +2106,11 @@ components:
             type: object
         UpdateCommentRequestWithParams:
             properties:
-                CommentId:
-                    description: 'Path parameter: comment_id'
-                    type: string
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    type: string
                 content:
                     type: string
             type: object
         UpdateDatabaseRequest:
             properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
                 default_view:
                     type: string
                 description:
@@ -1719,13 +2126,6 @@ components:
             type: object
         UpdateDocumentRequest:
             properties:
-                Id:
-                    description: 'Path parameter: id'
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
                 config:
                     $ref: '#/components/schemas/DocumentConfig'
                 content:
@@ -1746,9 +2146,6 @@ components:
                     type: string
                 public:
                     type: boolean
-            required:
-                - SpaceId
-                - Id
             type: object
         UpdateDocumentResponse:
             properties:
@@ -1776,17 +2173,39 @@ components:
                 space_id:
                     type: string
             type: object
+        UpdateDrawingRequest:
+            properties:
+                app_state:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                elements:
+                    items:
+                        description: Any value (interface{})
+                    type: array
+                files:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                icon:
+                    type: string
+                name:
+                    type: string
+                thumbnail:
+                    type: string
+            type: object
         UpdateFavoritePositionRequest:
             properties:
-                FavoriteId:
-                    description: 'Path parameter: favorite_id'
-                    format: uuid
-                    type: string
                 position:
                     minimum: 0
                     type: integer
             required:
-                - FavoriteId
                 - position
             type: object
         UpdateFavoritePositionResponse:
@@ -1795,6 +2214,30 @@ components:
                     type: string
                 position:
                     type: integer
+            type: object
+        UpdateGroupRequest:
+            properties:
+                description:
+                    maxLength: 500
+                    type: string
+                name:
+                    maxLength: 100
+                    minLength: 1
+                    type: string
+                role:
+                    enum:
+                        - user
+                        - admin
+                        - guest
+                    type: string
+            required:
+                - name
+                - role
+            type: object
+        UpdateGroupResponse:
+            properties:
+                message:
+                    type: string
             type: object
         UpdateProfileRequest:
             properties:
@@ -1830,12 +2273,6 @@ components:
             type: object
         UpdateRowRequest:
             properties:
-                DatabaseId:
-                    description: 'Path parameter: database_id'
-                    type: string
-                RowId:
-                    description: 'Path parameter: row_id'
-                    type: string
                 content:
                     additionalProperties: true
                     example:
@@ -1850,13 +2287,27 @@ components:
                         number_key: 42
                         string_key: string_value
                     type: object
+                show_in_sidebar:
+                    type: boolean
+            type: object
+        UpdateSpaceOrderRequest:
+            properties:
+                space_ids:
+                    items:
+                        type: string
+                    type: array
+            required:
+                - space_ids
+            type: object
+        UpdateSpaceOrderResponse:
+            properties:
+                space_ids:
+                    items:
+                        type: string
+                    type: array
             type: object
         UpdateSpaceRequest:
             properties:
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
-                    type: string
                 icon:
                     type: string
                 icon_color:
@@ -1865,19 +2316,68 @@ components:
                     maxLength: 100
                     minLength: 3
                     type: string
-            required:
-                - SpaceId
             type: object
         UpdateSpaceResponse:
             properties:
                 space:
                     $ref: '#/components/schemas/Space'
             type: object
+        UpdateUserActiveRequest:
+            properties:
+                active:
+                    type: boolean
+            type: object
+        UpdateUserActiveResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        UpdateUserRoleRequest:
+            properties:
+                role:
+                    enum:
+                        - user
+                        - admin
+                        - guest
+                    type: string
+            required:
+                - role
+            type: object
+        UpdateUserRoleResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        UpdateViewRequest:
+            properties:
+                columns:
+                    items:
+                        type: string
+                    type: array
+                filter:
+                    additionalProperties: true
+                    example:
+                        boolean_key: true
+                        number_key: 42
+                        string_key: string_value
+                    type: object
+                group_by:
+                    type: string
+                hidden_columns:
+                    items:
+                        type: string
+                    type: array
+                name:
+                    type: string
+                sort:
+                    items:
+                        $ref: '#/components/schemas/SortConfig'
+                    type: array
+                type:
+                    type: string
+            type: object
         UpdateWebhookRequest:
             properties:
-                WebhookId:
-                    description: 'Path parameter: webhook_id'
-                    type: string
                 active:
                     type: boolean
                 events:
@@ -1889,18 +2389,25 @@ components:
                 url:
                     type: string
             type: object
-        UpsertDocumentUserPermissionRequest:
+        UpsertDatabasePermissionRequest:
             properties:
-                DocumentId:
-                    description: 'Path parameter: document_id'
-                    format: uuid
-                    type: string
-                SpaceId:
-                    description: 'Path parameter: space_id'
-                    format: uuid
+                group_id:
                     type: string
                 role:
+                    type: string
+                user_id:
+                    type: string
+            type: object
+        UpsertDatabasePermissionResponse:
+            properties:
+                success:
+                    type: boolean
+            type: object
+        UpsertDocumentUserPermissionRequest:
+            properties:
+                role:
                     enum:
+                        - owner
                         - editor
                         - viewer
                         - denied
@@ -1909,8 +2416,6 @@ components:
                     format: uuid
                     type: string
             required:
-                - SpaceId
-                - DocumentId
                 - user_id
                 - role
             type: object
@@ -1919,12 +2424,29 @@ components:
                 message:
                     type: string
             type: object
-        UpsertSpaceUserPermissionRequest:
+        UpsertDrawingUserPermissionRequest:
             properties:
-                SpaceId:
-                    description: 'Path parameter: space_id'
+                role:
+                    enum:
+                        - owner
+                        - editor
+                        - viewer
+                        - denied
+                    type: string
+                user_id:
                     format: uuid
                     type: string
+            required:
+                - user_id
+                - role
+            type: object
+        UpsertDrawingUserPermissionResponse:
+            properties:
+                message:
+                    type: string
+            type: object
+        UpsertSpaceUserPermissionRequest:
+            properties:
                 role:
                     enum:
                         - owner
@@ -1936,13 +2458,30 @@ components:
                     format: uuid
                     type: string
             required:
-                - SpaceId
                 - user_id
                 - role
             type: object
         UpsertSpaceUserPermissionResponse:
             properties:
                 message:
+                    type: string
+            type: object
+        UserInfo:
+            properties:
+                avatar_url:
+                    type: string
+                id:
+                    type: string
+                username:
+                    type: string
+            type: object
+        UserListItem:
+            properties:
+                avatar_url:
+                    type: string
+                id:
+                    type: string
+                username:
                     type: string
             type: object
         VersionConfig:
@@ -1986,6 +2525,12 @@ components:
                         number_key: 42
                         string_key: string_value
                     type: object
+                group_by:
+                    type: string
+                hidden_columns:
+                    items:
+                        type: string
+                    type: array
                 id:
                     type: string
                 name:
@@ -2030,11 +2575,8 @@ components:
         bearerAuth:
             type: http
             scheme: bearer
-            bearerformat: JWT
-            in: ""
-            name: ""
+            bearerFormat: JWT
             description: JWT Bearer token
-            flows: {}
 info:
     description: API documentation generated by fiber-oapi
     title: Fiber OpenAPI
@@ -2264,6 +2806,711 @@ paths:
             summary: Get available triggers
             tags:
                 - Actions
+    /api/v1/admin/apikeys:
+        get:
+            description: Retrieve a paginated list of all API keys (admin only)
+            operationId: admin.listAllApiKeys
+            parameters:
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+                - description: 'Query parameter: Offset'
+                  in: query
+                  name: offset
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListAllApiKeysResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List all API keys
+            tags:
+                - Admin
+    /api/v1/admin/apikeys/{apikey_id}:
+        delete:
+            description: Revoke an API key (admin only)
+            operationId: admin.revokeApiKey
+            parameters:
+                - description: 'Path parameter: ApiKeyId'
+                  in: path
+                  name: apikey_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RevokeApiKeyResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Revoke API key
+            tags:
+                - Admin
+    /api/v1/admin/groups:
+        get:
+            description: Retrieve a paginated list of all groups (admin only)
+            operationId: admin.listGroups
+            parameters:
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+                - description: 'Query parameter: Offset'
+                  in: query
+                  name: offset
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListGroupsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List all groups
+            tags:
+                - Admin
+        post:
+            description: Create a new group (admin only)
+            operationId: admin.createGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateGroupResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create group
+            tags:
+                - Admin
+    /api/v1/admin/groups/{group_id}:
+        delete:
+            description: Delete a group (admin only)
+            operationId: admin.deleteGroup
+            parameters:
+                - description: 'Path parameter: GroupId'
+                  in: path
+                  name: group_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteGroupResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete group
+            tags:
+                - Admin
+        put:
+            description: Update a group's name, description, or role (admin only)
+            operationId: admin.updateGroup
+            parameters:
+                - description: 'Path parameter: GroupId'
+                  in: path
+                  name: group_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateGroupResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update group
+            tags:
+                - Admin
+    /api/v1/admin/groups/{group_id}/members:
+        get:
+            description: Retrieve all members of a group (admin only)
+            operationId: admin.getGroupMembers
+            parameters:
+                - description: 'Path parameter: GroupId'
+                  in: path
+                  name: group_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetGroupMembersResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get group members
+            tags:
+                - Admin
+        post:
+            description: Add a user to a group (admin only)
+            operationId: admin.addGroupMember
+            parameters:
+                - description: 'Path parameter: GroupId'
+                  in: path
+                  name: group_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AddGroupMemberRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AddGroupMemberResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Add group member
+            tags:
+                - Admin
+    /api/v1/admin/groups/{group_id}/members/{user_id}:
+        delete:
+            description: Remove a user from a group (admin only)
+            operationId: admin.removeGroupMember
+            parameters:
+                - description: 'Path parameter: GroupId'
+                  in: path
+                  name: group_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RemoveGroupMemberResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Remove group member
+            tags:
+                - Admin
+    /api/v1/admin/spaces:
+        get:
+            description: Retrieve a paginated list of all spaces (admin only)
+            operationId: admin.listAllSpaces
+            parameters:
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+                - description: 'Query parameter: Offset'
+                  in: query
+                  name: offset
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListAllSpacesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List all spaces
+            tags:
+                - Admin
+        post:
+            description: Create a new space (admin only)
+            operationId: admin.createSpace
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminCreateSpaceRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminCreateSpaceResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create space
+            tags:
+                - Admin
+    /api/v1/admin/spaces/{space_id}:
+        delete:
+            description: Delete a space (admin only)
+            operationId: admin.deleteSpace
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminDeleteSpaceResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete space
+            tags:
+                - Admin
+        put:
+            description: Update a space (admin only)
+            operationId: admin.updateSpace
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminUpdateSpaceRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminUpdateSpaceResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update space
+            tags:
+                - Admin
+    /api/v1/admin/spaces/{space_id}/permissions:
+        get:
+            description: List all permissions for a space (admin only)
+            operationId: admin.listSpacePermissions
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminListSpacePermissionsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List space permissions
+            tags:
+                - Admin
+    /api/v1/admin/spaces/{space_id}/permissions/groups:
+        post:
+            description: Add a group permission to a space (admin only)
+            operationId: admin.addSpaceGroupPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminAddSpaceGroupPermissionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminAddSpaceGroupPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Add group permission
+            tags:
+                - Admin
+    /api/v1/admin/spaces/{space_id}/permissions/groups/{group_id}:
+        delete:
+            description: Remove a group permission from a space (admin only)
+            operationId: admin.removeSpaceGroupPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: GroupId'
+                  in: path
+                  name: group_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminRemoveSpaceGroupPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Remove group permission
+            tags:
+                - Admin
+    /api/v1/admin/spaces/{space_id}/permissions/users:
+        post:
+            description: Add a user permission to a space (admin only)
+            operationId: admin.addSpaceUserPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminAddSpaceUserPermissionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminAddSpaceUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Add user permission
+            tags:
+                - Admin
+    /api/v1/admin/spaces/{space_id}/permissions/users/{user_id}:
+        delete:
+            description: Remove a user permission from a space (admin only)
+            operationId: admin.removeSpaceUserPermission
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminRemoveSpaceUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Remove user permission
+            tags:
+                - Admin
+    /api/v1/admin/users:
+        get:
+            description: Retrieve a paginated list of all users (admin only)
+            operationId: admin.listUsers
+            parameters:
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+                - description: 'Query parameter: Offset'
+                  in: query
+                  name: offset
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListUsersResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List all users
+            tags:
+                - Admin
+    /api/v1/admin/users/{user_id}:
+        delete:
+            description: Delete a user account (admin only)
+            operationId: admin.deleteUser
+            parameters:
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteUserResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete user
+            tags:
+                - Admin
+    /api/v1/admin/users/{user_id}/active:
+        put:
+            description: Enable or disable a user account (admin only)
+            operationId: admin.updateUserActive
+            parameters:
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateUserActiveRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateUserActiveResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update user active status
+            tags:
+                - Admin
+    /api/v1/admin/users/{user_id}/role:
+        put:
+            description: Change the role of a user (admin only)
+            operationId: admin.updateUserRole
+            parameters:
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateUserRoleRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateUserRoleResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update user role
+            tags:
+                - Admin
+    /api/v1/admin/users/invite:
+        post:
+            description: Invite a new user by email (admin only)
+            operationId: admin.inviteUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/InviteUserRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InviteUserResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Invite user
+            tags:
+                - Admin
     /api/v1/apikeys/:
         get:
             description: List all API keys for the current user
@@ -2599,6 +3846,138 @@ paths:
             summary: Update database
             tags:
                 - Databases
+    /api/v1/databases/{database_id}/move:
+        patch:
+            description: Move a database to a document or to root level
+            operationId: database.move
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/MoveDatabaseRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MoveDatabaseResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Move database
+            tags:
+                - Databases
+    /api/v1/databases/{database_id}/permissions:
+        delete:
+            description: Delete a permission from a database
+            operationId: database.permission.delete
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Query parameter: UserId'
+                  in: query
+                  name: user_id
+                  required: false
+                  schema:
+                    nullable: true
+                    type: string
+                - description: 'Query parameter: GroupId'
+                  in: query
+                  name: group_id
+                  required: false
+                  schema:
+                    nullable: true
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteDatabasePermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete permission
+            tags:
+                - Database Permissions
+        get:
+            description: List all permissions for a database
+            operationId: database.permission.list
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDatabasePermissionsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List database permissions
+            tags:
+                - Database Permissions
+        post:
+            description: Add or update a permission for a database
+            operationId: database.permission.upsert
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertDatabasePermissionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertDatabasePermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Add or update permission
+            tags:
+                - Database Permissions
     /api/v1/databases/{database_id}/rows:
         delete:
             description: Delete multiple rows at once
@@ -2634,6 +4013,12 @@ paths:
                   in: path
                   name: database_id
                   required: true
+                  schema:
+                    type: string
+                - description: 'Query parameter: ViewId'
+                  in: query
+                  name: view_id
+                  required: false
                   schema:
                     type: string
                 - description: 'Query parameter: Limit'
@@ -2801,6 +4186,152 @@ paths:
             summary: Update row
             tags:
                 - Database Rows
+    /api/v1/databases/{database_id}/views:
+        post:
+            description: Create a new view for a database
+            operationId: database.view.create
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateViewRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateViewResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create view
+            tags:
+                - Database Views
+    /api/v1/databases/{database_id}/views/{view_id}:
+        delete:
+            description: Delete a view
+            operationId: database.view.delete
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: ViewId'
+                  in: path
+                  name: view_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete view
+            tags:
+                - Database Views
+        put:
+            description: Update an existing view
+            operationId: database.view.update
+            parameters:
+                - description: 'Path parameter: DatabaseId'
+                  in: path
+                  name: database_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: ViewId'
+                  in: path
+                  name: view_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateViewRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update view
+            tags:
+                - Database Views
+    /api/v1/databases/search:
+        get:
+            description: Search databases by name or description
+            operationId: database.search
+            parameters:
+                - description: 'Query parameter: Query'
+                  in: query
+                  name: q
+                  required: false
+                  schema:
+                    type: string
+                - description: 'Query parameter: SpaceId'
+                  in: query
+                  name: space_id
+                  required: false
+                  schema:
+                    nullable: true
+                    type: string
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SearchDatabasesResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Search databases
+            tags:
+                - Databases
+                - Search
     /api/v1/databases/types:
         get:
             description: List all available property types for database columns
@@ -3675,6 +5206,39 @@ paths:
             summary: Get document by ID
             tags:
                 - Document
+    /api/v1/document/space/{space_id}/reorder:
+        patch:
+            description: Reorder documents within a space by updating their positions
+            operationId: document.reorderDocuments
+            parameters:
+                - description: 'Path parameter: SpaceId'
+                  in: path
+                  name: space_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ReorderDocumentsRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ReorderDocumentsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Reorder documents
+            tags:
+                - Document
     /api/v1/document/space/{space_id}/trash:
         get:
             description: Get all deleted documents in a space
@@ -3703,6 +5267,269 @@ paths:
             tags:
                 - Document
                 - Trash
+    /api/v1/drawings/:
+        get:
+            description: List all drawings in a space
+            operationId: drawing.list
+            parameters:
+                - description: 'Query parameter: SpaceId'
+                  in: query
+                  name: space_id
+                  required: false
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDrawingsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List drawings
+            tags:
+                - Drawings
+        post:
+            description: Create a new Excalidraw drawing
+            operationId: drawing.create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateDrawingRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateDrawingResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Create drawing
+            tags:
+                - Drawings
+    /api/v1/drawings/{drawing_id}:
+        delete:
+            description: Delete a drawing
+            operationId: drawing.delete
+            parameters:
+                - description: 'Path parameter: DrawingId'
+                  in: path
+                  name: drawing_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete drawing
+            tags:
+                - Drawings
+        get:
+            description: Get a specific drawing by ID
+            operationId: drawing.get
+            parameters:
+                - description: 'Path parameter: DrawingId'
+                  in: path
+                  name: drawing_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDrawingResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Get drawing
+            tags:
+                - Drawings
+        put:
+            description: Update an existing drawing
+            operationId: drawing.update
+            parameters:
+                - description: 'Path parameter: DrawingId'
+                  in: path
+                  name: drawing_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateDrawingRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessageResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update drawing
+            tags:
+                - Drawings
+    /api/v1/drawings/{drawing_id}/move:
+        patch:
+            description: Move a drawing to a document or to root level
+            operationId: drawing.move
+            parameters:
+                - description: 'Path parameter: DrawingId'
+                  in: path
+                  name: drawing_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/MoveDrawingRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MoveDrawingResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Move drawing
+            tags:
+                - Drawings
+    /api/v1/drawings/{drawing_id}/permissions:
+        get:
+            description: List all permissions for a drawing
+            operationId: drawing.permissions.list
+            parameters:
+                - description: 'Path parameter: DrawingId'
+                  in: path
+                  name: drawing_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDrawingPermissionsResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List drawing permissions
+            tags:
+                - Drawings
+    /api/v1/drawings/{drawing_id}/permissions/user:
+        put:
+            description: Create or update a user permission for a drawing
+            operationId: drawing.permissions.upsert_user
+            parameters:
+                - description: 'Path parameter: DrawingId'
+                  in: path
+                  name: drawing_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertDrawingUserPermissionRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertDrawingUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Upsert drawing user permission
+            tags:
+                - Drawings
+    /api/v1/drawings/{drawing_id}/permissions/user/{user_id}:
+        delete:
+            description: Delete a user permission from a drawing
+            operationId: drawing.permissions.delete_user
+            parameters:
+                - description: 'Path parameter: DrawingId'
+                  in: path
+                  name: drawing_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 'Path parameter: UserId'
+                  in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteDrawingUserPermissionResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Delete drawing user permission
+            tags:
+                - Drawings
     /api/v1/space:
         post:
             description: Create a new space for the authenticated user
@@ -4005,6 +5832,41 @@ paths:
             summary: Add favorite
             tags:
                 - User
+    /api/v1/user/list:
+        get:
+            description: Get a simplified list of all users (id, username, avatar) for use in person pickers
+            operationId: user.listUsers
+            parameters:
+                - description: 'Query parameter: Limit'
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+                - description: 'Query parameter: Offset'
+                  in: query
+                  name: offset
+                  required: false
+                  schema:
+                    format: int32
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListUsersResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: List users
+            tags:
+                - User
     /api/v1/user/my-favorites:
         get:
             description: Retrieve the favorite items of the authenticated user
@@ -4045,6 +5907,33 @@ paths:
             summary: Get my spaces
             tags:
                 - User
+    /api/v1/user/preferences/space-order:
+        put:
+            description: Update the order of spaces in the sidebar (user preference)
+            operationId: user.updateSpaceOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateSpaceOrderRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateSpaceOrderResponse'
+                    description: Successful response
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                    description: Validation error
+            summary: Update space order
+            tags:
+                - User
+                - Preferences
     /api/v1/user/profile:
         get:
             description: Retrieve the profile of the authenticated user

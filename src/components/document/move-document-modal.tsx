@@ -44,8 +44,8 @@ export function MoveDocumentModal({ open, onOpenChange, spaceId, documentId }: M
           </div>
 
           <div className="max-h-56 overflow-auto border rounded p-2 space-y-1">
-            {roots.map((doc: any) => (
-              <button key={doc.id} className="w-full text-left px-2 py-1 rounded hover:bg-muted" onClick={() => setParentId(doc.id)}>
+            {roots.map((doc) => (
+              <button key={doc.id} className="w-full text-left px-2 py-1 rounded hover:bg-muted" onClick={() => setParentId(doc.id ?? '')}>
                 {doc.name || t('common:untitled')}
               </button>
             ))}
@@ -65,8 +65,9 @@ export function MoveDocumentModal({ open, onOpenChange, spaceId, documentId }: M
                 await moveDocument({ spaceId, id: documentId, parentId: pid })
                 show({ title: t('moveDocument.moved'), variant: 'success' })
                 onOpenChange(false)
-              } catch (e: any) {
-                setError(e?.response?.data?.details || t('moveDocument.moveFailed'))
+              } catch (e: unknown) {
+                const axiosErr = e as { response?: { data?: { details?: string } } }
+                setError(axiosErr?.response?.data?.details || t('moveDocument.moveFailed'))
                 show({ title: t('moveDocument.moveFailed'), variant: 'destructive' })
               }
             }}

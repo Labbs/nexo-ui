@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
-import type { components } from '@/api/types'
+import { documentGetDocumentsFromSpace, documentGetDocument, documentCreateDocument, documentUpdateDocument, documentDeleteDocument, documentMoveDocument } from '@/api/generated/document/document'
+import type { DocumentConfig, Document } from '@/api/generated/model'
 
 export function useDocuments(spaceId?: string, parentId?: string) {
   return useQuery({
@@ -8,11 +8,11 @@ export function useDocuments(spaceId?: string, parentId?: string) {
     queryFn: async () => {
       if (!spaceId) return []
 
-      const params = parentId ? `?parent_id=${parentId}` : ''
-      const response = await apiClient.get<components['schemas']['GetDocumentsFromSpaceResponse']>(
-        `/document/space/${spaceId}${params}`
+      const response = await documentGetDocumentsFromSpace(
+        spaceId,
+        parentId ? { parent_id: parentId } : undefined
       )
-      return response.data.documents || []
+      return response.documents || []
     },
     enabled: !!spaceId,
   })
@@ -24,11 +24,9 @@ export function useDocument(spaceId?: string, identifier?: string) {
     queryFn: async () => {
       if (!spaceId || !identifier) return null
 
-      const response = await apiClient.get<components['schemas']['GetDocumentResponse']>(
-        `/document/space/${spaceId}/${identifier}`
-      )
+      const response = await documentGetDocument(spaceId, identifier)
       // The API now returns the document fields directly, not wrapped in { Document: {...} }
-      return response.data || null
+      return response || null
     },
     enabled: !!spaceId && !!identifier,
   })
@@ -39,12 +37,9 @@ export function useCreateDocument() {
 
   return useMutation({
     mutationFn: async ({ spaceId, parentId }: { spaceId: string; parentId?: string }) => {
-      const response = await apiClient.post<components['schemas']['CreateDocumentResponse']>(
-        `/document/space/${spaceId}`,
-        { parent_id: parentId }
-      )
+      const response = await documentCreateDocument(spaceId, { parent_id: parentId })
       // Backend returns flattened document fields
-      return response.data as unknown as components['schemas']['Document']
+      return response as unknown as Document
     },
     onMutate: async (variables) => {
       const { spaceId, parentId } = variables
@@ -72,7 +67,7 @@ export function useCreateDocument() {
 
       queryClient.setQueryData(
         ['documents', spaceId, parentId],
-        (old: any[] | undefined) => [...(old || []), optimisticDoc]
+        (old: Document[] | undefined) => [...(old || []), optimisticDoc]
       )
 
       return { previousDocs, parentId }
@@ -98,7 +93,7 @@ type UpdateDocumentVariables = {
   content?: string
   name?: string
   parentId?: string
-  config?: components['schemas']['DocumentConfig']
+  config?: DocumentConfig
   metadata?: Record<string, unknown>
 }
 
@@ -115,12 +110,15 @@ export function useUpdateDocument() {
       config,
       metadata,
     }: UpdateDocumentVariables) => {
-      const response = await apiClient.put<components['schemas']['UpdateDocumentResponse']>(
-        `/document/space/${spaceId}/${id}`,
-        { content, name, parent_id: parentId, config, metadata }
-      )
+      const response = await documentUpdateDocument(spaceId, id, {
+        content: content as unknown as import('@/api/generated/model').Block[],
+        name,
+        parent_id: parentId,
+        config,
+        metadata,
+      })
       // Backend returns flattened document fields
-      return response.data as unknown as components['schemas']['Document']
+      return response as unknown as Document
     },
     onMutate: async (variables) => {
       const { spaceId, id, slug, name, config } = variables
@@ -146,28 +144,28 @@ export function useUpdateDocument() {
       const previousFavorites = queryClient.getQueryData(['favorites'])
 
       // Helper to apply partial updates to a document object
-      const applyUpdate = (doc: any) => {
+      const applyUpdate = (doc: Record<string, unknown>) => {
         if (!doc) return doc
         const updated = { ...doc }
         if (name !== undefined) updated.name = name
-        if (config !== undefined) updated.config = { ...(doc.config || {}), ...config }
+        if (config !== undefined) updated.config = { ...((doc.config as Record<string, unknown>) || {}), ...config }
         return updated
       }
 
       // Optimistically update the single document cache (by ID)
       if (previousDoc) {
-        queryClient.setQueryData(['document', spaceId, id], applyUpdate(previousDoc))
+        queryClient.setQueryData(['document', spaceId, id], applyUpdate(previousDoc as Record<string, unknown>))
       }
 
       // Optimistically update by slug
       if (slug && previousDocBySlug) {
-        queryClient.setQueryData(['document', spaceId, slug], applyUpdate(previousDocBySlug))
+        queryClient.setQueryData(['document', spaceId, slug], applyUpdate(previousDocBySlug as Record<string, unknown>))
       }
 
       // Optimistically update the documents list(s)
       for (const [queryKey, data] of previousDocsList) {
         if (!Array.isArray(data)) continue
-        queryClient.setQueryData(queryKey, data.map((doc: any) => {
+        queryClient.setQueryData(queryKey, data.map((doc: Record<string, unknown>) => {
           const docId = doc.id || doc.document
           return docId === id ? applyUpdate(doc) : doc
         }))
@@ -175,10 +173,11 @@ export function useUpdateDocument() {
 
       // Optimistically update favorites
       if ((name !== undefined || config !== undefined) && Array.isArray(previousFavorites)) {
-        queryClient.setQueryData(['favorites'], (previousFavorites as any[]).map((fav: any) => {
-          const favDocId = fav?.document?.id
+        queryClient.setQueryData(['favorites'], (previousFavorites as Record<string, unknown>[]).map((fav) => {
+          const favDoc = fav?.document as Record<string, unknown> | undefined
+          const favDocId = favDoc?.id
           if (favDocId !== id) return fav
-          return { ...fav, document: applyUpdate(fav.document) }
+          return { ...fav, document: applyUpdate(favDoc!) }
         }))
       }
 
@@ -205,13 +204,21 @@ export function useUpdateDocument() {
       }
     },
     onSettled: (_data, _err, variables) => {
-      // Always refetch the individual document after mutation settles
-      queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.id] })
-      if (variables.slug) {
-        queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.slug] })
+      const isContentOnly = variables.content !== undefined
+        && variables.name === undefined
+        && variables.config === undefined
+        && variables.parentId === undefined
+        && variables.metadata === undefined
+
+      // Content-only saves: the page already holds the latest content in local state,
+      // so skip refetching the document to avoid a full-page re-render flash.
+      if (!isContentOnly) {
+        queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.id] })
+        if (variables.slug) {
+          queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.slug] })
+        }
       }
       // Only invalidate the documents list and favorites when name/config/parent changed
-      // Content-only saves don't need to refetch the sidebar tree
       if (variables.name !== undefined || variables.config !== undefined || variables.parentId !== undefined) {
         queryClient.invalidateQueries({ queryKey: ['documents', variables.spaceId] })
       }
@@ -227,7 +234,7 @@ export function useDeleteDocument() {
 
   return useMutation({
     mutationFn: async ({ spaceId, identifier }: { spaceId: string; identifier: string }) => {
-      await apiClient.delete(`/document/space/${spaceId}/${identifier}`)
+      await documentDeleteDocument(spaceId, identifier)
     },
     onSuccess: (_, variables) => {
       // Invalidate documents list
@@ -245,11 +252,8 @@ export function useMoveDocument() {
 
   return useMutation({
     mutationFn: async ({ spaceId, id, parentId }: { spaceId: string; id: string; parentId?: string }) => {
-      const response = await apiClient.patch<components['schemas']['Document']>(
-        `/document/space/${spaceId}/${id}/move`,
-        { parent_id: parentId }
-      )
-      return response.data
+      const response = await documentMoveDocument(spaceId, id, { parent_id: parentId })
+      return response
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['document', variables.spaceId, variables.id] })

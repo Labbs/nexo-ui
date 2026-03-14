@@ -113,7 +113,7 @@ export function useSidebar() {
   }, [currentSpace?.id, createDrawing, navigate, show])
 
   // Handle create database (directly without modal)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const handleCreateDatabaseOrSpreadsheet = useCallback(async (_type: DatabaseType, documentId?: string) => {
     if (!currentSpace?.id) return
     try {

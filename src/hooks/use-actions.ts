@@ -1,71 +1,43 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
+import {
+  actionList,
+  actionGet,
+  actionRuns,
+  actionTriggers,
+  actionSteps,
+  actionCreate,
+  actionUpdate,
+  actionDelete,
+} from '@/api/generated/actions/actions'
+import type {
+  ActionStep,
+  ActionItem,
+  GetActionResponse,
+  RunItem,
+  TriggerInfo,
+  StepInfo,
+  CreateActionRequest,
+  UpdateActionRequest,
+} from '@/api/generated/model'
 
-export interface ActionStep {
-  type: string
-  config: Record<string, unknown>
-}
-
-export interface Action {
-  id: string
-  name: string
-  description: string
-  space_id?: string
-  space_name?: string
-  database_id?: string
-  trigger_type: string
-  active: boolean
-  last_run_at?: string
-  last_error?: string
-  run_count: number
-  success_count: number
-  failure_count: number
-  created_at: string
-}
-
-export interface ActionDetail extends Action {
-  trigger_config?: Record<string, unknown>
-  steps: ActionStep[]
-  updated_at: string
-}
-
-export interface ActionRun {
-  id: string
-  success: boolean
-  error?: string
-  duration_ms: number
-  created_at: string
-}
-
-export interface TriggerInfo {
-  type: string
-  description: string
-  category: string
-}
-
-export interface StepInfo {
-  type: string
-  description: string
-  category: string
-}
+// Re-export types for backward compatibility
+export type Action = ActionItem
+export type ActionDetail = GetActionResponse
+export type ActionRun = RunItem
+export type { ActionStep, TriggerInfo, StepInfo }
 
 export function useActions() {
   return useQuery({
     queryKey: ['actions'],
-    queryFn: async () => {
-      const response = await apiClient.get<{ actions: Action[] }>('/actions')
-      return response.data.actions || []
-    },
+    queryFn: () => actionList(),
+    select: (data) => data.actions || [],
   })
 }
 
 export function useAction(actionId: string) {
   return useQuery({
     queryKey: ['actions', actionId],
-    queryFn: async () => {
-      const response = await apiClient.get<ActionDetail>(`/actions/${actionId}`)
-      return response.data
-    },
+    queryFn: () => actionGet(actionId),
     enabled: !!actionId,
   })
 }
@@ -73,12 +45,8 @@ export function useAction(actionId: string) {
 export function useActionRuns(actionId: string, limit = 20) {
   return useQuery({
     queryKey: ['actions', actionId, 'runs'],
-    queryFn: async () => {
-      const response = await apiClient.get<{ runs: ActionRun[] }>(
-        `/actions/${actionId}/runs?limit=${limit}`
-      )
-      return response.data.runs || []
-    },
+    queryFn: () => actionRuns(actionId, { limit }),
+    select: (data) => data.runs || [],
     enabled: !!actionId,
   })
 }
@@ -86,10 +54,8 @@ export function useActionRuns(actionId: string, limit = 20) {
 export function useAvailableTriggers() {
   return useQuery({
     queryKey: ['actions', 'triggers'],
-    queryFn: async () => {
-      const response = await apiClient.get<{ triggers: TriggerInfo[] }>('/actions/triggers')
-      return response.data.triggers || []
-    },
+    queryFn: () => actionTriggers(),
+    select: (data) => data.triggers || [],
     staleTime: Infinity, // Server-defined enum, never changes at runtime
   })
 }
@@ -97,10 +63,8 @@ export function useAvailableTriggers() {
 export function useAvailableSteps() {
   return useQuery({
     queryKey: ['actions', 'steps'],
-    queryFn: async () => {
-      const response = await apiClient.get<{ steps: StepInfo[] }>('/actions/steps')
-      return response.data.steps || []
-    },
+    queryFn: () => actionSteps(),
+    select: (data) => data.steps || [],
     staleTime: Infinity, // Server-defined enum, never changes at runtime
   })
 }
@@ -109,7 +73,7 @@ export function useCreateAction() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       name,
       description,
       triggerType,
@@ -126,14 +90,7 @@ export function useCreateAction() {
       spaceId?: string
       databaseId?: string
     }) => {
-      const response = await apiClient.post<{
-        id: string
-        name: string
-        description: string
-        trigger_type: string
-        active: boolean
-        created_at: string
-      }>('/actions', {
+      return actionCreate({
         name,
         description,
         trigger_type: triggerType,
@@ -141,8 +98,7 @@ export function useCreateAction() {
         steps,
         space_id: spaceId,
         database_id: databaseId,
-      })
-      return response.data
+      } as CreateActionRequest)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] })
@@ -154,7 +110,7 @@ export function useUpdateAction() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       actionId,
       name,
       description,
@@ -171,14 +127,14 @@ export function useUpdateAction() {
       steps?: ActionStep[]
       active?: boolean
     }) => {
-      await apiClient.put(`/actions/${actionId}`, {
+      return actionUpdate(actionId, {
         name,
         description,
         trigger_type: triggerType,
         trigger_config: triggerConfig,
         steps,
         active,
-      })
+      } as UpdateActionRequest)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['actions'] })
@@ -191,8 +147,8 @@ export function useDeleteAction() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ actionId }: { actionId: string }) => {
-      await apiClient.delete(`/actions/${actionId}`)
+    mutationFn: ({ actionId }: { actionId: string }) => {
+      return actionDelete(actionId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] })

@@ -74,7 +74,7 @@ export function ActionsSettings() {
 
   const handleToggleActive = async (action: Action) => {
     await updateAction.mutateAsync({
-      actionId: action.id,
+      actionId: action.id ?? '',
       active: !action.active,
     })
   }
@@ -178,7 +178,7 @@ export function ActionsSettings() {
                 </SelectTrigger>
                 <SelectContent>
                   {availableTriggers?.map(trigger => (
-                    <SelectItem key={trigger.type} value={trigger.type}>
+                    <SelectItem key={trigger.type} value={trigger.type ?? ''}>
                       <div className="flex flex-col">
                         <span>{trigger.type}</span>
                         <span className="text-xs text-muted-foreground">{trigger.description}</span>
@@ -214,7 +214,7 @@ export function ActionsSettings() {
                         </SelectTrigger>
                         <SelectContent>
                           {availableSteps?.map(s => (
-                            <SelectItem key={s.type} value={s.type}>
+                            <SelectItem key={s.type} value={s.type ?? ''}>
                               {s.type} - {s.description}
                             </SelectItem>
                           ))}
@@ -270,8 +270,10 @@ function ActionCard({
   onSelect: () => void
 }) {
   const { t } = useTranslation('settings')
-  const successRate = action.run_count > 0
-    ? Math.round((action.success_count / action.run_count) * 100)
+  const runCount = action.run_count ?? 0
+  const successCount = action.success_count ?? 0
+  const successRate = runCount > 0
+    ? Math.round((successCount / runCount) * 100)
     : 0
 
   return (
@@ -291,14 +293,14 @@ function ActionCard({
           </div>
           <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
             <Switch
-              checked={action.active}
+              checked={action.active ?? false}
               onCheckedChange={() => onToggleActive(action)}
             />
             <Button
               variant="ghost"
               size="icon"
               className="text-destructive hover:text-destructive"
-              onClick={() => onDelete(action.id)}
+              onClick={() => onDelete(action.id ?? '')}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -315,9 +317,9 @@ function ActionCard({
         <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Play className="h-3 w-3" />
-            {t('actions.runCount', { count: action.run_count })}
+            {t('actions.runCount', { count: runCount })}
           </span>
-          {action.run_count > 0 && (
+          {runCount > 0 && (
             <span className="flex items-center gap-1">
               <CheckCircle className="h-3 w-3 text-green-500" />
               {t('actions.successRate', { rate: successRate })}
@@ -348,8 +350,8 @@ function ActionDetailsDialog({
   onClose: () => void
 }) {
   const { t } = useTranslation('settings')
-  const { data: actionDetail } = useAction(action.id)
-  const { data: runs, isLoading } = useActionRuns(action.id)
+  const { data: actionDetail } = useAction(action.id ?? '')
+  const { data: runs, isLoading } = useActionRuns(action.id ?? '')
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -401,11 +403,11 @@ function ActionDetailsDialog({
                         {run.success ? t('actions.runSuccess') : t('actions.runFailed')}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {run.duration_ms}ms
+                        {run.duration_ms ?? 0}ms
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(run.created_at).toLocaleString()}
+                      {new Date(run.created_at ?? '').toLocaleString()}
                     </div>
                   </div>
                 ))}
