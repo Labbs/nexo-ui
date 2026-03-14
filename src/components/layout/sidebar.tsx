@@ -17,7 +17,6 @@ import { UserMenu } from '@/components/sidebar/user-menu'
 import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon } from '@/components/ui/icon-picker'
 import { useAuth } from '@/contexts/auth-context'
-import { useCurrentSpace } from '@/contexts/space-context'
 import { useSidebarUI } from '@/contexts/sidebar-ui-context'
 import { useFavorites } from '@/hooks/use-favorites'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -26,6 +25,7 @@ import { useResizable } from '@/hooks/use-resizable'
 // Types for favorite
 interface Favorite {
   id: string
+  space_id?: string
   document?: {
     id?: string
     name?: string
@@ -129,17 +129,17 @@ function FavoritesSection() {
   const { t } = useTranslation('navigation')
   const navigate = useNavigate()
   const { slug } = useParams<{ slug?: string }>()
-  const { currentSpace } = useCurrentSpace()
   const { data: favorites = [], isLoading: isLoadingFavs } = useFavorites()
   const { favoritesExpanded, setFavoritesExpanded } = useSidebarUI()
 
   const handleFavoriteClick = useCallback((favorite: Favorite) => {
     const doc = favorite.document
     const docSlug = doc?.slug
-    if (currentSpace?.id && docSlug) {
-      navigate(`/space/${currentSpace.id}/${docSlug}`)
+    const spaceId = favorite.space_id
+    if (spaceId && docSlug) {
+      navigate(`/space/${spaceId}/${docSlug}`)
     }
-  }, [currentSpace?.id, navigate])
+  }, [navigate])
 
   const isFavoriteActive = useCallback((favorite: Favorite) => {
     const docSlug = favorite.document?.slug
