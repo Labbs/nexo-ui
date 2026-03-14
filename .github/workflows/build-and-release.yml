@@ -31,6 +31,9 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Generate API types
+        run: pnpm generate:api
+
       - name: Build
         run: pnpm build
 
