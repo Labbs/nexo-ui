@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ContentSettingsSidebar } from '@/components/shared/content-settings-sidebar'
+import type { Permission, SpacePermission } from '@/components/permissions/permission-manager'
 import { useDeleteDatabase, type GetDatabaseResponse } from '@/hooks/use-database'
 import {
   useDatabasePermissions,
@@ -69,8 +70,8 @@ export function DatabaseSettingsSidebar({
       createdAt={database?.created_at}
       updatedAt={database?.updated_at}
       createdBy={database?.created_by}
-      permissions={permissions}
-      spacePermissions={spacePermissionsData?.permissions}
+      permissions={permissions as unknown as Permission[]}
+      spacePermissions={spacePermissionsData?.permissions as unknown as SpacePermission[] | undefined}
       canManagePermissions={canManagePermissions}
       permissionsLoading={permissionsLoading}
       supportGroups={true}

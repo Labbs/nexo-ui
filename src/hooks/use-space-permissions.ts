@@ -1,29 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
+import {
+  spaceListPermissions,
+  spaceUpsertUserPermission,
+  spaceDeleteUserPermission,
+} from '@/api/generated/space/space'
+import type { SpacePermission as GenSpacePermission, UpsertSpaceUserPermissionRequest } from '@/api/generated/model'
 
-export interface SpacePermission {
-  id: string
-  user_id?: string
-  username?: string
-  group_id?: string
-  group_name?: string
-  role: string
-  created_at?: string
-}
-
-interface ListSpacePermissionsResponse {
-  permissions: SpacePermission[]
-}
+// Re-export type for backward compatibility
+export type SpacePermission = GenSpacePermission
 
 export function useSpacePermissions(spaceId?: string | null) {
   return useQuery({
     queryKey: ['space', spaceId, 'permissions'],
-    queryFn: async () => {
-      const response = await apiClient.get<ListSpacePermissionsResponse>(
-        `/space/${spaceId}/permissions`
-      )
-      return response.data
-    },
+    queryFn: () => spaceListPermissions(spaceId!),
     enabled: !!spaceId,
   })
 }
@@ -32,7 +21,7 @@ export function useUpsertSpaceUserPermission() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       spaceId,
       userId,
       role,
@@ -41,10 +30,10 @@ export function useUpsertSpaceUserPermission() {
       userId: string
       role: string
     }) => {
-      await apiClient.put(`/space/${spaceId}/permissions`, {
+      return spaceUpsertUserPermission(spaceId, {
         user_id: userId,
         role,
-      })
+      } as UpsertSpaceUserPermissionRequest)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -58,14 +47,14 @@ export function useDeleteSpaceUserPermission() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       spaceId,
       userId,
     }: {
       spaceId: string
       userId: string
     }) => {
-      await apiClient.delete(`/space/${spaceId}/permissions/${userId}`)
+      return spaceDeleteUserPermission(spaceId, userId)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

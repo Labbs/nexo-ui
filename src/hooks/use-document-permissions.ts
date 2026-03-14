@@ -1,24 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
+import {
+  documentListPermissions,
+  documentUpsertUserPermission,
+  documentDeleteUserPermission,
+} from '@/api/generated/document/document'
+import type { DocumentPermission as GenDocumentPermission, UpsertDocumentUserPermissionRequest } from '@/api/generated/model'
 
-export interface DocumentPermission {
-  id: string
-  user_id?: string
-  username?: string
-  group_id?: string
-  group_name?: string
-  role: 'owner' | 'editor' | 'viewer' | 'denied'
-}
+// Re-export type for backward compatibility
+export type DocumentPermission = GenDocumentPermission
 
 export function useDocumentPermissions(spaceId?: string, documentId?: string) {
   return useQuery({
     queryKey: ['document', spaceId, documentId, 'permissions'],
-    queryFn: async () => {
-      const response = await apiClient.get<{ permissions: DocumentPermission[] }>(
-        `/document/space/${spaceId}/${documentId}/permissions`
-      )
-      return response.data.permissions || []
-    },
+    queryFn: () => documentListPermissions(spaceId!, documentId!),
+    select: (data) => data.permissions || [],
     enabled: !!spaceId && !!documentId,
   })
 }
@@ -27,7 +22,7 @@ export function useUpsertDocumentPermission() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       spaceId,
       documentId,
       userId,
@@ -38,10 +33,10 @@ export function useUpsertDocumentPermission() {
       userId: string
       role: 'owner' | 'editor' | 'viewer' | 'denied'
     }) => {
-      await apiClient.put(`/document/space/${spaceId}/${documentId}/permissions`, {
+      return documentUpsertUserPermission(spaceId, documentId, {
         user_id: userId,
         role,
-      })
+      } as UpsertDocumentUserPermissionRequest)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -55,7 +50,7 @@ export function useDeleteDocumentPermission() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       spaceId,
       documentId,
       userId,
@@ -64,7 +59,7 @@ export function useDeleteDocumentPermission() {
       documentId: string
       userId: string
     }) => {
-      await apiClient.delete(`/document/space/${spaceId}/${documentId}/permissions/${userId}`)
+      return documentDeleteUserPermission(spaceId, documentId, userId)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

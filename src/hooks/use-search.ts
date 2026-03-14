@@ -1,32 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
-import type { components } from '@/api/types'
+import { documentSearch } from '@/api/generated/document/document'
+import { databaseSearch } from '@/api/generated/databases/databases'
+import type { SearchDatabaseResultItem } from '@/api/generated/model'
 
-export interface DatabaseSearchResultItem {
-  id: string
-  name: string
-  description: string
-  icon?: string
-  type: string
-  space_id: string
-  space_name: string
-  updated_at: string
-}
-
-interface DatabaseSearchResponse {
-  results: DatabaseSearchResultItem[]
-}
+// Re-export type for backward compatibility
+export type { SearchDatabaseResultItem }
 
 export function useSearchDocuments(query: string) {
   return useQuery({
     queryKey: ['search', 'documents', query],
-    queryFn: async () => {
-      const response = await apiClient.get<components['schemas']['SearchResponse']>(
-        `/document/search`,
-        { params: { q: query, limit: 20 } }
-      )
-      return response.data.results || []
-    },
+    queryFn: () => documentSearch({ q: query, limit: 20 }),
+    select: (data) => data.results || [],
     enabled: query.length >= 2,
     staleTime: 30_000,
   })
@@ -35,13 +19,8 @@ export function useSearchDocuments(query: string) {
 export function useSearchDatabases(query: string) {
   return useQuery({
     queryKey: ['search', 'databases', query],
-    queryFn: async () => {
-      const response = await apiClient.get<DatabaseSearchResponse>(
-        `/databases/search`,
-        { params: { q: query, limit: 20 } }
-      )
-      return response.data.results || []
-    },
+    queryFn: () => databaseSearch({ q: query, limit: 20 }),
+    select: (data) => data.results || [],
     enabled: query.length >= 2,
     staleTime: 30_000,
   })

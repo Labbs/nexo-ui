@@ -1,32 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
+import { drawingList, drawingGet, drawingCreate, drawingUpdate, drawingMove, drawingDelete } from '@/api/generated/drawings/drawings'
+import type { DrawingItem, GetDrawingResponse } from '@/api/generated/model'
 
-// Types
-export interface DrawingItem {
-  id: string
-  document_id?: string
-  name: string
-  icon?: string
-  thumbnail?: string
-  created_by: string
-  created_at: string
-  updated_at: string
-}
-
-export interface Drawing {
-  id: string
-  space_id: string
-  document_id?: string
-  name: string
-  icon?: string
-  elements: unknown[]
-  app_state: Record<string, unknown>
-  files: Record<string, unknown>
-  thumbnail?: string
-  created_by: string
-  created_at: string
-  updated_at: string
-}
+// Re-export model types for consumers
+export type { DrawingItem }
+export type Drawing = GetDrawingResponse
 
 export interface CreateDrawingInput {
   spaceId: string
@@ -61,10 +39,8 @@ export function useDrawings(spaceId?: string) {
     queryKey: drawingKeys.list(spaceId || ''),
     queryFn: async () => {
       if (!spaceId) return []
-      const response = await apiClient.get<{ drawings: DrawingItem[] }>(
-        `/drawings?space_id=${spaceId}`
-      )
-      return response.data.drawings || []
+      const response = await drawingList({ space_id: spaceId })
+      return response.drawings || []
     },
     enabled: !!spaceId,
   })
@@ -76,8 +52,8 @@ export function useDrawing(drawingId?: string) {
     queryKey: drawingKeys.detail(drawingId || ''),
     queryFn: async () => {
       if (!drawingId) return null
-      const response = await apiClient.get<Drawing>(`/drawings/${drawingId}`)
-      return response.data
+      const response = await drawingGet(drawingId)
+      return response
     },
     enabled: !!drawingId,
   })
@@ -89,19 +65,16 @@ export function useCreateDrawing() {
 
   return useMutation({
     mutationFn: async (input: CreateDrawingInput) => {
-      const response = await apiClient.post<{ id: string; name: string; created_at: string }>(
-        '/drawings',
-        {
-          space_id: input.spaceId,
-          document_id: input.documentId,
-          name: input.name,
-          elements: input.elements || [],
-          app_state: input.appState || {},
-          files: input.files || {},
-          thumbnail: input.thumbnail,
-        }
-      )
-      return response.data
+      const response = await drawingCreate({
+        space_id: input.spaceId,
+        document_id: input.documentId,
+        name: input.name,
+        elements: input.elements || [],
+        app_state: input.appState || {},
+        files: input.files || {},
+        thumbnail: input.thumbnail,
+      })
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: drawingKeys.list(variables.spaceId) })
@@ -115,18 +88,15 @@ export function useUpdateDrawing() {
 
   return useMutation({
     mutationFn: async (input: UpdateDrawingInput) => {
-      const response = await apiClient.put<{ message: string }>(
-        `/drawings/${input.drawingId}`,
-        {
-          name: input.name,
-          icon: input.icon,
-          elements: input.elements,
-          app_state: input.appState,
-          files: input.files,
-          thumbnail: input.thumbnail,
-        }
-      )
-      return response.data
+      const response = await drawingUpdate(input.drawingId, {
+        name: input.name,
+        icon: input.icon,
+        elements: input.elements,
+        app_state: input.appState,
+        files: input.files,
+        thumbnail: input.thumbnail,
+      })
+      return response
     },
     onMutate: async (variables) => {
       const { drawingId, name, icon } = variables
@@ -142,7 +112,7 @@ export function useUpdateDrawing() {
       const previousDetail = queryClient.getQueryData(drawingKeys.detail(drawingId))
       const previousLists = queryClient.getQueriesData({ queryKey: drawingKeys.all })
 
-      const applyUpdate = (drawing: any) => {
+      const applyUpdate = (drawing: Record<string, unknown>) => {
         if (!drawing) return drawing
         const updated = { ...drawing }
         if (name !== undefined) updated.name = name
@@ -152,13 +122,13 @@ export function useUpdateDrawing() {
 
       // Optimistically update the detail cache
       if (previousDetail) {
-        queryClient.setQueryData(drawingKeys.detail(drawingId), applyUpdate(previousDetail))
+        queryClient.setQueryData(drawingKeys.detail(drawingId), applyUpdate(previousDetail as Record<string, unknown>))
       }
 
       // Optimistically update all list caches that contain this drawing
       for (const [queryKey, data] of previousLists) {
         if (!Array.isArray(data)) continue
-        queryClient.setQueryData(queryKey, data.map((d: any) =>
+        queryClient.setQueryData(queryKey, data.map((d: Record<string, unknown>) =>
           d.id === drawingId ? applyUpdate(d) : d
         ))
       }
@@ -194,11 +164,8 @@ export function useMoveDrawing() {
 
   return useMutation({
     mutationFn: async ({ drawingId, documentId }: { drawingId: string; documentId?: string }) => {
-      const response = await apiClient.patch<{ id: string; document_id?: string }>(
-        `/drawings/${drawingId}/move`,
-        { document_id: documentId || null }
-      )
-      return response.data
+      const response = await drawingMove(drawingId, { document_id: documentId || undefined })
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: drawingKeys.all })
@@ -212,8 +179,8 @@ export function useDeleteDrawing() {
 
   return useMutation({
     mutationFn: async (drawingId: string) => {
-      const response = await apiClient.delete<{ message: string }>(`/drawings/${drawingId}`)
-      return response.data
+      const response = await drawingDelete(drawingId)
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: drawingKeys.all })

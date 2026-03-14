@@ -411,7 +411,7 @@ export function DocumentDatabaseView() {
       databaseId,
       schema: newSchema,
     })
-  }, [databaseId, database?.schema, updateDatabase])
+  }, [databaseId, database?.schema, updateDatabase, t])
 
   // Loading state
   if (isLoadingDatabase || isLoadingRows) {
@@ -477,7 +477,7 @@ export function DocumentDatabaseView() {
                 type: type || 'list',
               }, {
                 onSuccess: (newView) => {
-                  setActiveViewId(newView.id)
+                  setActiveViewId(newView.id ?? '')
                 }
               })
             }}
@@ -502,7 +502,7 @@ export function DocumentDatabaseView() {
                 columns: viewToDuplicate.columns,
               }, {
                 onSuccess: (newView) => {
-                  setActiveViewId(newView.id)
+                  setActiveViewId(newView.id ?? '')
                 }
               })
             }}
@@ -511,7 +511,7 @@ export function DocumentDatabaseView() {
               deleteViewMutation.mutate({ databaseId, viewId })
               if (viewId === activeViewId && views.length > 1) {
                 const nextView = views.find(v => v.id !== viewId)
-                if (nextView) setActiveViewId(nextView.id)
+                if (nextView) setActiveViewId(nextView.id ?? '')
               }
             }}
             onFilterChange={(filter) => {

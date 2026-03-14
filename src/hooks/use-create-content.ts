@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCreateDocument } from '@/hooks/use-documents'
+import type { Document } from '@/api/generated/model'
 import { useCreateDrawing } from '@/hooks/use-drawings'
 import { useCreateDatabase, type DatabaseType } from '@/hooks/use-database'
 import { useToast } from '@/components/ui/toaster'
@@ -16,7 +17,7 @@ export function useCreateContent(spaceId: string | undefined) {
     if (!spaceId) return
     try {
       const doc = await createDocument({ spaceId, parentId })
-      const slug = (doc as any).slug
+      const slug = (doc as Document & { slug?: string }).slug
       if (slug) navigate(`/space/${spaceId}/${slug}`)
     } catch {
       show({ title: 'Failed to create page', variant: 'destructive' })
@@ -40,7 +41,6 @@ export function useCreateContent(spaceId: string | undefined) {
     }
   }, [spaceId, createDrawing, navigate, show])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCreateDatabase = useCallback(async (_type: DatabaseType, documentId?: string) => {
     if (!spaceId) return
     try {

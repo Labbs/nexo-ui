@@ -19,8 +19,8 @@ export function DrawingEditor({ drawing }: DrawingEditorProps) {
   const isReadyToSaveRef = useRef(false)
 
   // Store drawing id in ref to avoid stale closure
-  const drawingIdRef = useRef(drawing.id)
-  drawingIdRef.current = drawing.id
+  const drawingIdRef = useRef(drawing.id ?? '')
+  drawingIdRef.current = drawing.id ?? ''
 
   // Track last saved elements to detect real changes
   const lastSavedElementsRef = useRef<string>(JSON.stringify(drawing.elements || []))
@@ -56,7 +56,7 @@ export function DrawingEditor({ drawing }: DrawingEditorProps) {
       }
 
       // Clean appState before saving (remove non-serializable properties)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { collaborators: _, ...cleanedAppState } = appState as unknown as Record<string, unknown>
 
       const elementsJson = JSON.stringify(elements)

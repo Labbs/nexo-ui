@@ -25,8 +25,9 @@ export function RegisterPage() {
       navigate('/login', {
         state: { message: t('register.success') },
       })
-    } catch (err: any) {
-      setError(err.response?.data?.details || t('register.failed'))
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { details?: string } } }
+      setError(axiosErr.response?.data?.details || t('register.failed'))
     } finally {
       setIsLoading(false)
     }

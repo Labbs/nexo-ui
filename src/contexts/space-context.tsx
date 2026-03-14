@@ -1,8 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, ReactNode, useMemo, useCallback, useEffect } from 'react'
-import type { components } from '@/api/types'
+import type { Space } from '@/api/generated/model'
 import { useSpaces } from '@/hooks/use-spaces'
-
-type Space = components['schemas']['Space']
 
 // Roles that can create/edit content
 const EDIT_ROLES = ['owner', 'admin', 'editor']

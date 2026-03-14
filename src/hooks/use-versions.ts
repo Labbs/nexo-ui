@@ -1,51 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
+import {
+  documentListVersions,
+  documentGetVersion,
+  documentCreateVersion,
+  documentRestoreVersion,
+} from '@/api/generated/document/document'
+import type {
+  VersionItem,
+  GetVersionResponse,
+  ListVersionsResponse,
+} from '@/api/generated/model'
 
-export interface VersionItem {
-  id: string
-  version: number
-  name: string
-  description?: string
-  user_id: string
-  user_name: string
-  created_at: string
-}
-
-export interface VersionDetail {
-  id: string
-  version: number
-  document_id: string
-  name: string
-  content: any[]
-  config: {
-    full_width: boolean
-    icon?: string
-    lock: boolean
-    header_background?: string
-  }
-  description?: string
-  user_id: string
-  user_name: string
-  created_at: string
-}
-
-export interface ListVersionsResponse {
-  versions: VersionItem[]
-  total_count: number
-}
+// Re-export types for backward compatibility
+export type { VersionItem, ListVersionsResponse }
+export type VersionDetail = GetVersionResponse
 
 export function useVersions(spaceId?: string, documentId?: string, options?: { enabled?: boolean; limit?: number; offset?: number }) {
   const { enabled = true, limit = 20, offset = 0 } = options || {}
 
   return useQuery({
     queryKey: ['versions', spaceId, documentId, limit, offset],
-    queryFn: async () => {
-      if (!spaceId || !documentId) return { versions: [], total_count: 0 }
-
-      const response = await apiClient.get<ListVersionsResponse>(
-        `/document/space/${spaceId}/${documentId}/versions?limit=${limit}&offset=${offset}`
-      )
-      return response.data
+    queryFn: () => {
+      if (!spaceId || !documentId) return { versions: [], total_count: 0 } as ListVersionsResponse
+      return documentListVersions(spaceId, documentId, { limit, offset })
     },
     enabled: enabled && !!spaceId && !!documentId,
   })
@@ -54,13 +31,9 @@ export function useVersions(spaceId?: string, documentId?: string, options?: { e
 export function useVersion(spaceId?: string, documentId?: string, versionId?: string) {
   return useQuery({
     queryKey: ['version', spaceId, documentId, versionId],
-    queryFn: async () => {
+    queryFn: () => {
       if (!spaceId || !documentId || !versionId) return null
-
-      const response = await apiClient.get<VersionDetail>(
-        `/document/space/${spaceId}/${documentId}/versions/${versionId}`
-      )
-      return response.data
+      return documentGetVersion(spaceId, documentId, versionId)
     },
     enabled: !!spaceId && !!documentId && !!versionId,
     staleTime: Infinity, // Versions are immutable once created
@@ -71,7 +44,7 @@ export function useCreateVersion() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       spaceId,
       documentId,
       description,
@@ -80,11 +53,7 @@ export function useCreateVersion() {
       documentId: string
       description?: string
     }) => {
-      const response = await apiClient.post<{ version_id: string; version: number }>(
-        `/document/space/${spaceId}/${documentId}/versions`,
-        { description }
-      )
-      return response.data
+      return documentCreateVersion(spaceId, documentId, { description })
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['versions', variables.spaceId, variables.documentId] })
@@ -96,7 +65,7 @@ export function useRestoreVersion() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       spaceId,
       documentId,
       versionId,
@@ -105,7 +74,7 @@ export function useRestoreVersion() {
       documentId: string
       versionId: string
     }) => {
-      await apiClient.post(`/document/space/${spaceId}/${documentId}/versions/${versionId}/restore`)
+      return documentRestoreVersion(spaceId, documentId, versionId, {})
     },
     onSuccess: (_, variables) => {
       // Invalidate only the specific document, not all documents in the space

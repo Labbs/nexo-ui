@@ -125,7 +125,7 @@ export function ApiKeysSettings() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:text-destructive"
-                    onClick={() => handleDelete(key.id)}
+                    onClick={() => handleDelete(key.id ?? '')}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -140,7 +140,7 @@ export function ApiKeysSettings() {
                   ))}
                 </div>
                 <div className="mt-3 text-xs text-muted-foreground">
-                  {t('apiKeys.created')}: {new Date(key.created_at).toLocaleDateString()}
+                  {t('apiKeys.created')}: {new Date(key.created_at ?? '').toLocaleDateString()}
                   {key.last_used_at && (
                     <> &bull; {t('apiKeys.lastUsed')}: {new Date(key.last_used_at).toLocaleDateString()}</>
                   )}
@@ -181,8 +181,8 @@ export function ApiKeysSettings() {
                       <div key={scope.scope} className="flex items-center space-x-2">
                         <Checkbox
                           id={scope.scope}
-                          checked={selectedScopes.includes(scope.scope)}
-                          onCheckedChange={() => toggleScope(scope.scope)}
+                          checked={selectedScopes.includes(scope.scope ?? '')}
+                          onCheckedChange={() => toggleScope(scope.scope ?? '')}
                         />
                         <label
                           htmlFor={scope.scope}

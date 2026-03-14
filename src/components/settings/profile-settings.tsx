@@ -46,10 +46,11 @@ export function ProfileSettings() {
 
   useEffect(() => {
     if (user) {
-      setFirstName((user as any).first_name || '')
-      setLastName((user as any).last_name || '')
+      const profile = user as Record<string, unknown>
+      setFirstName((profile.first_name as string) || '')
+      setLastName((profile.last_name as string) || '')
       setEmail(user.email || '')
-      setTimezone((user as any).timezone || 'UTC')
+      setTimezone((profile.timezone as string) || 'UTC')
     }
   }, [user])
 

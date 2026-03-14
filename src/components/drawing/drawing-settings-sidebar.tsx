@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { ContentSettingsSidebar } from '@/components/shared/content-settings-sidebar'
+import type { Permission, SpacePermission } from '@/components/permissions/permission-manager'
 import { useDeleteDrawing, useUpdateDrawing, type Drawing } from '@/hooks/use-drawings'
 import {
   useDrawingPermissions,
@@ -31,7 +32,7 @@ export function DrawingSettingsSidebar({
   const { user } = useAuth()
 
   // Permissions
-  const drawingSpaceId = drawing?.space_id || spaceId
+  const drawingSpaceId = drawing?.space_id ?? spaceId
   const { data: permissions = [], isLoading: permissionsLoading } = useDrawingPermissions(drawing?.id)
   const { data: spacePermissionsData } = useSpacePermissions(drawingSpaceId || null)
   const upsertPermission = useUpsertDrawingPermission()
@@ -67,8 +68,8 @@ export function DrawingSettingsSidebar({
       createdBy={drawing?.created_by}
       onIconChange={handleIconChange}
       isIconUpdating={isUpdating}
-      permissions={permissions}
-      spacePermissions={spacePermissionsData?.permissions}
+      permissions={permissions as unknown as Permission[]}
+      spacePermissions={spacePermissionsData?.permissions as unknown as SpacePermission[] | undefined}
       canManagePermissions={canManagePermissions}
       permissionsLoading={permissionsLoading}
       supportGroups={false}

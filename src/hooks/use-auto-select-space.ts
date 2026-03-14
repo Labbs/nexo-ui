@@ -1,9 +1,7 @@
 import { useEffect } from 'react'
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useSpaces } from './use-spaces'
-import type { components } from '@/api/types'
-
-type Space = components['schemas']['Space']
+import type { Space } from '@/api/generated/model'
 
 /**
  * Auto-select space hook

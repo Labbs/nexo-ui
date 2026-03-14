@@ -9,9 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { useSpaces } from '@/hooks/use-spaces'
-import type { components } from '@/api/types'
-
-type Space = components['schemas']['Space']
+import type { Space } from '@/api/generated/model'
 import { useCurrentSpace } from '@/contexts/space-context'
 import { useTranslation } from 'react-i18next'
 
@@ -42,7 +40,7 @@ export function SpaceSwitcher() {
                 <div
                   className="h-6 w-6 rounded flex items-center justify-center text-sm font-medium"
                   style={{
-                    backgroundColor: (currentSpace as any).icon_color || '#6366f1',
+                    backgroundColor: currentSpace.icon_color || '#6366f1',
                     color: 'white',
                   }}
                 >
@@ -70,7 +68,7 @@ export function SpaceSwitcher() {
               <div
                 className="h-6 w-6 rounded flex items-center justify-center text-sm font-medium"
                 style={{
-                  backgroundColor: (space as any).icon_color || '#6366f1',
+                  backgroundColor: space.icon_color || '#6366f1',
                   color: 'white',
                 }}
               >

@@ -35,9 +35,9 @@ export function VersionHistorySidebar({
     if (!spaceId || !documentId) return
     if (!window.confirm(t('versionHistory.restoreConfirm', { version: version.version }))) return
 
-    setRestoringId(version.id)
+    setRestoringId(version.id ?? null)
     try {
-      await restoreVersion({ spaceId, documentId, versionId: version.id })
+      await restoreVersion({ spaceId, documentId, versionId: version.id ?? '' })
       // Page will refresh with new content via query invalidation
     } catch (error) {
       console.error('Failed to restore version:', error)
@@ -86,7 +86,7 @@ export function VersionHistorySidebar({
                   key={version.id}
                   version={version}
                   onRestore={() => handleRestore(version)}
-                  onCompare={() => onCompare?.(version.id)}
+                  onCompare={() => onCompare?.(version.id ?? '')}
                   isRestoring={restoringId === version.id}
                   isComparing={comparingVersionId === version.id}
                 />
@@ -120,7 +120,7 @@ interface VersionListItemProps {
 function VersionListItem({ version, onRestore, onCompare, isRestoring, isComparing }: VersionListItemProps) {
   const { t } = useTranslation('document')
   const { dateFnsLocale } = useLanguage()
-  const timeAgo = formatDistanceToNow(new Date(version.created_at), {
+  const timeAgo = formatDistanceToNow(new Date(version.created_at ?? ''), {
     addSuffix: true,
     locale: dateFnsLocale,
   })

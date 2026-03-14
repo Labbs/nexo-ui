@@ -13,6 +13,12 @@ import databaseEn from './locales/en/database.json'
 import documentEn from './locales/en/document.json'
 import drawingEn from './locales/en/drawing.json'
 
+// Non-English translations are lazy-loaded via Vite glob import (code-split per chunk).
+// Excluding 'en' avoids the "statically + dynamically imported" Vite warning.
+const lazyTranslations = import.meta.glob<Record<string, unknown>>(
+  './locales/!(en)/*.json'
+)
+
 export const SUPPORTED_LANGUAGES = ['en', 'fr', 'es', 'de', 'it', 'pt'] as const
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
@@ -31,11 +37,14 @@ export const LANGUAGE_STORAGE_KEY = 'nexo_language'
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
-  // Lazy-load non-English translations via Vite dynamic import (code-split per language+namespace)
+  // Lazy-load non-English translations via the pre-built glob map
   .use(
-    resourcesToBackend((language: string, namespace: string) =>
-      import(`./locales/${language}/${namespace}.json`)
-    )
+    resourcesToBackend((language: string, namespace: string) => {
+      const key = `./locales/${language}/${namespace}.json`
+      const loader = lazyTranslations[key]
+      if (!loader) return Promise.resolve({})
+      return loader()
+    })
   )
   .init({
     resources: {

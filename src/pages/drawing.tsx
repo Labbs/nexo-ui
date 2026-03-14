@@ -9,9 +9,7 @@ import { DrawingSettingsSidebar } from '@/components/drawing/drawing-settings-si
 import { ContentHeader, type BreadcrumbItem } from '@/components/shared/content-header'
 import { useDrawing, useUpdateDrawing } from '@/hooks/use-drawings'
 import { useSpaces } from '@/hooks/use-spaces'
-import type { components } from '@/api/types'
-
-type Space = components['schemas']['Space']
+import type { Space } from '@/api/generated/model'
 import type { IconValue } from '@/components/ui/icon-picker'
 import { parseStoredIcon, serializeIcon } from '@/lib/utils'
 

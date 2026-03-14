@@ -51,7 +51,7 @@ export function WebhooksSettings() {
       events: selectedEvents,
     })
 
-    setCreatedSecret(result.secret)
+    setCreatedSecret(result.secret ?? null)
   }
 
   const handleCloseCreate = () => {
@@ -73,7 +73,7 @@ export function WebhooksSettings() {
 
   const handleToggleActive = async (webhook: WebhookType) => {
     await updateWebhook.mutateAsync({
-      webhookId: webhook.id,
+      webhookId: webhook.id ?? '',
       active: !webhook.active,
     })
   }
@@ -171,8 +171,8 @@ export function WebhooksSettings() {
                       <div key={event.event} className="flex items-center space-x-2">
                         <Checkbox
                           id={event.event}
-                          checked={selectedEvents.includes(event.event)}
-                          onCheckedChange={() => toggleEvent(event.event)}
+                          checked={selectedEvents.includes(event.event ?? '')}
+                          onCheckedChange={() => toggleEvent(event.event ?? '')}
                         />
                         <label
                           htmlFor={event.event}
@@ -280,14 +280,14 @@ function WebhookCard({
           </div>
           <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
             <Switch
-              checked={webhook.active}
+              checked={webhook.active ?? false}
               onCheckedChange={() => onToggleActive(webhook)}
             />
             <Button
               variant="ghost"
               size="icon"
               className="text-destructive hover:text-destructive"
-              onClick={() => onDelete(webhook.id)}
+              onClick={() => onDelete(webhook.id ?? '')}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -303,10 +303,7 @@ function WebhookCard({
           ))}
         </div>
         <div className="mt-3 text-xs text-muted-foreground">
-          {t('webhooks.created')}: {new Date(webhook.created_at).toLocaleDateString()}
-          {webhook.last_triggered_at && (
-            <> &bull; {t('webhooks.lastTriggered')}: {new Date(webhook.last_triggered_at).toLocaleDateString()}</>
-          )}
+          {t('webhooks.created')}: {new Date(webhook.created_at ?? '').toLocaleDateString()}
         </div>
       </CardContent>
     </Card>
@@ -321,7 +318,7 @@ function WebhookDetailsDialog({
   onClose: () => void
 }) {
   const { t } = useTranslation('settings')
-  const { data: deliveries, isLoading } = useWebhookDeliveries(webhook.id)
+  const { data: deliveries, isLoading } = useWebhookDeliveries(webhook.id ?? '')
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -366,7 +363,7 @@ function WebhookDetailsDialog({
                       <Badge variant="outline">{delivery.status_code}</Badge>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(delivery.created_at).toLocaleString()}
+                      {new Date(delivery.created_at ?? '').toLocaleString()}
                     </div>
                   </div>
                 ))}

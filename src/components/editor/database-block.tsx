@@ -126,10 +126,9 @@ function InlineDatabaseView({
       options: s.options as Record<string, unknown> | undefined
     }))
 
-  const views = database?.views || []
-
   // Get active view (used for view tabs display)
   const _activeView = useMemo(() => {
+    const views = database?.views || []
     if (blockSettings.selectedViewId) {
       return views.find((v: { id?: string; name?: string; type?: string }) => v.id === blockSettings.selectedViewId)
     }
@@ -137,7 +136,7 @@ function InlineDatabaseView({
       return views.find((v: { id?: string; name?: string; type?: string }) => v.id === database.default_view)
     }
     return views[0]
-  }, [views, blockSettings.selectedViewId, database?.default_view])
+  }, [database?.views, blockSettings.selectedViewId, database?.default_view])
   void _activeView // Suppress unused variable warning
 
   // Apply row limit if set

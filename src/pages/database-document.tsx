@@ -105,27 +105,28 @@ export function DatabaseDocumentPage() {
 
   // Get timestamps and user info
   const updatedAt = useMemo(() => {
-    return (row as any)?.updated_at
+    return row?.updated_at
   }, [row])
 
   const createdAt = useMemo(() => {
-    return (row as any)?.created_at
+    return row?.created_at
   }, [row])
 
   const createdByUser = useMemo(() => {
-    return (row as any)?.created_by_user
+    return row?.created_by_user
   }, [row])
 
   const updatedByUser = useMemo(() => {
-    return (row as any)?.updated_by_user
+    return row?.updated_by_user
   }, [row])
 
   // Build fields array for DocumentEditor
   const fields = useMemo(() => {
-    if (!row?.properties) return []
+    const props = row?.properties
+    if (!props) return []
     return fieldColumns.map((property: PropertySchema) => ({
       property,
-      value: property.id ? row.properties[property.id] : undefined,
+      value: property.id ? props[property.id] : undefined,
     }))
   }, [row?.properties, fieldColumns])
 

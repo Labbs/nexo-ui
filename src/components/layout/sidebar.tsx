@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useCallback, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { EditSpaceModal } from '@/components/spaces/edit-space-modal'
@@ -39,7 +39,7 @@ interface SidebarProps {
   onCreateSpace?: () => void
 }
 
-export function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps) {
+export const Sidebar = memo(function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const { width, isResizing, handleMouseDown } = useResizable({
     minWidth: 200,
@@ -108,7 +108,7 @@ export function Sidebar({ onClose, onCreateSpace: _onCreateSpace }: SidebarProps
       <EditSpaceModal open={isEditSpaceOpen} onOpenChange={setIsEditSpaceOpen} />
     </aside>
   )
-}
+})
 
 // Mobile Header Component
 function MobileHeader({ onClose }: { onClose: () => void }) {

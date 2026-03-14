@@ -1,7 +1,5 @@
 import { cn } from '@/lib/utils'
-import type { components } from '@/api/types'
-
-type Space = components['schemas']['Space']
+import type { Space } from '@/api/generated/model'
 
 interface SpaceIconProps {
   space: Space
@@ -18,7 +16,7 @@ const sizeClasses = {
 }
 
 export function SpaceIcon({ space, size = 'md', className, style: customStyle }: SpaceIconProps) {
-  const backgroundColor = (space as any).icon_color || '#6366f1'
+  const backgroundColor = space.icon_color || '#6366f1'
   const iconText = space.icon || space.name?.[0]?.toUpperCase() || '?'
 
   return (

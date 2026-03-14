@@ -1,24 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
+import {
+  drawingPermissionsList,
+  drawingPermissionsUpsertUser,
+  drawingPermissionsDeleteUser,
+} from '@/api/generated/drawings/drawings'
+import type { DrawingPermission as GenDrawingPermission, UpsertDrawingUserPermissionRequest } from '@/api/generated/model'
 
-export interface DrawingPermission {
-  id: string
-  user_id?: string
-  username?: string
-  group_id?: string
-  group_name?: string
-  role: 'owner' | 'editor' | 'viewer' | 'denied'
-}
+// Re-export type for backward compatibility
+export type DrawingPermission = GenDrawingPermission
 
 export function useDrawingPermissions(drawingId?: string) {
   return useQuery({
     queryKey: ['drawing', drawingId, 'permissions'],
-    queryFn: async () => {
-      const response = await apiClient.get<{ permissions: DrawingPermission[] }>(
-        `/drawings/${drawingId}/permissions`
-      )
-      return response.data.permissions || []
-    },
+    queryFn: () => drawingPermissionsList(drawingId!),
+    select: (data) => data.permissions || [],
     enabled: !!drawingId,
   })
 }
@@ -27,7 +22,7 @@ export function useUpsertDrawingPermission() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       drawingId,
       userId,
       role,
@@ -36,10 +31,10 @@ export function useUpsertDrawingPermission() {
       userId: string
       role: 'owner' | 'editor' | 'viewer' | 'denied'
     }) => {
-      await apiClient.put(`/drawings/${drawingId}/permissions/user`, {
+      return drawingPermissionsUpsertUser(drawingId, {
         user_id: userId,
         role,
-      })
+      } as UpsertDrawingUserPermissionRequest)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -53,14 +48,14 @@ export function useDeleteDrawingPermission() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       drawingId,
       userId,
     }: {
       drawingId: string
       userId: string
     }) => {
-      await apiClient.delete(`/drawings/${drawingId}/permissions/user/${userId}`)
+      return drawingPermissionsDeleteUser(drawingId, userId)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

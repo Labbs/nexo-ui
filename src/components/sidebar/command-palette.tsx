@@ -53,7 +53,7 @@ export function CommandPalette() {
       // Document results
       if (docResults.length > 0) {
         result.push({ id: 'section-docs', type: 'section', title: t('commandPalette.documents', 'Documents') })
-        docResults.forEach((doc: any) => {
+        docResults.forEach((doc) => {
           result.push({
             id: `doc-${doc.id}`,
             type: 'document',
@@ -77,7 +77,7 @@ export function CommandPalette() {
           result.push({
             id: `db-${db.id}`,
             type: 'database',
-            title: db.name,
+            title: db.name ?? '',
             subtitle: db.space_name,
             icon: db.icon,
             action: () => {
@@ -93,7 +93,7 @@ export function CommandPalette() {
       // Show recent (favorites)
       if (favorites.length > 0) {
         result.push({ id: 'section-recent', type: 'section', title: t('commandPalette.recent') })
-        favorites.slice(0, 5).forEach((fav: any) => {
+        favorites.slice(0, 5).forEach((fav) => {
           const doc = fav.document
           if (!doc) return
           result.push({
@@ -122,7 +122,7 @@ export function CommandPalette() {
           if (!currentSpace?.id) return
           try {
             const doc = await createDocument({ spaceId: currentSpace.id })
-            const slug = (doc as any).slug
+            const slug = doc.slug
             if (slug) navigate(`/space/${currentSpace.id}/${slug}`)
           } catch {
             // ignore

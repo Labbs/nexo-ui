@@ -18,6 +18,10 @@ import { Button } from '@/components/ui/button'
 import { Loader2, X, RotateCcw } from 'lucide-react'
 import type { IconValue } from '@/components/ui/icon-picker'
 import { parseStoredIcon, serializeIcon } from '@/lib/utils'
+import type { GetDocumentResponse, Favorite, Document as ApiDocument, DocumentConfig } from '@/api/generated/model'
+
+// The API may return GetDocumentResponse with an additional `id` field depending on the endpoint
+type DocumentResponse = GetDocumentResponse & { id?: string }
 
 export function DocumentPage() {
   const { t } = useTranslation('document')
@@ -26,7 +30,8 @@ export function DocumentPage() {
   const navigate = useNavigate()
 
   const queryClient = useQueryClient()
-  const { data: document, isLoading, error } = useDocument(spaceId, slug)
+  const { data: rawDocument, isLoading, error } = useDocument(spaceId, slug)
+  const document = rawDocument as DocumentResponse | null | undefined
   const { mutate: updateDocument } = useUpdateDocument()
   const { data: favorites = [] } = useFavorites()
   const { mutate: addFavorite } = useAddFavorite()
@@ -57,7 +62,7 @@ export function DocumentPage() {
   const isScrolling = useRef(false)
 
   // Fetch version for comparison
-  const docIdForVersion = (document as any)?.id || (document as any)?.document
+  const docIdForVersion = document?.id ?? document?.document
   const { data: comparingVersion, isLoading: isLoadingVersion } = useVersion(
     spaceId,
     docIdForVersion,
@@ -121,12 +126,12 @@ export function DocumentPage() {
   useEffect(() => {
     if (!document || isLoading) return
 
-    const docId = (document as any).id || (document as any).document
+    const docId = document.id ?? document.document
     if (!docId) return
 
     // Verify the document matches the current URL before initializing
     // This prevents using stale cached data from a previous document
-    const docSlug = (document as any).slug
+    const docSlug = document.slug
     if (docSlug && docSlug !== slug) return
 
     // Only initialize once per document
@@ -142,7 +147,7 @@ export function DocumentPage() {
       setTitle(document.name || '')
       setIcon(parseStoredIcon(document.config?.icon))
       setIsLocked(document.config?.lock || false)
-      setIsFullWidth((document.config as any)?.full_width || false)
+      setIsFullWidth(document.config?.full_width || false)
       setInitializedDocId(docId)
       setInitializedSlug(slug || null)
     }
@@ -152,7 +157,7 @@ export function DocumentPage() {
   const debouncedSaveContent = useDebouncedCallback(
     (newContent: OpenBlockContent) => {
       if (!spaceId || !slug || !document) return
-      const docId = (document as any).id || document.document
+      const docId = document.id ?? document.document
       if (!docId) return
 
       setIsUpdating(true)
@@ -160,7 +165,7 @@ export function DocumentPage() {
         {
           spaceId,
           id: docId,
-          content: newContent as any,
+          content: newContent as unknown as string,
         },
         {
           onSuccess: () => {
@@ -181,7 +186,7 @@ export function DocumentPage() {
   const debouncedSaveName = useDebouncedCallback(
     (name: string) => {
       if (!spaceId || !slug || !document) return
-      const docId = (document as any).id || document.document
+      const docId = document.id ?? document.document
       if (!docId) return
 
       setIsUpdating(true)
@@ -197,7 +202,7 @@ export function DocumentPage() {
             setIsUpdating(false)
             setSaveError(null)
             // Navigate to new slug if it changed
-            const newSlug = (data as any)?.slug
+            const newSlug = (data as ApiDocument)?.slug
             if (newSlug && newSlug !== slug) {
               // Pre-populate cache for the new slug so there's no loading flash
               queryClient.setQueryData(['document', spaceId, newSlug], data)
@@ -221,7 +226,7 @@ export function DocumentPage() {
   // Save function for config changes (immediate for lock, debounced for others)
   const saveConfig = (configUpdates: Partial<{ icon: string; fullWidth: boolean; lock: boolean }>) => {
     if (!spaceId || !slug || !document) return
-    const docId = (document as any).id || document.document
+    const docId = document.id ?? document.document
     if (!docId) return
 
     // Update local state immediately for responsive UI
@@ -234,7 +239,7 @@ export function DocumentPage() {
 
     setIsUpdating(true)
     // Convert config to snake_case for API
-    const apiConfig: any = { ...(document.config || {}) }
+    const apiConfig: DocumentConfig = { ...(document.config || {}) }
     if (configUpdates.icon !== undefined) apiConfig.icon = configUpdates.icon
     if (configUpdates.lock !== undefined) apiConfig.lock = configUpdates.lock
     if (configUpdates.fullWidth !== undefined) apiConfig.full_width = configUpdates.fullWidth
@@ -286,13 +291,13 @@ export function DocumentPage() {
   }
 
   // Try to get document ID from various possible locations
-  const currentDocId = (document as any)?.document ||
-                       (document as any)?.id ||
+  const currentDocId = document?.document ||
+                       document?.id ||
                        slug?.split('-').pop() ||
                        ''
 
   // Find if current document is in favorites
-  const currentFavorite = favorites.find((f: any) => {
+  const currentFavorite = favorites.find((f: Favorite) => {
     const favDocId = f?.document?.id
     if (favDocId && favDocId === currentDocId) return true
     const favDocSlug = f?.document?.slug
@@ -312,14 +317,14 @@ export function DocumentPage() {
   }
 
   // Build breadcrumbs
-  const parent = (document as any)?.parent
-  const space = (document as any)?.space
+  const parent = document?.parent
+  const space = document?.space
 
   const breadcrumbs = useMemo(() => {
     const crumbs = []
     if (space) {
       crumbs.push({
-        label: space.name,
+        label: space.name || '',
         href: `/space/${spaceId}`,
       })
     }
@@ -449,7 +454,7 @@ export function DocumentPage() {
         onIconChange={handleIconChange}
         onContentChange={handleContentChange}
         breadcrumbs={breadcrumbs}
-        updatedAt={(document as any).updated_at}
+        updatedAt={document.updated_at}
         isFavorited={isFavorited}
         onFavoriteToggle={handleFavoriteToggle}
         isLocked={isLocked}
@@ -467,7 +472,7 @@ export function DocumentPage() {
       <DocumentSettingsSidebar
         isOpen={isSettingsSidebarOpen}
         onClose={() => setIsSettingsSidebarOpen(false)}
-        document={document as any}
+        document={document}
         isLocked={isLocked}
         isFullWidth={isFullWidth}
         onIconChange={handleIconChange}

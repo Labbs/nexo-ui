@@ -84,8 +84,9 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
       setSelectedColor('#6366f1')
       setSpaceType('public')
       onOpenChange(false)
-    } catch (err: any) {
-      setError(err.response?.data?.details || t('spaces.createError'))
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { details?: string } } }
+      setError(axiosErr.response?.data?.details || t('spaces.createError'))
     } finally {
       setIsCreating(false)
     }
