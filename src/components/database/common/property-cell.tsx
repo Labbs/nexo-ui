@@ -568,25 +568,27 @@ export const PropertyCell = memo(function PropertyCell({
     case 'created_at':
     case 'updated_at':
     case 'last_edited_time':
-      // Handle various date value formats
-      const dateValue = (() => {
-        if (!value) return null
-        if (typeof value === 'string') return value
-        if (typeof value === 'object' && value !== null) {
-          // Handle object format like { date: '...' } or { value: '...' }
-          const obj = value as Record<string, unknown>
-          return obj.date || obj.value || obj.created_at || obj.updated_at
-        }
-        return null
-      })()
-      return (
-        <div className="min-h-[32px] px-2 py-1 flex items-center text-muted-foreground text-sm">
-          {dateValue ? format(new Date(dateValue as string), 'MMM d, yyyy HH:mm') : '-'}
-        </div>
-      )
+      {
+        // Handle various date value formats
+        const dateValue = (() => {
+          if (!value) return null
+          if (typeof value === 'string') return value
+          if (typeof value === 'object' && value !== null) {
+            // Handle object format like { date: '...' } or { value: '...' }
+            const obj = value as Record<string, unknown>
+            return obj.date || obj.value || obj.created_at || obj.updated_at
+          }
+          return null
+        })()
+        return (
+          <div className="min-h-[32px] px-2 py-1 flex items-center text-muted-foreground text-sm">
+            {dateValue ? format(new Date(dateValue as string), 'MMM d, yyyy HH:mm') : '-'}
+          </div>
+        )
+      }
 
     case 'created_by':
-    case 'last_edited_by':
+    case 'last_edited_by': {
       // Handle user info object { id, username, avatar_url }
       const userInfo = value as { id?: string; username?: string; avatar_url?: string } | null | undefined
       const username = userInfo?.username
@@ -614,6 +616,7 @@ export const PropertyCell = memo(function PropertyCell({
           )}
         </div>
       )
+    }
 
     default:
       return (
