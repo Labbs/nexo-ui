@@ -163,9 +163,9 @@ export function DocumentEditSidebar({
       {/* Sidebar */}
       <div
         className={cn(
-          "absolute top-0 right-0 h-full border-l shadow-xl z-50 transition-transform duration-300 ease-in-out",
+          "absolute top-0 h-full border-l shadow-xl z-50 transition-[right] duration-300 ease-in-out",
           "w-[600px] max-w-[90vw]",
-          isOpen ? "translate-x-0" : "translate-x-full"
+          isOpen ? "right-0" : "-right-[600px]"
         )}
         style={{ backgroundColor: 'var(--main-bg)' }}
       >
@@ -281,10 +281,11 @@ export function DocumentEditSidebar({
               )}
 
               {/* OpenBlock Editor for content */}
-              <div className="px-6 py-4 flex-1">
+              <div className="py-4 flex-1">
                 <OpenBlockEditor
                   content={(((rowData as { content?: { blocks?: OpenBlockContent } })?.content)?.blocks) || []}
                   onChange={handleContentChange}
+                  fullWidth
                 />
               </div>
 
