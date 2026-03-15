@@ -47,19 +47,26 @@ export function ProfileSettings() {
   useEffect(() => {
     if (user) {
       const profile = user as Record<string, unknown>
-      setFirstName((profile.first_name as string) || '')
-      setLastName((profile.last_name as string) || '')
+      const username = (profile.username as string) || ''
+      const [first = '', ...rest] = username.split(' ')
+      setFirstName(first)
+      setLastName(rest.join(' '))
       setEmail(user.email || '')
-      setTimezone((profile.timezone as string) || 'UTC')
+      const prefs = profile.preferences as Record<string, unknown> | undefined
+      setTimezone((prefs?.timezone as string) || 'UTC')
     }
   }, [user])
 
   const handleSaveProfile = async () => {
     setIsSaving(true)
     try {
-      // TODO: Implement API call to update profile
-      console.log('Saving profile:', { firstName, lastName, email, timezone })
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const { apiClient } = await import('@/api/client')
+      await apiClient.put('/user/profile', {
+        username: `${firstName} ${lastName}`.trim() || undefined,
+        preferences: { timezone },
+      })
+    } catch (error) {
+      console.error('Failed to save profile:', error)
     } finally {
       setIsSaving(false)
     }
@@ -205,7 +212,17 @@ export function ProfileSettings() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>{t('preferences.timezone')}</Label>
-            <Select value={timezone} onValueChange={setTimezone}>
+            <Select value={timezone} onValueChange={async (value) => {
+              setTimezone(value)
+              try {
+                const { apiClient } = await import('@/api/client')
+                await apiClient.put('/user/profile', {
+                  preferences: { timezone: value },
+                })
+              } catch (error) {
+                console.error('Failed to save timezone:', error)
+              }
+            }}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={t('preferences.selectTimezone')} />
               </SelectTrigger>
