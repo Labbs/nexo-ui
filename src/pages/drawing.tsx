@@ -96,7 +96,7 @@ export function DrawingPage() {
 
         {/* Editor */}
         <div className="flex-1 overflow-hidden">
-          <DrawingEditor drawing={drawing} />
+          <DrawingEditor key={drawingId} drawing={drawing} />
         </div>
 
         {/* Settings Sidebar */}
