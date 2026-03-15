@@ -27,16 +27,24 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
+function resolveLanguage(lng: string): SupportedLanguage {
+  return (SUPPORTED_LANGUAGES.includes(lng as SupportedLanguage) ? lng : DEFAULT_LANGUAGE) as SupportedLanguage
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
   const { user, token } = useAuth()
   const [isChangingLanguage, setIsChangingLanguage] = useState(false)
+  const [language, setLanguageState] = useState<SupportedLanguage>(() => resolveLanguage(i18n.language))
 
-  const language = (
-    SUPPORTED_LANGUAGES.includes(i18n.language as SupportedLanguage)
-      ? i18n.language
-      : DEFAULT_LANGUAGE
-  ) as SupportedLanguage
+  // Listen for i18n language changes to force re-render
+  useEffect(() => {
+    const handleLanguageChanged = (lng: string) => {
+      setLanguageState(resolveLanguage(lng))
+    }
+    i18n.on('languageChanged', handleLanguageChanged)
+    return () => { i18n.off('languageChanged', handleLanguageChanged) }
+  }, [i18n])
 
   // Sync language from user preferences on login
   useEffect(() => {

@@ -689,7 +689,7 @@ export function DocumentIcon({ value, className, size = 'md' }: DocumentIconProp
 
   // Handle emoji
   if (isEmoji(value)) {
-    return <span className={cn(sizeClasses[size], className)}>{value as string}</span>
+    return <span className={cn(sizeClasses[size], 'flex items-center justify-center shrink-0 leading-none overflow-hidden', className)}>{value as string}</span>
   }
 
   // Handle icon object
