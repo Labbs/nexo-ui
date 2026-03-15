@@ -149,10 +149,25 @@ export function useUpdateDrawing() {
       }
     },
     onSettled: (_, _err, variables) => {
-      // Only refetch if name/icon changed — skip for canvas auto-saves
       if (variables.name !== undefined || variables.icon !== undefined) {
+        // Name/icon changed — refetch detail and lists
         queryClient.invalidateQueries({ queryKey: drawingKeys.detail(variables.drawingId) })
         queryClient.invalidateQueries({ queryKey: drawingKeys.all })
+      } else if (variables.elements !== undefined) {
+        // Canvas auto-save — update cache directly without refetch
+        // so navigating away and back shows the latest data
+        queryClient.setQueryData(
+          drawingKeys.detail(variables.drawingId),
+          (old: Record<string, unknown> | undefined) => {
+            if (!old) return old
+            return {
+              ...old,
+              elements: variables.elements,
+              app_state: variables.appState ?? (old as Record<string, unknown>).app_state,
+              files: variables.files ?? (old as Record<string, unknown>).files,
+            }
+          }
+        )
       }
     },
   })
