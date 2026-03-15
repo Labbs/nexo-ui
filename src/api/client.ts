@@ -26,7 +26,7 @@ apiClient.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle errors
+// Response interceptor to handle errors and show toast notifications
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -34,6 +34,21 @@ apiClient.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
+    } else {
+      const message =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        'An unexpected error occurred'
+
+      // Lazy import to avoid circular dependencies
+      import('@/components/ui/toaster').then(({ toast }) => {
+        toast({
+          title: `Error ${error.response?.status ?? ''}`.trim(),
+          description: message,
+          variant: 'destructive',
+        })
+      })
     }
     return Promise.reject(error)
   }
