@@ -224,22 +224,28 @@ export function ProfileSettings() {
               <Languages className="h-4 w-4" />
               {t('preferences.language')}
             </Label>
-            <Select
-              value={language}
-              onValueChange={(value) => setLanguage(value as SupportedLanguage)}
-              disabled={isChangingLanguage}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('preferences.selectLanguage')} />
-              </SelectTrigger>
-              <SelectContent>
-                {SUPPORTED_LANGUAGES.map(lang => (
-                  <SelectItem key={lang} value={lang}>
-                    {LANGUAGE_LABELS[lang]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select
+                value={language}
+                onValueChange={(value) => {
+                  setLanguage(value as SupportedLanguage).then(() => {
+                    window.location.reload()
+                  })
+                }}
+                disabled={isChangingLanguage}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('preferences.selectLanguage')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_LANGUAGES.map(lang => (
+                    <SelectItem key={lang} value={lang}>
+                      {LANGUAGE_LABELS[lang]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
