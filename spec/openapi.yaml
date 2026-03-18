@@ -2841,6 +2841,9 @@ paths:
             summary: List all API keys
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/apikeys/{apikey_id}:
         delete:
             description: Revoke an API key (admin only)
@@ -2868,6 +2871,9 @@ paths:
             summary: Revoke API key
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/groups:
         get:
             description: Retrieve a paginated list of all groups (admin only)
@@ -2903,6 +2909,9 @@ paths:
             summary: List all groups
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
         post:
             description: Create a new group (admin only)
             operationId: admin.createGroup
@@ -2928,6 +2937,9 @@ paths:
             summary: Create group
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/groups/{group_id}:
         delete:
             description: Delete a group (admin only)
@@ -2955,6 +2967,9 @@ paths:
             summary: Delete group
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
         put:
             description: Update a group's name, description, or role (admin only)
             operationId: admin.updateGroup
@@ -2987,6 +3002,9 @@ paths:
             summary: Update group
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/groups/{group_id}/members:
         get:
             description: Retrieve all members of a group (admin only)
@@ -3014,6 +3032,9 @@ paths:
             summary: Get group members
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
         post:
             description: Add a user to a group (admin only)
             operationId: admin.addGroupMember
@@ -3046,6 +3067,9 @@ paths:
             summary: Add group member
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/groups/{group_id}/members/{user_id}:
         delete:
             description: Remove a user from a group (admin only)
@@ -3079,6 +3103,9 @@ paths:
             summary: Remove group member
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/spaces:
         get:
             description: Retrieve a paginated list of all spaces (admin only)
@@ -3114,6 +3141,9 @@ paths:
             summary: List all spaces
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
         post:
             description: Create a new space (admin only)
             operationId: admin.createSpace
@@ -3139,6 +3169,9 @@ paths:
             summary: Create space
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/spaces/{space_id}:
         delete:
             description: Delete a space (admin only)
@@ -3166,6 +3199,9 @@ paths:
             summary: Delete space
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
         put:
             description: Update a space (admin only)
             operationId: admin.updateSpace
@@ -3198,6 +3234,9 @@ paths:
             summary: Update space
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/spaces/{space_id}/permissions:
         get:
             description: List all permissions for a space (admin only)
@@ -3225,6 +3264,9 @@ paths:
             summary: List space permissions
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/spaces/{space_id}/permissions/groups:
         post:
             description: Add a group permission to a space (admin only)
@@ -3258,6 +3300,9 @@ paths:
             summary: Add group permission
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/spaces/{space_id}/permissions/groups/{group_id}:
         delete:
             description: Remove a group permission from a space (admin only)
@@ -3291,6 +3336,9 @@ paths:
             summary: Remove group permission
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/spaces/{space_id}/permissions/users:
         post:
             description: Add a user permission to a space (admin only)
@@ -3324,6 +3372,9 @@ paths:
             summary: Add user permission
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/spaces/{space_id}/permissions/users/{user_id}:
         delete:
             description: Remove a user permission from a space (admin only)
@@ -3357,6 +3408,9 @@ paths:
             summary: Remove user permission
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/users:
         get:
             description: Retrieve a paginated list of all users (admin only)
@@ -3392,6 +3446,9 @@ paths:
             summary: List all users
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/users/{user_id}:
         delete:
             description: Delete a user account (admin only)
@@ -3419,6 +3476,9 @@ paths:
             summary: Delete user
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/users/{user_id}/active:
         put:
             description: Enable or disable a user account (admin only)
@@ -3452,6 +3512,9 @@ paths:
             summary: Update user active status
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/users/{user_id}/role:
         put:
             description: Change the role of a user (admin only)
@@ -3485,6 +3548,9 @@ paths:
             summary: Update user role
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/admin/users/invite:
         post:
             description: Invite a new user by email (admin only)
@@ -3511,6 +3577,9 @@ paths:
             summary: Invite user
             tags:
                 - Admin
+            x-required-roles:
+                - admin
+            x-required-roles-mode: any
     /api/v1/apikeys/:
         get:
             description: List all API keys for the current user
