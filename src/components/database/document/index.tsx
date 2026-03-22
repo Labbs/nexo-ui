@@ -556,6 +556,7 @@ export function DocumentDatabaseView() {
             canDeleteView={views.length > 1}
             externalFilterOpen={filterPanelOpen}
             onExternalFilterOpenChange={setFilterPanelOpen}
+            onAddRow={handleAddRow}
           />
         )}
 

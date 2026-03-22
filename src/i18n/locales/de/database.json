@@ -289,6 +289,14 @@
     "createWithName": "\"{{name}}\" erstellen",
     "noDatabasesYet": "Noch keine Datenbanken",
     "createFirstDatabase": "Erstelle deine erste Datenbank",
-    "notConfigured": "Datenbank nicht konfiguriert"
+    "notConfigured": "Datenbank nicht konfiguriert",
+    "new": "Neu",
+    "sizeDefault": "Standard",
+    "sizeWide": "Breit",
+    "sizeFull": "Volle Breite",
+    "showTitle": "Titel anzeigen",
+    "source": "Quelle",
+    "display": "Anzeige",
+    "size": "Größe"
   }
 }

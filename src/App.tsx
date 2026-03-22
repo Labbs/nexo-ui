@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '@/lib/query-client'
 import { ThemeProvider } from '@/contexts/theme-provider'
 import { AuthProvider } from '@/contexts/auth-context'
 import { LanguageProvider } from '@/i18n/LanguageContext'
@@ -31,17 +32,6 @@ function PageLoader() {
     </div>
   )
 }
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 30_000,      // 30s — data considered fresh after fetch
-      gcTime: 10 * 60_000,    // 10min — keep unused cache longer
-    },
-  },
-})
 
 function App() {
   return (
