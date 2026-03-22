@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Table2, MoreHorizontal, Pencil, Trash2, Copy, Filter, ArrowUpDown, Columns3, Eye, EyeOff, List, LayoutGrid, Kanban, ArrowRightLeft, Layers } from 'lucide-react'
+import { Plus, Table2, MoreHorizontal, Pencil, Trash2, Copy, Filter, ArrowUpDown, Columns3, Eye, EyeOff, List, LayoutGrid, Kanban, ArrowRightLeft, Layers, ChevronDown } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -77,6 +77,9 @@ interface ViewTabsProps {
   canDeleteView: boolean
   externalFilterOpen?: boolean
   onExternalFilterOpenChange?: (open: boolean) => void
+  onAddRow?: () => void
+  compact?: boolean
+  compactMenuExtra?: React.ReactNode
 }
 
 export function ViewTabs({
@@ -101,6 +104,9 @@ export function ViewTabs({
   canDeleteView,
   externalFilterOpen,
   onExternalFilterOpenChange,
+  onAddRow,
+  compact = false,
+  compactMenuExtra,
 }: ViewTabsProps) {
   const { t } = useTranslation('database')
   const [showRenameDialog, setShowRenameDialog] = useState(false)
@@ -111,6 +117,8 @@ export function ViewTabs({
   const [filterOpen, setFilterOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
   const [groupByOpen, setGroupByOpen] = useState(false)
+  const [compactMenuOpen, setCompactMenuOpen] = useState(false)
+  const [compactPanel, setCompactPanel] = useState<'filter' | 'sort' | 'columns' | null>(null)
 
   const viewTypes: ViewTypeOption[] = [
     { type: 'table', label: t('views.table'), icon: Table2 },
@@ -190,18 +198,18 @@ export function ViewTabs({
 
   return (
     <>
-      <div className="flex items-center gap-0.5 px-4 py-1">
-        {/* View tabs on the left */}
-        <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 px-4 py-1.5">
+        {/* View tabs on the left (Notion-style pill tabs) */}
+        <div className="flex items-center gap-1">
           {views.map((view) => {
             const ViewIcon = getViewIcon(view.type)
             return (
             <div
               key={view.id}
               className={cn(
-                'group flex items-center gap-1.5 px-3 py-1.5 text-sm cursor-pointer rounded-md transition-colors',
+                'group flex items-center gap-1.5 px-3 py-1.5 text-sm cursor-pointer rounded-full transition-colors',
                 activeViewId === view.id
-                  ? 'bg-primary/10 text-primary font-medium border border-primary/30'
+                  ? 'bg-muted text-foreground font-medium'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
               onClick={() => onViewChange(view.id)}
@@ -306,211 +314,391 @@ export function ViewTabs({
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Filter and Sort on the right */}
+        {/* Filter, Sort, Columns on the right */}
         <div className="flex items-center gap-1">
-          {/* Filter button */}
-          <Popover open={filterOpen} onOpenChange={(open) => {
-            setFilterOpen(open)
-            if (!open) {
-              onExternalFilterOpenChange?.(false)
-            }
-          }}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-muted-foreground hover:text-foreground"
-              >
-                <Filter className="h-4 w-4 mr-1.5" />
-                {t('views.filter')}
-                {filterCount > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                    {filterCount}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-96 p-0" align="end">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-sm">{t('views.filters')}</h4>
-                  {filterCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs text-muted-foreground"
-                      onClick={handleClearFilters}
-                    >
-                      {t('views.clearAll')}
-                    </Button>
-                  )}
-                </div>
-                <FilterBuilder
-                  columns={columns}
-                  filter={parseFilterConfig(activeView?.filter)}
-                  onChange={onFilterChange}
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Sort button */}
-          <Popover open={sortOpen} onOpenChange={setSortOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-muted-foreground hover:text-foreground"
-              >
-                <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                {t('views.sort')}
-                {sortCount > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                    {sortCount}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-sm">{t('views.sort')}</h4>
-                  {sortCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs text-muted-foreground"
-                      onClick={handleClearSort}
-                    >
-                      {t('views.clearAll')}
-                    </Button>
-                  )}
-                </div>
-                <SortBuilder
-                  columns={columns}
-                  sort={activeView?.sort || []}
-                  onChange={onSortChange}
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Group By button - only for board views */}
-          {activeView?.type === 'board' && groupableColumns.length > 0 && (
-            <Popover open={groupByOpen} onOpenChange={setGroupByOpen}>
+          {/* In compact mode: "..." dropdown that opens filter/sort/columns popovers */}
+          {compact ? (
+            <Popover open={compactPanel !== null || compactMenuOpen} onOpenChange={(open) => {
+              if (!open) { setCompactPanel(null); setCompactMenuOpen(false) }
+            }}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-muted-foreground hover:text-foreground"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    if (compactPanel !== null || compactMenuOpen) {
+                      setCompactPanel(null)
+                      setCompactMenuOpen(false)
+                    } else {
+                      setCompactMenuOpen(true)
+                    }
+                  }}
                 >
-                  <Layers className="h-4 w-4 mr-1.5" />
-                  {t('views.group')}
-                  {currentGroupByColumn && (
-                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                      {currentGroupByColumn.name}
-                    </Badge>
-                  )}
+                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-56 p-0" align="end">
-                <div className="p-4">
-                  <h4 className="font-medium text-sm mb-3">{t('views.groupBy')}</h4>
-                  <div className="space-y-1">
-                    {groupableColumns.map((col) => {
-                      const isSelected = activeView?.groupBy === col.id
-                      return (
-                        <div
-                          key={col.id}
-                          className={cn(
-                            'flex items-center justify-between py-1.5 px-2 rounded cursor-pointer transition-colors',
-                            isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
-                          )}
-                          onClick={() => {
-                            if (col.id && onGroupByChange) {
-                              onGroupByChange(col.id)
-                            }
-                            setGroupByOpen(false)
-                          }}
-                        >
-                          <span className="text-sm">{col.name}</span>
-                          <span className="text-xs text-muted-foreground capitalize">{col.type}</span>
-                        </div>
-                      )
-                    })}
+              <PopoverContent className={cn("p-0", compactPanel === 'filter' ? 'w-96' : compactPanel === 'sort' ? 'w-80' : compactPanel === 'columns' ? 'w-64' : 'w-56')} align="end">
+                {compactPanel === null ? (
+                  /* Menu view */
+                  <div>
+                    {compactMenuExtra}
+                    <div className={cn(compactMenuExtra && "border-t", "py-1")}>
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-muted transition-colors text-left"
+                        onClick={() => setCompactPanel('filter')}
+                      >
+                        <Filter className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1">{t('views.filter')}</span>
+                        {filterCount > 0 && (
+                          <Badge variant="secondary" className="h-5 px-1.5 text-xs">{filterCount}</Badge>
+                        )}
+                      </button>
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-muted transition-colors text-left"
+                        onClick={() => setCompactPanel('sort')}
+                      >
+                        <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1">{t('views.sort')}</span>
+                        {sortCount > 0 && (
+                          <Badge variant="secondary" className="h-5 px-1.5 text-xs">{sortCount}</Badge>
+                        )}
+                      </button>
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-muted transition-colors text-left"
+                        onClick={() => setCompactPanel('columns')}
+                      >
+                        <Columns3 className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1">{t('views.columns')}</span>
+                        {hiddenCount > 0 && (
+                          <Badge variant="secondary" className="h-5 px-1.5 text-xs">{hiddenCount}</Badge>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Panel view with tabs */
+                  <>
+                    <div className="flex border-b">
+                      <button
+                        className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors",
+                          compactPanel === 'filter' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={() => setCompactPanel('filter')}
+                      >
+                        <Filter className="h-3.5 w-3.5" />
+                        {t('views.filter')}
+                        {filterCount > 0 && (
+                          <Badge variant="secondary" className="h-4 px-1 text-[10px]">{filterCount}</Badge>
+                        )}
+                      </button>
+                      <button
+                        className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors",
+                          compactPanel === 'sort' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={() => setCompactPanel('sort')}
+                      >
+                        <ArrowUpDown className="h-3.5 w-3.5" />
+                        {t('views.sort')}
+                        {sortCount > 0 && (
+                          <Badge variant="secondary" className="h-4 px-1 text-[10px]">{sortCount}</Badge>
+                        )}
+                      </button>
+                      <button
+                        className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors",
+                          compactPanel === 'columns' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={() => setCompactPanel('columns')}
+                      >
+                        <Columns3 className="h-3.5 w-3.5" />
+                        {t('views.columns')}
+                        {hiddenCount > 0 && (
+                          <Badge variant="secondary" className="h-4 px-1 text-[10px]">{hiddenCount}</Badge>
+                        )}
+                      </button>
+                    </div>
+                    <div className="p-4">
+                      {compactPanel === 'filter' && (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-sm">{t('views.filters')}</h4>
+                            {filterCount > 0 && (
+                              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={handleClearFilters}>
+                                {t('views.clearAll')}
+                              </Button>
+                            )}
+                          </div>
+                          <FilterBuilder columns={columns} filter={parseFilterConfig(activeView?.filter)} onChange={onFilterChange} />
+                        </>
+                      )}
+                      {compactPanel === 'sort' && (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-sm">{t('views.sort')}</h4>
+                            {sortCount > 0 && (
+                              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={handleClearSort}>
+                                {t('views.clearAll')}
+                              </Button>
+                            )}
+                          </div>
+                          <SortBuilder columns={columns} sort={activeView?.sort || []} onChange={onSortChange} />
+                        </>
+                      )}
+                      {compactPanel === 'columns' && (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-sm">{t('views.columns')}</h4>
+                            {hiddenCount > 0 && (
+                              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => { onShowAllColumns(); setCompactPanel(null); setCompactMenuOpen(false) }}>
+                                {t('views.showAll')}
+                              </Button>
+                            )}
+                          </div>
+                          <div className="space-y-1 max-h-64 overflow-y-auto">
+                            {allColumns.map((col) => {
+                              const isHidden = hiddenColumnIds.has(col.id || '')
+                              return (
+                                <div key={col.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted cursor-pointer"
+                                  onClick={() => { if (col.id) { isHidden ? onShowColumn(col.id) : onHideColumn(col.id) } }}>
+                                  <span className={cn("text-sm", isHidden && "text-muted-foreground")}>{col.name}</span>
+                                  {isHidden ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
               </PopoverContent>
             </Popover>
-          )}
+          ) : (
+            <>
+              {/* Filter button */}
+              <Popover open={filterOpen} onOpenChange={(open) => {
+                setFilterOpen(open)
+                if (!open) {
+                  onExternalFilterOpenChange?.(false)
+                }
+              }}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-muted-foreground hover:text-foreground"
+                  >
+                    <Filter className="h-4 w-4 mr-1.5" />
+                    {t('views.filter')}
+                    {filterCount > 0 && (
+                      <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                        {filterCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-0" align="end">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-sm">{t('views.filters')}</h4>
+                      {filterCount > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-muted-foreground"
+                          onClick={handleClearFilters}
+                        >
+                          {t('views.clearAll')}
+                        </Button>
+                      )}
+                    </div>
+                    <FilterBuilder
+                      columns={columns}
+                      filter={parseFilterConfig(activeView?.filter)}
+                      onChange={onFilterChange}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-          {/* Columns button */}
-          <Popover open={columnsOpen} onOpenChange={setColumnsOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-muted-foreground hover:text-foreground"
-              >
-                <Columns3 className="h-4 w-4 mr-1.5" />
-                {t('views.columns')}
-                {hiddenCount > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                    {t('views.hiddenCount', { count: hiddenCount })}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-0" align="end">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-sm">{t('views.columns')}</h4>
-                  {hiddenCount > 0 && (
+              {/* Sort button */}
+              <Popover open={sortOpen} onOpenChange={setSortOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-muted-foreground hover:text-foreground"
+                  >
+                    <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                    {t('views.sort')}
+                    {sortCount > 0 && (
+                      <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                        {sortCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-sm">{t('views.sort')}</h4>
+                      {sortCount > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-muted-foreground"
+                          onClick={handleClearSort}
+                        >
+                          {t('views.clearAll')}
+                        </Button>
+                      )}
+                    </div>
+                    <SortBuilder
+                      columns={columns}
+                      sort={activeView?.sort || []}
+                      onChange={onSortChange}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Group By button - only for board views */}
+              {activeView?.type === 'board' && groupableColumns.length > 0 && (
+                <Popover open={groupByOpen} onOpenChange={setGroupByOpen}>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 text-xs text-muted-foreground"
-                      onClick={() => {
-                        onShowAllColumns()
-                        setColumnsOpen(false)
-                      }}
+                      className="h-7 text-muted-foreground hover:text-foreground"
                     >
-                      {t('views.showAll')}
+                      <Layers className="h-4 w-4 mr-1.5" />
+                      {t('views.group')}
+                      {currentGroupByColumn && (
+                        <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                          {currentGroupByColumn.name}
+                        </Badge>
+                      )}
                     </Button>
-                  )}
-                </div>
-                <div className="space-y-1 max-h-64 overflow-y-auto">
-                  {allColumns.map((col) => {
-                    const isHidden = hiddenColumnIds.has(col.id || '')
-                    return (
-                      <div
-                        key={col.id}
-                        className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted cursor-pointer"
-                        onClick={() => {
-                          if (col.id) {
-                            if (isHidden) {
-                              onShowColumn(col.id)
-                            } else {
-                              onHideColumn(col.id)
-                            }
-                          }
-                        }}
-                      >
-                        <span className={cn("text-sm", isHidden && "text-muted-foreground")}>
-                          {col.name}
-                        </span>
-                        {isHidden ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-0" align="end">
+                    <div className="p-4">
+                      <h4 className="font-medium text-sm mb-3">{t('views.groupBy')}</h4>
+                      <div className="space-y-1">
+                        {groupableColumns.map((col) => {
+                          const isSelected = activeView?.groupBy === col.id
+                          return (
+                            <div
+                              key={col.id}
+                              className={cn(
+                                'flex items-center justify-between py-1.5 px-2 rounded cursor-pointer transition-colors',
+                                isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                              )}
+                              onClick={() => {
+                                if (col.id && onGroupByChange) {
+                                  onGroupByChange(col.id)
+                                }
+                                setGroupByOpen(false)
+                              }}
+                            >
+                              <span className="text-sm">{col.name}</span>
+                              <span className="text-xs text-muted-foreground capitalize">{col.type}</span>
+                            </div>
+                          )
+                        })}
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+
+              {/* Columns button */}
+              <Popover open={columnsOpen} onOpenChange={setColumnsOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-muted-foreground hover:text-foreground"
+                  >
+                    <Columns3 className="h-4 w-4 mr-1.5" />
+                    {t('views.columns')}
+                    {hiddenCount > 0 && (
+                      <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                        {t('views.hiddenCount', { count: hiddenCount })}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0" align="end">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-sm">{t('views.columns')}</h4>
+                      {hiddenCount > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-muted-foreground"
+                          onClick={() => {
+                            onShowAllColumns()
+                            setColumnsOpen(false)
+                          }}
+                        >
+                          {t('views.showAll')}
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-1 max-h-64 overflow-y-auto">
+                      {allColumns.map((col) => {
+                        const isHidden = hiddenColumnIds.has(col.id || '')
+                        return (
+                          <div
+                            key={col.id}
+                            className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted cursor-pointer"
+                            onClick={() => {
+                              if (col.id) {
+                                if (isHidden) {
+                                  onShowColumn(col.id)
+                                } else {
+                                  onHideColumn(col.id)
+                                }
+                              }
+                            }}
+                          >
+                            <span className={cn("text-sm", isHidden && "text-muted-foreground")}>
+                              {col.name}
+                            </span>
+                            {isHidden ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </>
+          )}
+
+          {/* New button (Notion-style blue split button) */}
+          {onAddRow && (
+            <div className="inline-flex h-7 rounded-md overflow-hidden ml-1">
+              <Button
+                size="sm"
+                className="h-7 rounded-none rounded-l-md px-3 text-sm font-medium"
+                onClick={onAddRow}
+              >
+                {t('block.new')}
+              </Button>
+              <Button
+                size="sm"
+                className="h-7 rounded-none rounded-r-md px-1.5 border-l border-primary-foreground/20"
+              >
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -27,3 +27,6 @@ dist-ssr
 src/api/types.ts
 
 .claude/
+
+# Example / reference files
+example/

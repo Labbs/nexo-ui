@@ -97,6 +97,8 @@ interface DocumentTableViewProps {
   onUpdateColumnFormat?: (columnId: string, options: Partial<ColumnOptions>) => void
   onDuplicateColumn?: (columnId: string) => void
   isLoading?: boolean
+  /** Compact mode for inline/embedded use — hides row selectors, drag handles, and reduces chrome */
+  compact?: boolean
 }
 
 // Property type icons mapping
@@ -142,6 +144,7 @@ export function DocumentTableView({
   onUpdateColumnFormat,
   onDuplicateColumn,
   isLoading = false,
+  compact = false,
 }: DocumentTableViewProps) {
   const { t } = useTranslation('database')
   const [editingCell, setEditingCell] = useState<{ rowId: string; propertyId: string } | null>(null)
@@ -407,10 +410,10 @@ export function DocumentTableView({
       <div className="w-full">
         {/* Header skeleton */}
         <div className="flex border-b bg-muted/30">
-          <div className="w-8 shrink-0" />
+          {!compact && <div className="w-8 shrink-0" />}
           <div className="flex-1 flex">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="w-48 h-8 px-2 flex items-center border-r">
+              <div key={i} className="w-48 h-9 px-2 flex items-center border-r">
                 <div className="h-4 w-20 bg-muted animate-pulse rounded" />
               </div>
             ))}
@@ -419,7 +422,7 @@ export function DocumentTableView({
         {/* Row skeletons */}
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex border-b">
-            <div className="w-8 shrink-0" />
+            {!compact && <div className="w-8 shrink-0" />}
             <div className="flex-1 flex">
               {[1, 2, 3].map((j) => (
                 <div key={j} className="w-48 h-9 px-2 flex items-center border-r">
@@ -437,24 +440,26 @@ export function DocumentTableView({
     <div
       ref={containerRef}
       tabIndex={0}
-      className={cn("w-full overflow-x-auto outline-none", resizing && "select-none cursor-col-resize")}
+      className={cn("w-full overflow-x-auto outline-none px-6", resizing && "select-none cursor-col-resize")}
     >
-      <table ref={tableRef} className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+      <table ref={tableRef} className="w-full border-collapse database-table-view" style={{ tableLayout: 'fixed' }}>
         {/* Header */}
         <thead>
-          <tr className="border-t border-b">
-            {/* Row selector column */}
-            <th className="w-8 p-0 sticky left-0 bg-background z-10">
-              <div className="h-8 flex items-center justify-center">
-                <Checkbox
-                  checked={isAllSelected}
-                  // @ts-expect-error - indeterminate is a valid prop
-                  indeterminate={isSomeSelected || undefined}
-                  onCheckedChange={selectAllRows}
-                  className="h-4 w-4"
-                />
-              </div>
-            </th>
+          <tr className={cn("border-b", !compact && "border-t")}>
+            {/* Row selector column (hidden in compact mode) */}
+            {!compact && (
+              <th className="w-8 p-0 sticky left-0 bg-background z-10">
+                <div className="h-9 flex items-center justify-center">
+                  <Checkbox
+                    checked={isAllSelected}
+                    // @ts-expect-error - indeterminate is a valid prop
+                    indeterminate={isSomeSelected || undefined}
+                    onCheckedChange={selectAllRows}
+                    className="h-4 w-4"
+                  />
+                </div>
+              </th>
+            )}
 
             {/* Property columns */}
             {schema.map((property, index) => {
@@ -470,11 +475,12 @@ export function DocumentTableView({
                   key={propertyId}
                   className={cn(
                     'p-0 text-left font-normal relative',
-                    index === 0 && 'sticky left-8 bg-background z-10'
+                    index === 0 && !compact && 'sticky left-8 bg-background z-10',
+                    index === 0 && compact && 'sticky left-0 bg-background z-10'
                   )}
-                  style={{ width: `${width}px`, minWidth: `${width}px` }}
+                  style={{ width: `${width}px`, minWidth: `${width}px`, borderRight: '1px solid hsl(var(--border))' }}
                 >
-                  <div className="h-8 px-2 flex items-center gap-2 text-sm text-muted-foreground border-r hover:bg-muted/50 cursor-pointer group">
+                  <div className="h-9 px-2 flex items-center gap-2 text-sm text-muted-foreground hover:bg-muted/50 cursor-pointer group">
                     {/* Custom icon or default type icon */}
                     {property.options?.customIcon ? (
                       <span className="text-sm shrink-0">{property.options.customIcon as string}</span>
@@ -975,7 +981,7 @@ export function DocumentTableView({
                 onAdd={onAddProperty}
                 trigger={
                   <button
-                    className="h-8 w-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                    className="h-9 w-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                     title={t('table.addProperty')}
                   >
                     <Plus className="h-4 w-4" />
@@ -1009,17 +1015,20 @@ export function DocumentTableView({
               onCellChange={handleCellChange}
               onSetEditingCell={setEditingCell}
               onSetFocusedCell={setFocusedCell}
+              compact={compact}
             />
           ))}
 
           {/* Add row button */}
           <tr className="group/addrow">
-            <td className="w-8 p-0 sticky left-0 bg-background z-10">
-              <div className="h-9 flex items-center justify-center opacity-0 group-hover/addrow:opacity-100">
-                <Plus className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
-            </td>
-            <td colSpan={schema.length + 2} className="p-0">
+            {!compact && (
+              <td className="w-8 p-0 sticky left-0 bg-background z-10">
+                <div className="h-9 flex items-center justify-center opacity-0 group-hover/addrow:opacity-100">
+                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              </td>
+            )}
+            <td colSpan={schema.length + (compact ? 1 : 2)} className="p-0">
               <button
                 className="w-full h-9 px-2 flex items-center gap-2 text-sm text-muted-foreground hover:bg-muted/30 transition-colors"
                 onClick={onAddRow}
@@ -1058,6 +1067,7 @@ interface MemoTableRowProps {
   schema: PropertySchema[]
   isSelected: boolean
   isHovered: boolean
+  compact?: boolean
   editingCell: { rowId: string; propertyId: string } | null
   focusedCell: { rowIndex: number; colIndex: number } | null
   columnWidths: Record<string, number>
@@ -1086,6 +1096,7 @@ const MemoTableRow = memo(function MemoTableRow({
   onCellChange,
   onSetEditingCell,
   onSetFocusedCell,
+  compact = false,
 }: MemoTableRowProps) {
   const { t } = useTranslation('database')
 
@@ -1103,48 +1114,50 @@ const MemoTableRow = memo(function MemoTableRow({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Row selector with checkbox and menu */}
-      <td className="w-8 p-0 sticky left-0 bg-background z-10">
-        <div className="h-9 flex items-center justify-center group/selector">
-          <div className={cn(
-            "absolute",
-            (isHovered || isSelected) ? "opacity-100" : "opacity-0 group-hover/selector:opacity-100"
-          )}>
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={() => onToggleRowSelection(row.id, rowIndex)}
-              onClick={(e) => onToggleRowSelection(row.id, rowIndex, e as unknown as React.MouseEvent)}
-              className="h-4 w-4"
-            />
+      {/* Row selector with checkbox and menu (hidden in compact mode) */}
+      {!compact && (
+        <td className="w-8 p-0 sticky left-0 bg-background z-10">
+          <div className="h-9 flex items-center justify-center group/selector">
+            <div className={cn(
+              "absolute",
+              (isHovered || isSelected) ? "opacity-100" : "opacity-0 group-hover/selector:opacity-100"
+            )}>
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => onToggleRowSelection(row.id, rowIndex)}
+                onClick={(e) => onToggleRowSelection(row.id, rowIndex, e as unknown as React.MouseEvent)}
+                className="h-4 w-4"
+              />
+            </div>
+            <div className={cn(
+              'h-5 w-5 flex items-center justify-center',
+              isHovered && !isSelected ? 'opacity-100' : 'opacity-0'
+            )}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="h-5 w-5 flex items-center justify-center rounded hover:bg-muted text-muted-foreground">
+                    <GripVertical className="h-3.5 w-3.5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem onClick={() => onOpenDocument(row.id)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    {t('table.openDocument')}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => onDeleteRow(row.id)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t('table.deleteDocument')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div className={cn(
-            'h-5 w-5 flex items-center justify-center',
-            isHovered && !isSelected ? 'opacity-100' : 'opacity-0'
-          )}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="h-5 w-5 flex items-center justify-center rounded hover:bg-muted text-muted-foreground">
-                  <GripVertical className="h-3.5 w-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem onClick={() => onOpenDocument(row.id)}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  {t('table.openDocument')}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => onDeleteRow(row.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {t('table.deleteDocument')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </td>
+        </td>
+      )}
 
       {/* Property cells */}
       {schema.map((property, colIndex) => {
@@ -1162,11 +1175,12 @@ const MemoTableRow = memo(function MemoTableRow({
           <td
             key={propertyId}
             className={cn(
-              'p-0 border-r',
-              colIndex === 0 && 'sticky left-8 bg-background z-10',
+              'p-0',
+              colIndex === 0 && !compact && 'sticky left-8 bg-background z-10',
+              colIndex === 0 && compact && 'sticky left-0 bg-background z-10',
               isFocused && 'ring-2 ring-inset ring-primary'
             )}
-            style={{ width: `${width}px`, minWidth: `${width}px` }}
+            style={{ width: `${width}px`, minWidth: `${width}px`, borderRight: '1px solid hsl(var(--border))' }}
             onClick={() => onSetFocusedCell({ rowIndex, colIndex })}
           >
             <div className="relative group/cell">

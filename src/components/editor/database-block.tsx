@@ -1,198 +1,363 @@
 /**
  * Database Block for OpenBlock Editor
  *
- * Renders an inline database view within the editor using createReactBlockSpec.
+ * Custom block that renders an inline database view reusing the same
+ * components as the full database page (ViewTabs, DocumentTableView, hooks).
+ *
+ * OpenBlock renders custom blocks in an isolated React root (createRoot)
+ * without access to the app's context providers. We work around this by:
+ * - Wrapping with QueryClientProvider (shared queryClient instance)
+ * - useTranslation works without provider thanks to initReactI18next
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import i18n from 'i18next'
 import { useTranslation } from 'react-i18next'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { createReactBlockSpec, useUpdateBlock } from '@labbs/openblock-react'
 import {
   Plus,
   Database,
-  MoreHorizontal,
-  ExternalLink,
-  Trash2,
-  Table,
   Search,
   FileSpreadsheet,
-  Lock,
-  Unlock,
-  LayoutGrid,
-  Calendar,
-  List,
-  Kanban,
-  Columns3,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Check,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { databaseList } from '@/api/generated/databases/databases'
 import {
   useDatabase,
-  useDatabaseRows,
+  useDatabaseRowsWithView,
+  useUpdateDatabase,
   useCreateRow,
   useUpdateRow,
   useDeleteRow,
+  useCreateView,
+  useUpdateView,
+  useDeleteView,
+  type PropertySchema,
+  type ViewConfig,
+  type RowItem,
 } from '@/hooks/use-database'
-import type { RowItem } from '@/hooks/use-database'
-import type { RowData } from '@/lib/database/columnTypes'
-
-// Local PropertySchema type matching what views expect
-interface PropertySchema {
-  id: string
-  name: string
-  type: string
-  options?: Record<string, unknown>
-}
-import { useCurrentSpace } from '@/contexts/space-context'
-import { PropertyCell } from '@/components/database/common/property-cell'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-  DropdownMenuCheckboxItem,
-} from '@/components/ui/dropdown-menu'
+import type { ColumnOptions } from '@/lib/database'
+import type { IconValue } from '@/components/ui/icon-picker'
 import type { OpenBlockEditor } from '@labbs/openblock-core'
+import { DocumentIcon } from '@/components/ui/icon-picker'
+import { parseStoredIcon } from '@/lib/utils'
+import { queryClient } from '@/lib/query-client'
+import { DocumentTableView } from '@/components/database/document/document-table-view'
+import { DocumentBoardView } from '@/components/database/document/document-board-view'
+import { DocumentGalleryView } from '@/components/database/document/document-gallery-view'
+import { DocumentListView } from '@/components/database/document/document-list-view'
+import { ViewTabs } from '@/components/database/common/view-tabs'
 
-// Block settings interface
-interface BlockSettings {
-  showViewTabs: boolean
-  isLocked: boolean
-  rowLimit: number | null
-  selectedViewId: string | null
+const t = (key: string, options?: Record<string, unknown>) => i18n.t(key, { ns: 'database', ...options })
+
+type TableSize = 'default' | 'wide' | 'full'
+
+const tableSizeStyles: Record<TableSize, React.CSSProperties> = {
+  default: { marginLeft: -125, marginRight: -125, width: 'calc(100% + 250px)' },
+  wide: { marginLeft: -250, marginRight: -250, width: 'calc(100% + 500px)' },
+  full: { marginLeft: -300, marginRight: -300, width: 'calc(100% + 600px)' },
 }
 
-// Get icon for view type
-function getViewIcon(viewType: string) {
-  switch (viewType) {
-    case 'table':
-      return <Table className="h-3.5 w-3.5" />
-    case 'gallery':
-      return <LayoutGrid className="h-3.5 w-3.5" />
-    case 'board':
-    case 'kanban':
-      return <Kanban className="h-3.5 w-3.5" />
-    case 'calendar':
-      return <Calendar className="h-3.5 w-3.5" />
-    case 'list':
-      return <List className="h-3.5 w-3.5" />
-    default:
-      return <Table className="h-3.5 w-3.5" />
-  }
+// Extract spaceId from the current URL (e.g. /space/:spaceId/...)
+function getSpaceIdFromUrl(): string | null {
+  const match = window.location.pathname.match(/\/space\/([^/]+)/)
+  return match ? match[1] : null
 }
 
-// Inline database view component
-function InlineDatabaseView({
+
+// ============================================================
+// InlineDatabaseView — reuses the same hooks and components
+// as the full database page (ViewTabs, DocumentTableView)
+// ============================================================
+
+export function InlineDatabaseView({
   databaseId,
-  isEditable,
-  blockSettings,
-  onSettingsChange,
+  tableSize = 'default',
+  showTitle = true,
+  onTableSizeChange,
+  onShowTitleChange,
 }: {
   databaseId: string
-  isEditable: boolean
-  blockSettings: BlockSettings
-  onSettingsChange: (settings: BlockSettings) => void
+  tableSize?: TableSize
+  showTitle?: boolean
+  onTableSizeChange?: (size: TableSize) => void
+  onShowTitleChange?: (show: boolean) => void
 }) {
-  const { t } = useTranslation('database')
-  const navigate = useNavigate()
-  const { currentSpace } = useCurrentSpace()
-  const { data: database, isLoading: isLoadingDb } = useDatabase(databaseId)
-  const { data: rowsData, isLoading: isLoadingRows } = useDatabaseRows(databaseId)
-  const createRowMutation = useCreateRow()
-  const updateRowMutation = useUpdateRow()
-  const deleteRowMutation = useDeleteRow()
-  const [isHovered, setIsHovered] = useState(false)
+  const { t: tr } = useTranslation('database')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isDocFullWidth, setIsDocFullWidth] = useState(false)
 
-  // Cast API data to internal types (filter out incomplete records)
-  const allRows: RowData[] = (rowsData?.rows || [])
-    .filter((r: RowItem): r is RowItem & { id: string; properties: Record<string, unknown> } =>
-      !!r.id && !!r.properties
-    )
-    .map((r: RowItem & { id: string; properties: Record<string, unknown> }) => ({ id: r.id, properties: r.properties as Record<string, unknown> }))
+  // Detect if the document is in full-width mode
+  useEffect(() => {
+    if (!containerRef.current) return
+    const wrapper = containerRef.current.closest('.openblock-editor-wrapper')
+    setIsDocFullWidth(wrapper?.classList.contains('full-width') ?? false)
 
-  const schema: PropertySchema[] = (database?.schema || [])
-    .filter((s: { id?: string; name?: string; type?: string; options?: Record<string, unknown> }): s is { id: string; name: string; type: string; options?: Record<string, unknown> } =>
-      !!s.id && !!s.name && !!s.type
-    )
-    .map((s: { id: string; name: string; type: string; options?: Record<string, unknown> }) => ({
-      id: s.id,
-      name: s.name,
-      type: s.type,
-      options: s.options as Record<string, unknown> | undefined
+    // Observe class changes on the wrapper
+    if (!wrapper) return
+    const observer = new MutationObserver(() => {
+      setIsDocFullWidth(wrapper.classList.contains('full-width'))
+    })
+    observer.observe(wrapper, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  // Use the same React Query hooks as the full database page
+  const { data: database, isLoading: isLoadingDatabase } = useDatabase(databaseId)
+  const updateDatabase = useUpdateDatabase()
+  const createRow = useCreateRow()
+  const updateRow = useUpdateRow()
+  const deleteRow = useDeleteRow()
+  const createView = useCreateView()
+  const updateView = useUpdateView()
+  const deleteViewMutation = useDeleteView()
+
+  // View state
+  const [activeViewId, setActiveViewId] = useState<string>(() => {
+    return localStorage.getItem(`nexo-active-view-${databaseId}`) || ''
+  })
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false)
+  const [insertColumnPosition, setInsertColumnPosition] = useState<{ columnId: string; position: 'left' | 'right' } | null>(null)
+
+  // Get views from database
+  const views: ViewConfig[] = useMemo(() => {
+    if (!database?.views) return []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (database.views as any[]).map(view => ({
+      id: view.id as string,
+      name: view.name as string,
+      type: view.type as string,
+      filter: view.filter as Record<string, unknown> | undefined,
+      sort: view.sort as ViewConfig['sort'],
+      columns: view.columns as string[] | undefined,
+      hiddenColumns: (view.hidden_columns ?? view.hiddenColumns) as string[] | undefined,
+      groupBy: (view.group_by ?? view.groupBy) as string | undefined,
     }))
+  }, [database?.views])
 
-  // Get active view (used for view tabs display)
-  const _activeView = useMemo(() => {
-    const views = database?.views || []
-    if (blockSettings.selectedViewId) {
-      return views.find((v: { id?: string; name?: string; type?: string }) => v.id === blockSettings.selectedViewId)
+  const activeView = useMemo(() => {
+    return views.find(v => v.id === activeViewId) || views[0]
+  }, [views, activeViewId])
+
+  // Fetch rows with view
+  const { data: rowsData, isLoading: isLoadingRows } = useDatabaseRowsWithView(databaseId, activeViewId || undefined)
+
+  // Set initial active view
+  useEffect(() => {
+    if (views.length > 0) {
+      const isCurrentViewValid = activeViewId && views.some(v => v.id === activeViewId)
+      if (!isCurrentViewValid) {
+        const defaultViewId = database?.default_view
+        const isValidViewId = defaultViewId && views.some(v => v.id === defaultViewId)
+        const viewIdToUse = isValidViewId ? defaultViewId : views[0]?.id
+        if (viewIdToUse) setActiveViewId(viewIdToUse)
+      }
     }
-    if (database?.default_view) {
-      return views.find((v: { id?: string; name?: string; type?: string }) => v.id === database.default_view)
+  }, [views, activeViewId, database?.default_view])
+
+  // Save active view to localStorage
+  useEffect(() => {
+    if (databaseId && activeViewId) {
+      localStorage.setItem(`nexo-active-view-${databaseId}`, activeViewId)
     }
-    return views[0]
-  }, [database?.views, blockSettings.selectedViewId, database?.default_view])
-  void _activeView // Suppress unused variable warning
+  }, [databaseId, activeViewId])
 
-  // Apply row limit if set
-  const rows = blockSettings.rowLimit ? allRows.slice(0, blockSettings.rowLimit) : allRows
-  const hasMoreRows = blockSettings.rowLimit && allRows.length > blockSettings.rowLimit
+  // Hidden columns from active view
+  const hiddenColumnIds = useMemo(() => {
+    return new Set(activeView?.hiddenColumns || [])
+  }, [activeView?.hiddenColumns])
 
-  // Check if editing is allowed (not locked and editable)
-  const canEdit = isEditable && !blockSettings.isLocked
+  const visibleSchema: PropertySchema[] = useMemo(() => {
+    if (!database?.schema) return []
+    return database.schema.filter((col: PropertySchema) => col.id && !hiddenColumnIds.has(col.id))
+  }, [database?.schema, hiddenColumnIds])
 
-  const handleAddRow = async () => {
+  // Convert rows (same logic as full database page)
+  const rows = useMemo(() => {
+    if (!rowsData?.rows) return []
+    const systemDateColumns = (database?.schema || []).filter((col: PropertySchema) =>
+      ['created_time', 'updated_time', 'created_at', 'updated_at', 'last_edited_time'].includes(col.type || '')
+    )
+    const systemUserColumns = (database?.schema || []).filter((col: PropertySchema) =>
+      ['created_by', 'last_edited_by'].includes(col.type || '')
+    )
+    return rowsData.rows.map((row: RowItem) => {
+      const rowWithMeta = row as {
+        id?: string
+        properties?: Record<string, unknown>
+        content?: { icon?: IconValue; blocks?: unknown }
+        show_in_sidebar?: boolean
+        created_at?: string
+        updated_at?: string
+        created_by?: string
+        created_by_user?: { id?: string; username?: string; avatar_url?: string }
+        updated_by_user?: { id?: string; username?: string; avatar_url?: string }
+      }
+      const properties: Record<string, unknown> = { ...rowWithMeta.properties }
+      systemDateColumns.forEach((col: PropertySchema) => {
+        if (!col.id) return
+        const colType = col.type || ''
+        if (colType === 'created_time' || colType === 'created_at') properties[col.id] = rowWithMeta.created_at
+        else if (colType === 'updated_time' || colType === 'updated_at' || colType === 'last_edited_time') properties[col.id] = rowWithMeta.updated_at
+      })
+      systemUserColumns.forEach((col: PropertySchema) => {
+        if (!col.id) return
+        const colType = col.type || ''
+        if (colType === 'created_by') properties[col.id] = rowWithMeta.created_by_user
+        else if (colType === 'last_edited_by') properties[col.id] = rowWithMeta.updated_by_user || rowWithMeta.created_by_user
+      })
+      return { id: row.id || '', properties, content: rowWithMeta.content, showInSidebar: rowWithMeta.show_in_sidebar }
+    })
+  }, [rowsData?.rows, database?.schema])
+
+  // Callbacks (same as full database page)
+  const handleAddRow = useCallback(() => {
     if (!databaseId) return
-    const defaultProperties: Record<string, unknown> = {}
-    schema.forEach((prop) => {
-      if (prop.type === 'title') {
-        defaultProperties[prop.id] = ''
-      } else if (prop.type === 'checkbox') {
-        defaultProperties[prop.id] = false
-      } else if (prop.type === 'number') {
-        defaultProperties[prop.id] = null
-      } else if (prop.type === 'select' || prop.type === 'multi_select') {
-        defaultProperties[prop.id] = prop.type === 'multi_select' ? [] : null
-      } else {
-        defaultProperties[prop.id] = ''
+    const newProperties: Record<string, unknown> = {}
+    visibleSchema.forEach(col => {
+      const colId = col.id || ''
+      const colType = col.type || 'text'
+      switch (colType) {
+        case 'checkbox': newProperties[colId] = false; break
+        case 'number': case 'currency': newProperties[colId] = null; break
+        default: newProperties[colId] = ''
       }
     })
-    await createRowMutation.mutateAsync({ databaseId, properties: defaultProperties })
-  }
+    createRow.mutate({ databaseId, properties: newProperties })
+  }, [visibleSchema, databaseId, createRow])
 
-  const handleUpdateRow = async (rowId: string, properties: Record<string, unknown>) => {
-    await updateRowMutation.mutateAsync({ databaseId, rowId, properties })
-  }
+  const handleUpdateRow = useCallback((rowId: string, properties: Record<string, unknown>) => {
+    if (!databaseId) return
+    updateRow.mutate({ databaseId, rowId, properties })
+  }, [databaseId, updateRow])
 
-  const handleDeleteRow = async (rowId: string) => {
-    await deleteRowMutation.mutateAsync({ databaseId, rowId })
-  }
+  const handleDeleteRow = useCallback((rowId: string) => {
+    if (!databaseId) return
+    deleteRow.mutate({ databaseId, rowId })
+  }, [databaseId, deleteRow])
 
-  const openFullPage = () => {
-    if (currentSpace?.id && databaseId) {
-      navigate(`/space/${currentSpace.id}/database/${databaseId}`)
+  const handleAddProperty = useCallback(async (property: PropertySchema) => {
+    if (!databaseId || !database?.schema) return
+    let newSchema: PropertySchema[]
+    if (insertColumnPosition) {
+      const index = database.schema.findIndex((col: PropertySchema) => col.id === insertColumnPosition.columnId)
+      if (index !== -1) {
+        const insertIndex = insertColumnPosition.position === 'left' ? index : index + 1
+        newSchema = [...database.schema.slice(0, insertIndex), property, ...database.schema.slice(insertIndex)]
+      } else {
+        newSchema = [...database.schema, property]
+      }
+      setInsertColumnPosition(null)
+    } else {
+      newSchema = [...database.schema, property]
     }
-  }
+    await updateDatabase.mutateAsync({ databaseId, schema: newSchema })
+  }, [databaseId, database?.schema, updateDatabase, insertColumnPosition])
 
-  if (isLoadingDb) {
+  const handleOpenDocument = useCallback((rowId: string) => {
+    const spaceId = database?.space_id
+    if (spaceId && databaseId) {
+      window.location.href = `/space/${spaceId}/database/${databaseId}/doc/${rowId}`
+    }
+  }, [database?.space_id, databaseId])
+
+  // Column management callbacks
+  const handleRenameColumn = useCallback((columnId: string, name: string) => {
+    if (!databaseId || !database?.schema) return
+    const newSchema = database.schema.map((col: PropertySchema) => col.id === columnId ? { ...col, name } : col)
+    updateDatabase.mutate({ databaseId, schema: newSchema })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  const handleDeleteColumn = useCallback((columnId: string) => {
+    if (!databaseId || !database?.schema) return
+    const newSchema = database.schema.filter((col: PropertySchema) => col.id !== columnId)
+    updateDatabase.mutate({ databaseId, schema: newSchema })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  const handleSortColumn = useCallback((columnId: string, direction: 'asc' | 'desc') => {
+    if (!databaseId || !activeViewId) return
+    updateView.mutate({ databaseId, viewId: activeViewId, sort: [{ property_id: columnId, direction }] })
+  }, [databaseId, activeViewId, updateView])
+
+  const handleUpdateColumnOptions = useCallback((columnId: string, options: { id: string; name: string; color: string }[]) => {
+    if (!databaseId || !database?.schema) return
+    const newSchema = database.schema.map((col: PropertySchema) =>
+      col.id === columnId ? { ...col, options: { ...col.options, options } } : col
+    )
+    updateDatabase.mutate({ databaseId, schema: newSchema })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  const handleToggleWrapText = useCallback((columnId: string, wrapText: boolean) => {
+    if (!databaseId || !database?.schema) return
+    const newSchema = database.schema.map((col: PropertySchema) =>
+      col.id === columnId ? { ...col, options: { ...col.options, wrapText } } : col
+    )
+    updateDatabase.mutate({ databaseId, schema: newSchema })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  const handleUpdateColumnFormat = useCallback((columnId: string, options: Partial<ColumnOptions>) => {
+    if (!databaseId || !database?.schema) return
+    const newSchema = database.schema.map((col: PropertySchema) =>
+      col.id === columnId ? { ...col, options: { ...col.options, ...options } } : col
+    )
+    updateDatabase.mutate({ databaseId, schema: newSchema })
+  }, [databaseId, database?.schema, updateDatabase])
+
+  const handleDuplicateColumn = useCallback((columnId: string) => {
+    if (!databaseId || !database?.schema) return
+    const columnToDuplicate = database.schema.find((col: PropertySchema) => col.id === columnId)
+    if (!columnToDuplicate) return
+    const columnIndex = database.schema.findIndex((col: PropertySchema) => col.id === columnId)
+    const newColumn: PropertySchema = {
+      ...columnToDuplicate,
+      id: `col-${Date.now()}`,
+      name: tr('common:copyName', { name: columnToDuplicate.name || tr('common:untitled') }),
+    }
+    const newSchema = [...database.schema.slice(0, columnIndex + 1), newColumn, ...database.schema.slice(columnIndex + 1)]
+    updateDatabase.mutate({ databaseId, schema: newSchema })
+  }, [databaseId, database?.schema, updateDatabase, tr])
+
+  const handleInsertColumn = useCallback((columnId: string, position: 'left' | 'right') => {
+    setInsertColumnPosition({ columnId, position })
+  }, [])
+
+  const handleFilterColumn = useCallback(() => {
+    setFilterPanelOpen(true)
+  }, [])
+
+  const showColumn = useCallback((columnId: string) => {
+    if (!databaseId || !activeViewId) return
+    const currentHidden = activeView?.hiddenColumns || []
+    updateView.mutate({ databaseId, viewId: activeViewId, hiddenColumns: currentHidden.filter(id => id !== columnId) })
+  }, [databaseId, activeViewId, activeView?.hiddenColumns, updateView])
+
+  const hideColumn = useCallback((columnId: string) => {
+    if (!databaseId || !activeViewId) return
+    const currentHidden = activeView?.hiddenColumns || []
+    updateView.mutate({ databaseId, viewId: activeViewId, hiddenColumns: [...currentHidden, columnId] })
+  }, [databaseId, activeViewId, activeView?.hiddenColumns, updateView])
+
+  const showAllColumns = useCallback(() => {
+    if (!databaseId || !activeViewId) return
+    updateView.mutate({ databaseId, viewId: activeViewId, hiddenColumns: [] })
+  }, [databaseId, activeViewId, updateView])
+
+  // Loading state
+  if (isLoadingDatabase) {
     return (
-      <div className="rounded-lg p-4 bg-muted/30">
-        <div className="flex items-center gap-2">
-          <div className="h-5 w-5 rounded bg-muted animate-pulse" />
-          <div className="h-4 w-32 rounded bg-muted animate-pulse" />
-        </div>
+      <div ref={containerRef} className="flex items-center justify-center py-8">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
       </div>
     )
   }
 
   if (!database) {
     return (
-      <div className="rounded-lg p-4 bg-destructive/10 text-destructive">
+      <div className="py-4 text-destructive">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4" />
           <span className="text-sm">{t('notFound')}</span>
@@ -201,244 +366,194 @@ function InlineDatabaseView({
     )
   }
 
+  const sizes: { value: TableSize; label: string }[] = [
+    { value: 'default', label: tr('block.sizeDefault') },
+    { value: 'wide', label: tr('block.sizeWide') },
+    { value: 'full', label: tr('block.sizeFull') },
+  ]
+
   return (
-    <div
-      className="inline-block rounded-lg bg-card my-2 outline-none focus:outline-none focus-within:outline-none border"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      tabIndex={-1}
-    >
-      {/* Header */}
-      <div className="px-3 py-2 flex items-center gap-2 group">
-        <span className="text-lg">{database.icon || '📊'}</span>
-        <span className="font-medium flex-1">{database.name}</span>
+    <div ref={containerRef} className="my-1" style={isDocFullWidth ? undefined : tableSizeStyles[tableSize]} tabIndex={-1}>
+      {/* ── Database Title ── */}
+      {showTitle && (
+        <div className="flex items-center gap-2 px-0.5 py-1.5 mb-0.5">
+          <DocumentIcon value={parseStoredIcon(database.icon)} size="md" />
+          <span className="text-[22px] font-bold flex-1 text-foreground">
+            {database.name}
+          </span>
+        </div>
+      )}
 
-        {/* Lock indicator */}
-        {blockSettings.isLocked && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
-
-        {/* Settings menu - visible on hover */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-7 w-7 transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            {/* Open full page */}
-            <DropdownMenuItem onClick={openFullPage}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {t('block.openAsFullPage')}
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            {/* View tabs toggle */}
-            <DropdownMenuCheckboxItem
-              checked={blockSettings.showViewTabs}
-              onCheckedChange={(checked) =>
-                onSettingsChange({ ...blockSettings, showViewTabs: checked })
-              }
-            >
-              {t('block.showViewTabs')}
-            </DropdownMenuCheckboxItem>
-
-            {/* Lock toggle */}
-            <DropdownMenuCheckboxItem
-              checked={blockSettings.isLocked}
-              onCheckedChange={(checked) =>
-                onSettingsChange({ ...blockSettings, isLocked: checked })
-              }
-            >
-              {blockSettings.isLocked ? (
-                <>
-                  <Lock className="h-4 w-4 mr-2" />
-                  {t('block.locked')}
-                </>
-              ) : (
-                <>
-                  <Unlock className="h-4 w-4 mr-2" />
-                  {t('block.lockDatabase')}
-                </>
-              )}
-            </DropdownMenuCheckboxItem>
-
-            <DropdownMenuSeparator />
-
-            {/* Row limit */}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Columns3 className="h-4 w-4 mr-2" />
-                {t('block.rowLimit')}
-                {blockSettings.rowLimit && (
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {blockSettings.rowLimit}
-                  </span>
-                )}
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="bg-popover">
-                <DropdownMenuCheckboxItem
-                  checked={blockSettings.rowLimit === null}
-                  onCheckedChange={() => onSettingsChange({ ...blockSettings, rowLimit: null })}
+      {/* ── View Tabs + Toolbar (same component as full database page) ── */}
+      {views.length > 0 && (
+        <ViewTabs
+          compactMenuExtra={
+            <>
+              {/* Source info */}
+              <div className="px-3 py-2.5 border-b">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{tr('block.source')}</div>
+                <button
+                  className="flex items-center gap-2 w-full rounded px-1.5 py-1 hover:bg-muted transition-colors text-left"
+                  onClick={() => {
+                    const spaceId = database.space_id
+                    if (spaceId) window.location.href = `/space/${spaceId}/database/${databaseId}`
+                  }}
                 >
-                  {t('block.showAll')}
-                </DropdownMenuCheckboxItem>
-                {[5, 10, 20, 50].map((limit) => (
-                  <DropdownMenuCheckboxItem
-                    key={limit}
-                    checked={blockSettings.rowLimit === limit}
-                    onCheckedChange={() => onSettingsChange({ ...blockSettings, rowLimit: limit })}
+                  <DocumentIcon value={parseStoredIcon(database.icon)} size="sm" />
+                  <span className="text-sm flex-1 truncate">{database.name}</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                </button>
+              </div>
+              {/* Display options */}
+              <div className="py-1 border-b">
+                <button
+                  className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-muted transition-colors text-left text-sm"
+                  onClick={() => onShowTitleChange?.(!showTitle)}
+                >
+                  {showTitle ? <Eye className="h-4 w-4 text-muted-foreground" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                  <span className="flex-1">{tr('block.showTitle')}</span>
+                  {showTitle && <Check className="h-3.5 w-3.5 text-foreground" />}
+                </button>
+                {/* Size options */}
+                {!isDocFullWidth && onTableSizeChange && sizes.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-muted transition-colors text-left text-sm"
+                    onClick={() => onTableSizeChange(value)}
                   >
-                    {t('block.rows', { count: limit })}
-                  </DropdownMenuCheckboxItem>
+                    <span className="flex-1">{label}</span>
+                    {tableSize === value && <Check className="h-3.5 w-3.5 text-foreground" />}
+                  </button>
                 ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* View tabs */}
-      {blockSettings.showViewTabs && database.views && database.views.length > 0 && (
-        <div className="px-3 py-1 border-b flex items-center gap-1 overflow-x-auto">
-          {database.views.map((view: { id?: string; name?: string; type?: string }) => {
-            const isSelected =
-              blockSettings.selectedViewId === view.id ||
-              (!blockSettings.selectedViewId && view.id === database.default_view)
-            return (
-              <button
-                key={view.id}
-                onClick={() => onSettingsChange({ ...blockSettings, selectedViewId: view.id || null })}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded text-sm transition-colors whitespace-nowrap ${
-                  isSelected
-                    ? 'bg-accent text-accent-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                {getViewIcon(view.type || 'table')}
-                <span>{view.name}</span>
-              </button>
-            )
-          })}
-        </div>
+              </div>
+            </>
+          }
+          views={views}
+          activeViewId={activeViewId}
+          activeView={activeView}
+          columns={visibleSchema}
+          allColumns={database?.schema || []}
+          hiddenColumnIds={hiddenColumnIds}
+          onViewChange={setActiveViewId}
+          onCreateView={(name, type) => {
+            createView.mutate({ databaseId, name, type: type || 'list' }, {
+              onSuccess: (newView) => setActiveViewId(newView.id ?? '')
+            })
+          }}
+          onRenameView={(viewId, name) => updateView.mutate({ databaseId, viewId, name })}
+          onChangeViewType={(viewId, type) => updateView.mutate({ databaseId, viewId, type })}
+          onDuplicateView={(viewId) => {
+            const viewToDuplicate = views.find(v => v.id === viewId)
+            if (!viewToDuplicate) return
+            createView.mutate({
+              databaseId, name: tr('common:copyName', { name: viewToDuplicate.name }),
+              type: viewToDuplicate.type, filter: viewToDuplicate.filter,
+              sort: viewToDuplicate.sort, columns: viewToDuplicate.columns,
+            }, { onSuccess: (newView) => setActiveViewId(newView.id ?? '') })
+          }}
+          onDeleteView={(viewId) => {
+            deleteViewMutation.mutate({ databaseId, viewId })
+            if (viewId === activeViewId && views.length > 1) {
+              const nextView = views.find(v => v.id !== viewId)
+              if (nextView) setActiveViewId(nextView.id ?? '')
+            }
+          }}
+          onFilterChange={(filter) => {
+            if (!activeViewId) return
+            if (filter === undefined) {
+              updateView.mutate({ databaseId, viewId: activeViewId, clearFilter: true })
+            } else {
+              updateView.mutate({ databaseId, viewId: activeViewId, filter: filter as Record<string, unknown> })
+            }
+          }}
+          onSortChange={(sort) => {
+            if (!activeViewId) return
+            if (sort.length === 0) {
+              updateView.mutate({ databaseId, viewId: activeViewId, clearSort: true })
+            } else {
+              updateView.mutate({ databaseId, viewId: activeViewId, sort })
+            }
+          }}
+          onGroupByChange={(columnId) => {
+            if (!activeViewId) return
+            updateView.mutate({ databaseId, viewId: activeViewId, groupBy: columnId })
+          }}
+          onShowColumn={showColumn}
+          onHideColumn={hideColumn}
+          onShowAllColumns={showAllColumns}
+          canDeleteView={views.length > 1}
+          externalFilterOpen={filterPanelOpen}
+          onExternalFilterOpenChange={setFilterPanelOpen}
+          onAddRow={handleAddRow}
+          compact
+        />
       )}
 
-      {/* View content - table view for inline database blocks */}
-      {isLoadingRows ? (
-        <div className="px-3 py-4 text-center text-muted-foreground">{t('common:loading')}</div>
+      {/* ── View content (same switch as full database page) ── */}
+      {activeView?.type === 'board' ? (
+        <DocumentBoardView
+          schema={visibleSchema}
+          rows={rows}
+          groupByColumnId={activeView?.groupBy}
+          onUpdateRow={handleUpdateRow}
+          onDeleteRow={handleDeleteRow}
+          onAddRow={handleAddRow}
+          onOpenDocument={handleOpenDocument}
+          isLoading={isLoadingRows}
+        />
+      ) : activeView?.type === 'gallery' ? (
+        <DocumentGalleryView
+          schema={visibleSchema}
+          rows={rows}
+          onUpdateRow={handleUpdateRow}
+          onDeleteRow={handleDeleteRow}
+          onAddRow={handleAddRow}
+          onOpenDocument={handleOpenDocument}
+          isLoading={isLoadingRows}
+        />
+      ) : activeView?.type === 'list' ? (
+        <DocumentListView
+          schema={visibleSchema}
+          rows={rows}
+          onUpdateRow={handleUpdateRow}
+          onDeleteRow={handleDeleteRow}
+          onAddRow={handleAddRow}
+          onOpenDocument={handleOpenDocument}
+          isLoading={isLoadingRows}
+        />
       ) : (
-        <>
-          <div className="overflow-x-auto focus:outline-none" tabIndex={-1}>
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b bg-muted/20">
-                  {schema.map((property) => (
-                    <th
-                      key={property.id}
-                      className="px-3 py-2 text-left font-medium text-muted-foreground min-w-[120px]"
-                    >
-                      {property.name}
-                    </th>
-                  ))}
-                  {canEdit && <th className="w-10" />}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={schema.length + 1}
-                      className="px-3 py-4 text-center text-muted-foreground"
-                    >
-                      {t('block.noRowsYet')}
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((row) => (
-                    <tr key={row.id} className="border-b hover:bg-muted/10 group">
-                      {schema.map((property) => (
-                        <td key={property.id} className="px-1 py-0.5">
-                          <PropertyCell
-                            property={property}
-                            value={row.properties[property.id]}
-                            onChange={(value) => {
-                              if (!canEdit) return
-                              handleUpdateRow(row.id, {
-                                ...row.properties,
-                                [property.id]: value,
-                              })
-                            }}
-                            isEditing={false}
-                            onStartEdit={() => {}}
-                            onEndEdit={() => {}}
-                          />
-                        </td>
-                      ))}
-                      {canEdit && (
-                        <td className="w-10 px-1">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                              >
-                                <MoreHorizontal className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDeleteRow(row.id)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                {t('common:delete')}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer for table view */}
-          {canEdit && (
-            <div className="px-2 py-1 border-t">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-muted-foreground hover:text-foreground h-8"
-                onClick={handleAddRow}
-              >
-                <Plus className="h-3.5 w-3.5 mr-2" />
-                {t('block.newRow')}
-              </Button>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Row limit indicator */}
-      {hasMoreRows && (
-        <div className="px-3 py-2 text-center text-sm text-muted-foreground border-t bg-muted/20">
-          {t('block.moreRowsHidden', { count: allRows.length - (blockSettings.rowLimit || 0) })}
-          <Button variant="link" size="sm" className="ml-2 h-auto p-0" onClick={openFullPage}>
-            {t('block.viewAll')}
-          </Button>
-        </div>
+        <DocumentTableView
+          schema={visibleSchema}
+          rows={rows}
+          onUpdateRow={handleUpdateRow}
+          onDeleteRow={handleDeleteRow}
+          onAddRow={handleAddRow}
+          onAddProperty={handleAddProperty}
+          onOpenDocument={handleOpenDocument}
+          onRenameColumn={handleRenameColumn}
+          onDeleteColumn={handleDeleteColumn}
+          onHideColumn={hideColumn}
+          onSortColumn={handleSortColumn}
+          onUpdateColumnOptions={handleUpdateColumnOptions}
+          onInsertColumn={handleInsertColumn}
+          insertColumnOpen={!!insertColumnPosition}
+          onInsertColumnOpenChange={(open) => { if (!open) setInsertColumnPosition(null) }}
+          onFilterColumn={handleFilterColumn}
+          onToggleWrapText={handleToggleWrapText}
+          onUpdateColumnFormat={handleUpdateColumnFormat}
+          onDuplicateColumn={handleDuplicateColumn}
+          isLoading={isLoadingRows}
+          compact
+        />
       )}
     </div>
   )
 }
 
-// Database selector for when no database is selected yet
+// ============================================================
+// Database Selector
+// ============================================================
+
 function DatabaseSelector({
   onSelect,
   onCreate,
@@ -446,150 +561,146 @@ function DatabaseSelector({
   onSelect: (databaseId: string) => void
   onCreate: () => void
 }) {
-  const { t } = useTranslation('database')
-  const { currentSpace } = useCurrentSpace()
-  const [databases, setDatabases] = useState<{ id: string; name: string; icon: string }[]>([])
+  const { t: tr } = useTranslation('database')
+  const [databases, setDatabases] = useState<{ id: string; name: string; icon: string | undefined }[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    const loadDatabases = async () => {
-      if (!currentSpace?.id) return
-      try {
-        const { apiClient } = await import('@/api/client')
-        const response = await apiClient.get<{
-          databases: { id: string; name: string; icon: string }[]
-        }>(`/databases?space_id=${currentSpace.id}`)
-        setDatabases(response.data.databases || [])
-      } catch (error) {
-        console.error('Failed to load databases:', error)
-      } finally {
-        setIsLoading(false)
+    let cancelled = false
+    const spaceId = getSpaceIdFromUrl()
+    databaseList(spaceId ? { space_id: spaceId } : undefined).then((data) => {
+      if (!cancelled) {
+        const dbs = (data.databases || [])
+          .filter((db): db is typeof db & { id: string; name: string } => !!db.id && !!db.name)
+          .map((db) => ({ id: db.id!, name: db.name!, icon: db.icon }))
+        setDatabases(dbs)
       }
-    }
-    loadDatabases()
-  }, [currentSpace?.id])
+    }).catch((err) => {
+      console.error('Failed to load databases:', err)
+    }).finally(() => {
+      if (!cancelled) setIsLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [])
 
-  // Filter databases by search query
   const filteredDatabases = useMemo(() => {
     if (!searchQuery.trim()) return databases
     const query = searchQuery.toLowerCase()
     return databases.filter((db) => db.name.toLowerCase().includes(query))
   }, [databases, searchQuery])
 
-  // Show suggested (first 3 databases)
   const suggestedDatabases = filteredDatabases.slice(0, 3)
 
   return (
-    <div className="border rounded-lg bg-card shadow-lg my-2 w-[320px]">
-      {/* Header */}
-      <div className="px-3 py-2 border-b flex items-center justify-between">
-        <span className="text-sm font-medium">{t('block.linkDatabase')}</span>
+    <div className="border bg-popover shadow-lg" style={{ borderRadius: 8, margin: '8px 0', width: 320 }}>
+      <div className="border-b" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 14, fontWeight: 500 }}>{tr('block.linkDatabase')}</span>
       </div>
 
-      {/* Search input */}
-      <div className="p-2">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+      <div style={{ padding: 8 }}>
+        <div style={{ position: 'relative' }}>
+          <Search className="text-muted-foreground" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16 }} />
+          <input
             type="text"
-            placeholder={t('block.searchDatabases')}
+            placeholder={tr('block.searchDatabases')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-9 text-sm bg-muted/50"
+            className="bg-muted/50 border focus:ring-1 focus:ring-ring"
+            style={{ width: '100%', paddingLeft: 32, height: 36, fontSize: 14, borderRadius: 6, outline: 'none', boxSizing: 'border-box', padding: '0 12px 0 32px' }}
             autoFocus
           />
         </div>
       </div>
 
-      {/* Create option */}
-      <div className="px-2 pb-2 space-y-0.5">
+      <div style={{ padding: '0 8px 8px' }}>
         <button
           onClick={onCreate}
-          className="w-full flex items-center gap-3 px-2 py-2 rounded-md hover:bg-muted transition-colors text-left"
+          className="hover:bg-muted"
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', background: 'none', textAlign: 'left' }}
         >
-          <div className="w-6 h-6 rounded bg-muted flex items-center justify-center">
+          <div className="bg-muted" style={{ width: 24, height: 24, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Plus className="h-4 w-4 text-muted-foreground" />
           </div>
-          <span className="text-sm">{t('block.newDatabase')}</span>
+          <span style={{ fontSize: 14 }}>{tr('block.newDatabase')}</span>
         </button>
       </div>
 
-      {/* Suggested databases */}
       {!isLoading && suggestedDatabases.length > 0 && (
-        <div className="px-2 pb-2">
-          <div className="text-xs text-muted-foreground px-2 py-1.5">{t('block.databases')}</div>
-          <div className="space-y-0.5">
-            {suggestedDatabases.map((db) => (
-              <button
-                key={db.id}
-                onClick={() => onSelect(db.id)}
-                className="w-full flex items-center gap-3 px-2 py-2 rounded-md hover:bg-muted transition-colors text-left group"
-              >
-                <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-sm">
-                  {db.icon || '📊'}
-                </div>
-                <span className="text-sm flex-1 truncate">{db.name}</span>
-              </button>
-            ))}
-          </div>
+        <div style={{ padding: '0 8px 8px' }}>
+          <div className="text-muted-foreground" style={{ padding: '6px 8px', fontSize: 12 }}>{tr('block.databases')}</div>
+          {suggestedDatabases.map((db) => (
+            <button
+              key={db.id}
+              onClick={() => onSelect(db.id)}
+              className="hover:bg-muted"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', background: 'none', textAlign: 'left' }}
+            >
+              <div className="bg-muted" style={{ width: 24, height: 24, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <DocumentIcon value={parseStoredIcon(db.icon)} size="sm" />
+              </div>
+              <span style={{ fontSize: 14, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{db.name}</span>
+            </button>
+          ))}
         </div>
       )}
 
-      {/* Loading state */}
       {isLoading && (
-        <div className="px-2 pb-2 space-y-1">
-          <div className="h-10 rounded bg-muted animate-pulse" />
-          <div className="h-10 rounded bg-muted animate-pulse" />
+        <div style={{ padding: '0 8px 8px' }}>
+          <div className="bg-muted animate-pulse" style={{ height: 40, borderRadius: 6, marginBottom: 4 }} />
+          <div className="bg-muted animate-pulse" style={{ height: 40, borderRadius: 6 }} />
         </div>
       )}
 
-      {/* More results */}
       {!isLoading && filteredDatabases.length > 3 && (
-        <div className="px-2 pb-2 border-t pt-2 max-h-48 overflow-y-auto">
-          <div className="text-xs text-muted-foreground px-2 py-1.5">{t('block.more')}</div>
-          <div className="space-y-0.5">
-            {filteredDatabases.slice(3).map((db) => (
-              <button
-                key={db.id}
-                onClick={() => onSelect(db.id)}
-                className="w-full flex items-center gap-3 px-2 py-2 rounded-md hover:bg-muted transition-colors text-left"
-              >
-                <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-sm">
-                  {db.icon || '📊'}
-                </div>
-                <span className="text-sm flex-1 truncate">{db.name}</span>
-              </button>
-            ))}
-          </div>
+        <div className="border-t" style={{ padding: '8px 8px', maxHeight: 192, overflowY: 'auto' }}>
+          <div className="text-muted-foreground" style={{ padding: '6px 8px', fontSize: 12 }}>{tr('block.more')}</div>
+          {filteredDatabases.slice(3).map((db) => (
+            <button
+              key={db.id}
+              onClick={() => onSelect(db.id)}
+              className="hover:bg-muted"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', background: 'none', textAlign: 'left' }}
+            >
+              <div className="bg-muted" style={{ width: 24, height: 24, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <DocumentIcon value={parseStoredIcon(db.icon)} size="sm" />
+              </div>
+              <span style={{ fontSize: 14, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{db.name}</span>
+            </button>
+          ))}
         </div>
       )}
 
-      {/* No results */}
       {searchQuery && filteredDatabases.length === 0 && !isLoading && (
-        <div className="px-4 py-6 text-center">
-          <p className="text-sm text-muted-foreground">{t('block.noDatabasesFound')}</p>
-          <Button size="sm" className="mt-2" onClick={onCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t('block.createWithName', { name: searchQuery })}
-          </Button>
+        <div style={{ padding: '24px 16px', textAlign: 'center' }}>
+          <p className="text-muted-foreground" style={{ fontSize: 14 }}>{tr('block.noDatabasesFound')}</p>
+          <button
+            className="bg-primary text-primary-foreground"
+            style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', fontSize: 14, borderRadius: 6, border: 'none', cursor: 'pointer' }}
+            onClick={onCreate}
+          >
+            <Plus className="h-4 w-4" />
+            {tr('block.createWithName', { name: searchQuery })}
+          </button>
         </div>
       )}
 
-      {/* Empty state */}
       {!isLoading && databases.length === 0 && !searchQuery && (
-        <div className="px-4 py-4 text-center border-t">
-          <FileSpreadsheet className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground mb-2">{t('block.noDatabasesYet')}</p>
-          <p className="text-xs text-muted-foreground">{t('block.createFirstDatabase')}</p>
+        <div className="border-t" style={{ padding: '16px', textAlign: 'center' }}>
+          <FileSpreadsheet className="h-8 w-8 text-muted-foreground" style={{ margin: '0 auto 8px' }} />
+          <p className="text-muted-foreground" style={{ fontSize: 14, marginBottom: 8 }}>{tr('block.noDatabasesYet')}</p>
+          <p className="text-muted-foreground" style={{ fontSize: 12 }}>{tr('block.createFirstDatabase')}</p>
         </div>
       )}
     </div>
   )
 }
 
-// Database block render component
-function DatabaseBlockRender({
+// ============================================================
+// Block Render Component (wrapped with QueryClientProvider)
+// ============================================================
+
+function DatabaseBlockRenderInner({
   block,
   editor,
   isEditable,
@@ -599,39 +710,15 @@ function DatabaseBlockRender({
     type: string
     props: {
       databaseId: string
-      showViewTabs: boolean
-      isLocked: boolean
-      rowLimit: number | null
-      selectedViewId: string | null
+      tableSize: string
+      showTitle: boolean
     }
   }
   editor: OpenBlockEditor
   isEditable: boolean
 }) {
-  const { t } = useTranslation('database')
-  const { databaseId, showViewTabs, isLocked, rowLimit, selectedViewId } = block.props
+  const { databaseId, tableSize, showTitle } = block.props
   const updateBlock = useUpdateBlock(editor, block.id)
-
-  // Build block settings object
-  const blockSettings: BlockSettings = {
-    showViewTabs: showViewTabs ?? false,
-    isLocked: isLocked ?? false,
-    rowLimit: rowLimit ?? null,
-    selectedViewId: selectedViewId ?? null,
-  }
-
-  // Handle settings change
-  const handleSettingsChange = useCallback(
-    (newSettings: BlockSettings) => {
-      updateBlock({
-        showViewTabs: newSettings.showViewTabs,
-        isLocked: newSettings.isLocked,
-        rowLimit: newSettings.rowLimit,
-        selectedViewId: newSettings.selectedViewId,
-      })
-    },
-    [updateBlock]
-  )
 
   // Listen for database created events
   useEffect(() => {
@@ -643,10 +730,7 @@ function DatabaseBlockRender({
 
     window.addEventListener('openblock:databaseCreated', handleDatabaseCreated as EventListener)
     return () => {
-      window.removeEventListener(
-        'openblock:databaseCreated',
-        handleDatabaseCreated as EventListener
-      )
+      window.removeEventListener('openblock:databaseCreated', handleDatabaseCreated as EventListener)
     }
   }, [block.id, updateBlock])
 
@@ -655,7 +739,6 @@ function DatabaseBlockRender({
   }
 
   const handleCreateDatabase = () => {
-    // Dispatch event to open create database modal
     window.dispatchEvent(
       new CustomEvent('openblock:createDatabase', {
         detail: { blockId: block.id },
@@ -666,7 +749,7 @@ function DatabaseBlockRender({
   if (!databaseId) {
     if (!isEditable) {
       return (
-        <div className="rounded-lg p-4 bg-muted/30 my-2 text-muted-foreground">
+        <div className="text-muted-foreground py-4">
           <div className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             <span className="text-sm">{t('block.notConfigured')}</span>
@@ -680,10 +763,32 @@ function DatabaseBlockRender({
   return (
     <InlineDatabaseView
       databaseId={databaseId}
-      isEditable={isEditable}
-      blockSettings={blockSettings}
-      onSettingsChange={handleSettingsChange}
+      tableSize={(tableSize || 'default') as TableSize}
+      showTitle={showTitle}
+      onTableSizeChange={(size) => updateBlock({ tableSize: size })}
+      onShowTitleChange={(show) => updateBlock({ showTitle: show })}
     />
+  )
+}
+
+// Wrapper that provides QueryClientProvider for the isolated React root
+function DatabaseBlockRender(props: {
+  block: {
+    id: string
+    type: string
+    props: {
+      databaseId: string
+      tableSize: string
+      showTitle: boolean
+    }
+  }
+  editor: OpenBlockEditor
+  isEditable: boolean
+}) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <DatabaseBlockRenderInner {...props} />
+    </QueryClientProvider>
   )
 }
 
@@ -693,10 +798,8 @@ export const DatabaseBlock = createReactBlockSpec(
     type: 'database',
     propSchema: {
       databaseId: { default: '' as string },
-      showViewTabs: { default: false as boolean },
-      isLocked: { default: false as boolean },
-      rowLimit: { default: null as number | null },
-      selectedViewId: { default: null as string | null },
+      tableSize: { default: 'default' as string },
+      showTitle: { default: true as boolean },
     },
     content: 'none',
   },

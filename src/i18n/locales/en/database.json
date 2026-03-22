@@ -289,6 +289,14 @@
     "createWithName": "Create \"{{name}}\"",
     "noDatabasesYet": "No databases yet",
     "createFirstDatabase": "Create your first database",
-    "notConfigured": "Database not configured"
+    "notConfigured": "Database not configured",
+    "new": "New",
+    "sizeDefault": "Default",
+    "sizeWide": "Wide",
+    "sizeFull": "Full width",
+    "showTitle": "Show title",
+    "source": "Source",
+    "display": "Display",
+    "size": "Size"
   }
 }

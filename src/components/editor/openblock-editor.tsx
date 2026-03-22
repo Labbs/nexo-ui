@@ -221,6 +221,15 @@ function EditorStyles() {
         padding: 0.5rem 0.75rem;
       }
 
+      /* Database block table: reset OpenBlock's td/th styles.
+         Individual cells use inline borderRight where needed (inline > CSS specificity). */
+      .openblock-editor-wrapper .database-table-view td,
+      .openblock-editor-wrapper .database-table-view th {
+        border: none;
+        padding: 0;
+        background: transparent;
+      }
+
       /* Placeholder text */
       .openblock-editor-wrapper .ob-placeholder::before {
         color: hsl(var(--muted-foreground));

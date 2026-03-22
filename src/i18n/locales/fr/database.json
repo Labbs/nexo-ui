@@ -289,6 +289,14 @@
     "createWithName": "Créer \"{{name}}\"",
     "noDatabasesYet": "Aucune base de données",
     "createFirstDatabase": "Créez votre première base de données",
-    "notConfigured": "Base de données non configurée"
+    "notConfigured": "Base de données non configurée",
+    "new": "Nouveau",
+    "sizeDefault": "Par défaut",
+    "sizeWide": "Large",
+    "sizeFull": "Pleine largeur",
+    "showTitle": "Afficher le titre",
+    "source": "Source",
+    "display": "Affichage",
+    "size": "Taille"
   }
 }
