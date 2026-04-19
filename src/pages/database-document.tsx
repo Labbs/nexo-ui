@@ -12,6 +12,7 @@ import {
   useUpdateRow,
   type PropertySchema,
 } from '@/hooks/use-database'
+import { useCollaboration } from '@/hooks/use-collaboration'
 
 // Content type for database document rows
 interface RowContent {
@@ -33,6 +34,12 @@ export function DatabaseDocumentPage() {
   const { data: database, isLoading: isLoadingDatabase } = useDatabase(databaseId)
   const { data: row, isLoading: isLoadingRow } = useRow(databaseId, rowId)
   const updateRow = useUpdateRow()
+
+  // Collaboration
+  const { plugins: collabPlugins, fragment: collabFragment } = useCollaboration({
+    roomId: databaseId && rowId ? `row:${databaseId}:${rowId}` : undefined,
+    enabled: true,
+  })
 
   // Track initialization for editor - we need to track which rowId was initialized
   // to handle the timing issue where the component remounts before effects run
@@ -257,6 +264,8 @@ export function DatabaseDocumentPage() {
         isFullWidth={isFullWidth}
         onSettingsClick={() => setIsSettingsSidebarOpen(true)}
         isInitialized={isInitialized}
+        collaborationPlugins={collabPlugins}
+        collaborationFragment={collabFragment}
       />
 
       {/* Settings Sidebar */}

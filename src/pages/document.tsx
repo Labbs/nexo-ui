@@ -19,6 +19,7 @@ import { Loader2, X, RotateCcw } from 'lucide-react'
 import type { IconValue } from '@/components/ui/icon-picker'
 import { parseStoredIcon, serializeIcon } from '@/lib/utils'
 import type { GetDocumentResponse, Favorite, Document as ApiDocument, DocumentConfig } from '@/api/generated/model'
+import { useCollaboration } from '@/hooks/use-collaboration'
 
 // The API may return GetDocumentResponse with an additional `id` field depending on the endpoint
 type DocumentResponse = GetDocumentResponse & { id?: string }
@@ -36,6 +37,13 @@ export function DocumentPage() {
   const { data: favorites = [] } = useFavorites()
   const { mutate: addFavorite } = useAddFavorite()
   const { mutate: removeFavorite } = useRemoveFavorite()
+
+  // Collaboration
+  const docIdForCollab = (rawDocument as DocumentResponse)?.id ?? (rawDocument as DocumentResponse)?.document
+  const { plugins: collabPlugins, fragment: collabFragment } = useCollaboration({
+    roomId: docIdForCollab ? `document:${docIdForCollab}` : undefined,
+    enabled: true,
+  })
 
   // Flag to skip state reset when slug changes due to title edit (same document)
   const slugChangedFromTitleEdit = useRef(false)
@@ -466,6 +474,8 @@ export function DocumentPage() {
         saveError={saveError}
         comparisonPanel={comparisonPanel}
         isInitialized={!!initializedDocId && initializedSlug === slug}
+        collaborationPlugins={collabPlugins}
+        collaborationFragment={collabFragment}
       />
 
       {/* Settings Sidebar */}
