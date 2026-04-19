@@ -1,9 +1,8 @@
 import axios from 'axios'
 
-// Utiliser l'URL complète pour le développement et production
-const API_BASE_URL = import.meta.env.DEV 
-  ? 'http://127.0.0.1:8080/api/v1' 
-  : '/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? (
+  import.meta.env.DEV ? 'http://127.0.0.1:8080/api/v1' : '/api/v1'
+)
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -55,9 +54,9 @@ apiClient.interceptors.response.use(
 )
 
 export const healthClient = axios.create({
-  baseURL: import.meta.env.DEV 
-    ? 'http://127.0.0.1:8080/api/health' 
-    : '/api/health',
+  baseURL: import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace('/api/v1', '/api/health')
+    : (import.meta.env.DEV ? 'http://127.0.0.1:8080/api/health' : '/api/health'),
   headers: {
     'Content-Type': 'application/json',
   },
