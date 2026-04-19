@@ -9,7 +9,10 @@ import {
   type Block,
 } from '@labbs/openblock-react'
 import { useTheme } from 'next-themes'
+import { prosemirrorToYXmlFragment } from 'y-prosemirror'
+import type { XmlFragment } from 'yjs'
 import { DatabaseBlock } from './database-block'
+import type { Plugin } from 'prosemirror-state'
 
 // Custom blocks array - add new custom blocks here
 const CUSTOM_BLOCKS = [DatabaseBlock]
@@ -36,6 +39,10 @@ interface OpenBlockEditorProps {
   onChange: (content: OpenBlockContent) => void
   editable?: boolean
   fullWidth?: boolean
+  /** Y.js collaboration plugins (from useCollaboration) */
+  collaborationPlugins?: Plugin[] | null
+  /** Y.js XML fragment (from useCollaboration) */
+  collaborationFragment?: XmlFragment | null
 }
 
 // Styles component to avoid duplication
@@ -198,15 +205,9 @@ function EditorStyles() {
         border: 1px solid hsl(var(--border));
       }
 
-      /* Side menu (drag handle) */
+      /* Side menu (drag handle) - visibility controlled by JS via ob-side-menu--visible class */
       .openblock-editor-wrapper .ob-side-menu {
-        opacity: 0;
         transition: opacity 150ms ease;
-      }
-
-      .openblock-editor-wrapper .ob-block:hover .ob-side-menu,
-      .openblock-editor-wrapper .ob-side-menu:hover {
-        opacity: 1;
       }
 
       /* Table styles */
@@ -282,6 +283,68 @@ function EditorStyles() {
       .openblock-editor-wrapper .ProseMirror .selected {
         background: transparent !important;
       }
+
+      /* Y.js collaboration — text selection highlight */
+      .openblock-editor-wrapper .ProseMirror-yjs-selection {
+        border-radius: 2px;
+      }
+
+      /* Cursor caret + avatar */
+      .openblock-editor-wrapper .y-collab-cursor {
+        position: relative;
+        display: inline-block;
+        width: 2px;
+        height: 1.15em;
+        vertical-align: text-bottom;
+        background-color: var(--collab-color, #999);
+        margin: 0 1px;
+        pointer-events: none;
+      }
+
+      .openblock-editor-wrapper .y-collab-avatar {
+        position: absolute;
+        left: 4px;
+        top: -1px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: var(--collab-color, #999);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        pointer-events: auto;
+        cursor: default;
+        z-index: 10;
+        line-height: 1;
+      }
+
+      /* Name tooltip on hover */
+      .openblock-editor-wrapper .y-collab-avatar::after {
+        content: attr(data-name);
+        position: absolute;
+        top: 50%;
+        left: calc(100% + 6px);
+        transform: translateY(-50%);
+        background-color: var(--collab-color, #999);
+        color: #fff;
+        padding: 2px 7px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        line-height: 1.4;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 120ms ease;
+      }
+
+      .openblock-editor-wrapper .y-collab-avatar:hover::after {
+        opacity: 1;
+      }
     `}</style>
   )
 }
@@ -292,11 +355,15 @@ function OpenBlockEditorInner({
   onChange,
   editable,
   fullWidth,
+  collaborationPlugins,
+  collaborationFragment,
 }: {
   initialContent: Block[] | undefined
   onChange: (content: OpenBlockContent) => void
   editable: boolean
   fullWidth: boolean
+  collaborationPlugins?: Plugin[] | null
+  collaborationFragment?: XmlFragment | null
 }) {
   const { resolvedTheme } = useTheme()
   const lastContentRef = useRef<string>(JSON.stringify(initialContent || []))
@@ -312,6 +379,32 @@ function OpenBlockEditorInner({
 
   // Get slash menu items from custom blocks
   const customSlashMenuItems = useCustomSlashMenuItems(editor, CUSTOM_BLOCKS)
+
+  // Enable/disable collaboration when plugins change
+  const collabEnabledRef = useRef(false)
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return
+
+    if (collaborationPlugins && collaborationPlugins.length > 0) {
+      if (!collabEnabledRef.current) {
+        // If the Y.Doc fragment is empty (new room, no persistence),
+        // populate it from the current ProseMirror doc BEFORE enabling collab.
+        // This prevents y-prosemirror's _forceRerender from wiping content
+        // and avoids the TextSelection RangeError on empty docs.
+        if (collaborationFragment && collaborationFragment.length === 0) {
+          prosemirrorToYXmlFragment(editor.pm.doc, collaborationFragment)
+        }
+
+        editor.enableCollaboration({ plugins: collaborationPlugins })
+        collabEnabledRef.current = true
+      }
+    } else {
+      if (collabEnabledRef.current) {
+        editor.disableCollaboration()
+        collabEnabledRef.current = false
+      }
+    }
+  }, [editor, collaborationPlugins, collaborationFragment])
 
   // Handle content changes
   const handleChange = useCallback(() => {
@@ -395,6 +488,8 @@ export function OpenBlockEditor({
   onChange,
   editable = true,
   fullWidth = false,
+  collaborationPlugins,
+  collaborationFragment,
 }: OpenBlockEditorProps) {
   const [isReady, setIsReady] = useState(false)
   const initialContentRef = useRef<Block[] | undefined>(undefined)
@@ -429,6 +524,8 @@ export function OpenBlockEditor({
       onChange={onChange}
       editable={editable}
       fullWidth={fullWidth}
+      collaborationPlugins={collaborationPlugins}
+      collaborationFragment={collaborationFragment}
     />
   )
 }

@@ -5,6 +5,8 @@ import { ContentHeader, type BreadcrumbItem } from '@/components/shared/content-
 import { Loader2 } from 'lucide-react'
 import type { PropertySchema } from '@/hooks/use-database'
 import type { IconValue } from '@/components/ui/icon-picker'
+import type { Plugin } from 'prosemirror-state'
+import type { XmlFragment } from 'yjs'
 
 // Types for document fields (from database schema)
 interface DocumentField {
@@ -55,6 +57,10 @@ interface DocumentEditorProps {
 
   // Editor readiness
   isInitialized?: boolean
+
+  // Collaboration
+  collaborationPlugins?: Plugin[] | null
+  collaborationFragment?: XmlFragment | null
 }
 
 export function DocumentEditor({
@@ -82,6 +88,8 @@ export function DocumentEditor({
   saveError,
   comparisonPanel,
   isInitialized = true,
+  collaborationPlugins,
+  collaborationFragment,
 }: DocumentEditorProps) {
   const { t } = useTranslation('document')
 
@@ -162,6 +170,8 @@ export function DocumentEditor({
               onChange={onContentChange}
               editable={isEditable}
               fullWidth={isFullWidth}
+              collaborationPlugins={collaborationPlugins}
+              collaborationFragment={collaborationFragment}
             />
           ) : (
             <div className="flex items-center justify-center h-full">
