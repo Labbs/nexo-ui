@@ -459,7 +459,7 @@ export function ViewTabs({
                               const isHidden = hiddenColumnIds.has(col.id || '')
                               return (
                                 <div key={col.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted cursor-pointer"
-                                  onClick={() => { if (col.id) { isHidden ? onShowColumn(col.id) : onHideColumn(col.id) } }}>
+                                  onClick={() => { if (col.id) { if (isHidden) { onShowColumn(col.id) } else { onHideColumn(col.id) } } }}>
                                   <span className={cn("text-sm", isHidden && "text-muted-foreground")}>{col.name}</span>
                                   {isHidden ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                                 </div>
