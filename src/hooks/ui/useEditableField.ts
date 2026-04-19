@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 /**
  * Hook for text input with local state during editing.
@@ -11,22 +11,23 @@ export function useEditableText(
   onEndEdit?: () => void
 ) {
   const [localValue, setLocalValue] = useState<string>('')
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Sync local value when entering edit mode
   useEffect(() => {
     if (isEditing) {
       setLocalValue((externalValue as string) || '')
     }
   }, [isEditing, externalValue])
 
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalValue(e.target.value)
   }, [])
 
   const handleBlur = useCallback(() => {
-    // Save the value when leaving edit mode
     onChange(localValue)
-    setTimeout(() => onEndEdit?.(), 50)
+    timerRef.current = setTimeout(() => onEndEdit?.(), 50)
   }, [localValue, onChange, onEndEdit])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -53,22 +54,23 @@ export function useEditableNumber(
   onEndEdit?: () => void
 ) {
   const [localValue, setLocalValue] = useState<string>('')
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Sync local value when entering edit mode
   useEffect(() => {
     if (isEditing) {
       setLocalValue(externalValue !== null && externalValue !== undefined ? String(externalValue) : '')
     }
   }, [isEditing, externalValue])
 
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalValue(e.target.value)
   }, [])
 
   const handleBlur = useCallback(() => {
-    // Save the value when leaving edit mode
     onChange(localValue ? Number(localValue) : null)
-    setTimeout(() => onEndEdit?.(), 50)
+    timerRef.current = setTimeout(() => onEndEdit?.(), 50)
   }, [localValue, onChange, onEndEdit])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

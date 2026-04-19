@@ -62,9 +62,11 @@ function buildCursor(user: { name?: string; color?: string }): HTMLElement {
   return wrap
 }
 
-const DEFAULT_WS_URL = import.meta.env.VITE_COLLAB_WS_URL || (
-  import.meta.env.DEV ? 'ws://127.0.0.1:8080/ws/collab' : `ws://${window.location.host}/ws/collab`
-)
+const DEFAULT_WS_URL = import.meta.env.VITE_COLLAB_WS_URL || (() => {
+  if (import.meta.env.DEV) return 'ws://127.0.0.1:8080/ws/collab'
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  return `${proto}//${window.location.host}/ws/collab`
+})()
 
 export function useCollaboration({
   roomId,

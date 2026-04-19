@@ -1,5 +1,3 @@
-// Formula evaluation utilities
-
 export interface ColumnRef {
   id: string
   title: string
@@ -11,9 +9,86 @@ export interface FormulaResult {
   error?: string
 }
 
+// Safe recursive-descent parser — no eval() or Function() constructor.
+function safeEval(expr: string): number {
+  expr = expr.replace(/\s+/g, '')
+  let pos = 0
+
+  function parseExpr(): number { return parseAddSub() }
+
+  function parseAddSub(): number {
+    let left = parseMulDiv()
+    while (pos < expr.length && (expr[pos] === '+' || expr[pos] === '-')) {
+      const op = expr[pos++]
+      const right = parseMulDiv()
+      left = op === '+' ? left + right : left - right
+    }
+    return left
+  }
+
+  function parseMulDiv(): number {
+    let left = parseUnary()
+    while (pos < expr.length && (expr[pos] === '*' || expr[pos] === '/')) {
+      const op = expr[pos++]
+      const right = parseUnary()
+      if (op === '/') {
+        if (right === 0) throw new Error('division by zero')
+        left = left / right
+      } else {
+        left = left * right
+      }
+    }
+    return left
+  }
+
+  function parseUnary(): number {
+    if (pos < expr.length && expr[pos] === '-') { pos++; return -parsePrimary() }
+    if (pos < expr.length && expr[pos] === '+') { pos++; return parsePrimary() }
+    return parsePrimary()
+  }
+
+  function parsePrimary(): number {
+    if (pos < expr.length && expr[pos] === '(') {
+      pos++
+      const val = parseExpr()
+      if (pos >= expr.length || expr[pos] !== ')') throw new Error("missing ')'")
+      pos++
+      return val
+    }
+    const start = pos
+    if (pos < expr.length && (expr[pos] === '-' || expr[pos] === '+')) pos++
+    while (pos < expr.length && (expr[pos] >= '0' && expr[pos] <= '9' || expr[pos] === '.')) pos++
+    if (pos === start) throw new Error(`unexpected token at ${pos}`)
+    const n = parseFloat(expr.slice(start, pos))
+    if (isNaN(n)) throw new Error('invalid number')
+    return n
+  }
+
+  const result = parseExpr()
+  if (pos !== expr.length) throw new Error(`unexpected character '${expr[pos]}' at ${pos}`)
+  return result
+}
+
+function safeEvalCondition(expr: string): boolean {
+  const m = expr.replace(/\s+/g, '').match(/^(.+?)(>=|<=|==|!=|>|<)(.+)$/)
+  if (m) {
+    const l = safeEval(m[1]), r = safeEval(m[3])
+    switch (m[2]) {
+      case '>':  return l > r
+      case '<':  return l < r
+      case '>=': return l >= r
+      case '<=': return l <= r
+      case '==': return l === r
+      case '!=': return l !== r
+    }
+  }
+  return safeEval(expr) !== 0
+}
+
 /**
- * Evaluate a formula expression
- * Supports: column references (prop("column_id")), basic math (+, -, *, /), and functions
+ * Evaluate a formula expression.
+ * Supports: prop("column_id"), basic math (+, -, *, /), and IF/ABS/ROUND/MIN/MAX.
+ * Does NOT use eval() or Function() — fully safe against code injection.
  */
 export function evaluateFormula(
   formula: string,
@@ -23,9 +98,8 @@ export function evaluateFormula(
   if (!formula) return { value: null }
 
   try {
-    // Replace prop("column_id") or prop("column_name") with actual values
+    // Replace prop("column_id") with numeric values
     let expression = formula.replace(/prop\s*\(\s*["']([^"']+)["']\s*\)/g, (_, ref) => {
-      // Try to find column by id first, then by name
       const col = columns.find(c => c.id === ref || c.title === ref)
       if (!col) return '0'
       const val = row[col.id]
@@ -36,72 +110,46 @@ export function evaluateFormula(
       return isNaN(num) ? '0' : String(num)
     })
 
-    // Handle built-in functions
-    // IF(condition, then, else)
+    // IF(condition, thenVal, elseVal)
     expression = expression.replace(
       /IF\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/gi,
       (_, cond, thenVal, elseVal) => {
-        try {
-          // Simple condition evaluation (supports >, <, >=, <=, ==, !=)
-          const condResult = Function('"use strict"; return (' + cond + ')')()
-          return condResult ? thenVal : elseVal
-        } catch {
-          return '0'
-        }
+        try { return safeEvalCondition(cond) ? thenVal : elseVal } catch { return '0' }
       }
     )
 
     // ABS(value)
     expression = expression.replace(/ABS\s*\(\s*([^)]+)\s*\)/gi, (_, val) => {
-      try {
-        const num = Function('"use strict"; return (' + val + ')')()
-        return String(Math.abs(num))
-      } catch {
-        return '0'
-      }
+      try { return String(Math.abs(safeEval(val))) } catch { return '0' }
     })
 
-    // ROUND(value, decimals)
-    expression = expression.replace(/ROUND\s*\(\s*([^,]+)\s*,?\s*([^)]*)\s*\)/gi, (_, val, dec) => {
+    // ROUND(value, decimals?)
+    expression = expression.replace(/ROUND\s*\(\s*([^,)]+)\s*,?\s*([^)]*)\s*\)/gi, (_, val, dec) => {
       try {
-        const num = Function('"use strict"; return (' + val + ')')()
-        const decimals = dec ? parseInt(dec) : 0
-        return String(Number(num.toFixed(decimals)))
-      } catch {
-        return '0'
-      }
+        const n = safeEval(val)
+        const d = dec ? parseInt(dec, 10) : 0
+        return String(Number(n.toFixed(isNaN(d) ? 0 : d)))
+      } catch { return '0' }
     })
 
     // MIN(a, b, ...)
     expression = expression.replace(/MIN\s*\(\s*([^)]+)\s*\)/gi, (_, args) => {
       try {
-        const values = args.split(',').map((v: string) => Function('"use strict"; return (' + v.trim() + ')')())
-        return String(Math.min(...values))
-      } catch {
-        return '0'
-      }
+        const vals = args.split(',').map((v: string) => safeEval(v.trim()))
+        return String(Math.min(...vals))
+      } catch { return '0' }
     })
 
     // MAX(a, b, ...)
     expression = expression.replace(/MAX\s*\(\s*([^)]+)\s*\)/gi, (_, args) => {
       try {
-        const values = args.split(',').map((v: string) => Function('"use strict"; return (' + v.trim() + ')')())
-        return String(Math.max(...values))
-      } catch {
-        return '0'
-      }
+        const vals = args.split(',').map((v: string) => safeEval(v.trim()))
+        return String(Math.max(...vals))
+      } catch { return '0' }
     })
 
-    // Evaluate the final expression (basic math only)
-    // Security: only allow numbers, operators, parentheses, and whitespace
-    if (!/^[\d\s+\-*/.()]+$/.test(expression)) {
-      return { value: null, error: 'Invalid formula' }
-    }
-
-    const result = Function('"use strict"; return (' + expression + ')')()
-    if (typeof result === 'number' && !isNaN(result)) {
-      return { value: result }
-    }
+    const result = safeEval(expression)
+    if (!isNaN(result)) return { value: result }
     return { value: null, error: 'Invalid result' }
   } catch (e) {
     return { value: null, error: String(e) }
