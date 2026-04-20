@@ -29,6 +29,10 @@
     "submitting": "Changing...",
     "mismatch": "Passwords do not match"
   },
+  "sso": {
+    "title": "Single Sign-On",
+    "description": "This account is linked to the following SSO providers."
+  },
   "preferences": {
     "title": "Preferences",
     "description": "Customize your experience.",
