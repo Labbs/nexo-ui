@@ -18,6 +18,7 @@ import '@/i18n'
 // Lazy-loaded pages — only loaded when the route is visited
 const LoginPage = lazy(() => import('@/pages/login').then(m => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/pages/register').then(m => ({ default: m.RegisterPage })))
+const SSOCallbackPage = lazy(() => import('@/pages/sso-callback').then(m => ({ default: m.SSOCallbackPage })))
 const HomePage = lazy(() => import('@/pages/home').then(m => ({ default: m.HomePage })))
 const DocumentPage = lazy(() => import('@/pages/document').then(m => ({ default: m.DocumentPage })))
 const DatabasePage = lazy(() => import('@/pages/database').then(m => ({ default: m.DatabasePage })))
@@ -50,6 +51,7 @@ function App() {
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/auth/callback" element={<SSOCallbackPage />} />
                 <Route
                   path="/"
                   element={

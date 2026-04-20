@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { User, Mail, Lock, Globe, Moon, Sun, Monitor, Languages } from 'lucide-react'
+import { User, Mail, Lock, Globe, Moon, Sun, Monitor, Languages, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ const TIMEZONES = [
 
 export function ProfileSettings() {
   const { user } = useAuth()
+  const ssoProviders = (user as (typeof user & { sso_providers?: string[] }))?.sso_providers ?? []
   const { theme, setTheme } = useTheme()
   const { t } = useTranslation('settings')
   const { language, setLanguage, isChangingLanguage } = useLanguage()
@@ -197,6 +199,30 @@ export function ProfileSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* SSO / Authentication */}
+      {ssoProviders.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5" />
+              {t('sso.title')}
+            </CardTitle>
+            <CardDescription>
+              {t('sso.description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {ssoProviders.map(provider => (
+                <Badge key={provider} variant="secondary" className="capitalize">
+                  {provider}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Preferences */}
       <Card>

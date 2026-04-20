@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/auth-context'
+import { apiClient } from '@/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -10,9 +11,29 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isSSOLoading, setIsSSOLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { t } = useTranslation('auth')
+
+  useEffect(() => {
+    if (searchParams.get('error') === 'sso_failed') {
+      setError('SSO login failed. Please try again.')
+    }
+  }, [searchParams])
+
+  const handleSSOLogin = async () => {
+    setError('')
+    setIsSSOLoading(true)
+    try {
+      const response = await apiClient.get<{ url: string }>('/auth/sso/redirect')
+      window.location.href = response.data.url
+    } catch {
+      setError('Could not reach SSO provider. Please try again.')
+      setIsSSOLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,6 +100,22 @@ export function LoginPage() {
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? t('login.submitting') : t('login.submit')}
+          </Button>
+
+          <div className="relative flex items-center gap-3">
+            <div className="flex-1 border-t border-border" />
+            <span className="text-xs text-muted-foreground">{t('login.orDivider')}</span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleSSOLogin}
+            disabled={isSSOLoading}
+          >
+            {t('login.ssoButton')}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
