@@ -25,6 +25,7 @@ import {
 import { SpaceContentDocs } from './space-content-docs'
 import { SpaceContentProjects } from './space-content-projects'
 import { EditSpaceModal } from '@/components/spaces/edit-space-modal'
+import { TemplatePickerModal } from '@/components/document/template-picker-modal'
 import { cn, parseStoredIcon } from '@/lib/utils'
 import { DocumentIcon, isEmoji } from '@/components/ui/icon-picker'
 
@@ -71,8 +72,9 @@ export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
   const { currentSpace, setCurrentSpace } = useCurrentSpace()
   const { activeApp } = useActiveApp()
   const { isSpaceExpanded, toggleSpaceExpanded } = useSidebarUI()
-  const { handleCreateDocument, handleCreateDrawing, handleCreateDatabase } = useCreateContent(space.id)
+  const { handleCreateDrawing, handleCreateDatabase } = useCreateContent(space.id)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
 
   const spaceId = space.id || ''
   const expanded = isSpaceExpanded(spaceId)
@@ -157,7 +159,7 @@ export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem onClick={() => handleCreateDocument()}>
+                <DropdownMenuItem onClick={() => setTemplatePickerOpen(true)}>
                   <FileText className="h-4 w-4 mr-2" />
                   {t('sidebar.newDocument')}
                 </DropdownMenuItem>
@@ -204,6 +206,13 @@ export const SpaceItem = memo(function SpaceItem({ space }: SpaceItemProps) {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         space={space}
+      />
+
+      {/* Template picker modal */}
+      <TemplatePickerModal
+        open={templatePickerOpen}
+        onOpenChange={setTemplatePickerOpen}
+        spaceId={spaceId}
       />
     </div>
   )

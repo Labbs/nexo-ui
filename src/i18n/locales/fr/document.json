@@ -61,7 +61,22 @@
         "deleteLabel": "Supprimer ce dessin",
         "defaultName": "Dessin sans titre"
       }
-    }
+    },
+    "saveAsTemplate": "Enregistrer comme modèle",
+    "removeTemplate": "Retirer des modèles",
+    "templateCategory": "Catégorie",
+    "templateCategoryPlaceholder": "ex. Réunion, Projet...",
+    "templateSaved": "Enregistré comme modèle",
+    "templateRemoved": "Retiré des modèles"
+  },
+  "templates": {
+    "pickerTitle": "Nouveau document",
+    "blankDocument": "Document vierge",
+    "blankDescription": "Commencer avec une page vide",
+    "empty": "Aucun modèle disponible dans cet espace",
+    "uncategorized": "Autre",
+    "cancel": "Annuler",
+    "createError": "Échec de la création du document"
   },
   "permissions": {
     "title": "Permissions",

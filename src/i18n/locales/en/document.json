@@ -61,7 +61,22 @@
         "deleteLabel": "Delete this drawing",
         "defaultName": "Untitled Drawing"
       }
-    }
+    },
+    "saveAsTemplate": "Save as template",
+    "removeTemplate": "Remove template",
+    "templateCategory": "Category",
+    "templateCategoryPlaceholder": "e.g. Meeting, Project...",
+    "templateSaved": "Saved as template",
+    "templateRemoved": "Removed from templates"
+  },
+  "templates": {
+    "pickerTitle": "New document",
+    "blankDocument": "Blank document",
+    "blankDescription": "Start with an empty page",
+    "empty": "No templates available in this space",
+    "uncategorized": "Other",
+    "cancel": "Cancel",
+    "createError": "Failed to create document"
   },
   "permissions": {
     "title": "Permissions",
